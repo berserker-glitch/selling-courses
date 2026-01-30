@@ -5,12 +5,12 @@ import { sessionStore } from '@/lib/store';
 import { db, Course, Video } from '@/lib/mock-db';
 import { useRouter } from 'next/navigation';
 import { DashboardNavbar } from '@/components/layout/DashboardNavbar';
-import { Play, Clock, ChevronLeft } from 'lucide-react';
+import { Play, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function CoursePage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
-    const { id } = use(params); // Next.js 15+ convention for async params
+    const { id } = use(params);
     const [course, setCourse] = useState<Course | null>(null);
     const [videos, setVideos] = useState<Video[]>([]);
     const user = sessionStore.getUser();
@@ -35,36 +35,41 @@ export default function CoursePage({ params }: { params: Promise<{ id: string }>
     if (!user || !course) return null;
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background text-foreground">
             <DashboardNavbar />
 
             {/* Hero Section */}
-            <div className="relative h-64 md:h-80 overflow-hidden">
+            <header className="relative h-64 md:h-80 overflow-hidden">
                 <div className="absolute inset-0 bg-image bg-cover bg-center" style={{ backgroundImage: `url(${course.thumbnailUrl})` }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
 
                 <div className="absolute inset-0 flex flex-col justify-end max-w-7xl mx-auto px-4 pb-8">
                     <button
                         onClick={() => router.back()}
-                        className="absolute top-8 left-4 flex items-center text-sm font-medium text-white/70 hover:text-white transition-colors"
+                        className="absolute top-8 left-4 flex items-center text-sm font-medium text-white/70 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-white rounded-md p-1"
+                        aria-label="Back to Dashboard"
                     >
                         <ChevronLeft className="w-4 h-4 mr-1" />
                         Back to Dashboard
                     </button>
 
                     <span className="text-primary font-bold text-sm tracking-wider uppercase mb-2">Course Material</span>
-                    <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">{course.title}</h1>
+                    <h1 className="heading-xl text-4xl md:text-5xl mb-4">{course.title}</h1>
                     <p className="text-muted-foreground max-w-2xl text-lg">{course.description}</p>
                 </div>
-            </div>
+            </header>
 
             <main className="max-w-7xl mx-auto px-4 py-8">
-                <div className="space-y-4">
+                <section aria-label="Course Lessons" className="space-y-4">
                     {videos.map((video, index) => (
-                        <div
+                        <article
                             key={video.id}
                             onClick={() => router.push(`/watch/${video.id}`)}
-                            className="group flex flex-col md:flex-row items-center p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all cursor-pointer"
+                            className="glass-card group flex flex-col md:flex-row items-center p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card hover:border-primary/20 cursor-pointer focus-visible:ring-4 focus-visible:ring-primary focus-visible:outline-none"
+                            tabIndex={0}
+                            role="button"
+                            onKeyDown={(e) => { if (e.key === 'Enter') router.push(`/watch/${video.id}`); }}
+                            aria-label={`Play lesson ${index + 1}: ${video.title}`}
                         >
                             <div className="relative w-full md:w-48 aspect-video rounded-lg overflow-hidden bg-muted flex-shrink-0 mb-4 md:mb-0 md:mr-6 group-hover:ring-2 ring-primary/50 transition-all">
                                 {/* Thumbnail placeholder */}
@@ -85,13 +90,13 @@ export default function CoursePage({ params }: { params: Promise<{ id: string }>
                             </div>
 
                             <div className="md:ml-auto flex items-center text-muted-foreground group-hover:text-foreground transition-colors">
-                                <div className="w-10 h-10 rounded-full border border-border flex items-center justify-center group-hover:bg-primary group-hover:border-primary group-hover:text-white transition-all">
+                                <div className="w-10 h-10 rounded-full border border-border flex items-center justify-center group-hover:bg-primary group-hover:border-primary group-hover:text-white transition-all shadow-sm">
                                     <Play className="w-4 h-4 ml-0.5" />
                                 </div>
                             </div>
-                        </div>
+                        </article>
                     ))}
-                </div>
+                </section>
             </main>
         </div>
     );
