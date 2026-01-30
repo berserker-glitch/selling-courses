@@ -11,14 +11,12 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import {
   Search,
   Plus,
-  Edit,
   Trash2,
   Play,
   Users,
   Clock,
   BookOpen,
-  MoreVertical,
-  Settings
+  MoreVertical
 } from 'lucide-react';
 import { Course, Lesson, Student } from '@/lib/mock-data';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -195,7 +193,7 @@ export function CourseManagement({
               <TableHead>Lessons</TableHead>
               <TableHead>Students</TableHead>
               <TableHead>Avg. Progress</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -204,7 +202,14 @@ export function CourseManagement({
               const avgProgress = getAverageProgress(course.id);
 
               return (
-                <TableRow key={course.id}>
+                <TableRow
+                  key={course.id}
+                  onClick={() => {
+                    setSelectedCourseId(course.id);
+                    setManagingCourse(course);
+                  }}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                >
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-xl text-primary">
@@ -244,31 +249,7 @@ export function CourseManagement({
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
 
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => {
-                            setSelectedCourseId(course.id);
-                            setManagingCourse(course);
-                          }}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Manage Content
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDeleteCourse(course.id)}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Course
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TableCell>
                 </TableRow>
               );
             })}
@@ -351,6 +332,19 @@ export function CourseManagement({
                     ))}
                   </div>
                 )}
+              </div>
+              <div className="flex space-x-3 border-t pt-5 mt-8">
+                <Button
+                  variant="destructive"
+                  className="flex-1 shadow-sm"
+                  onClick={() => {
+                    onDeleteCourse(managingCourse.id);
+                    setManagingCourse(null);
+                  }}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Course
+                </Button>
               </div>
             </>
           )}

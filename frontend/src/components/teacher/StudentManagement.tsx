@@ -13,12 +13,10 @@ import {
   Plus,
   Mail,
   Calendar,
-  Trash2,
-  Eye,
-  MoreVertical
+  Trash2
 } from 'lucide-react';
 import { Student, Course } from '@/lib/mock-data';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
 
 interface StudentManagementProps {
   students: Student[];
@@ -160,7 +158,7 @@ export function StudentManagement({
               <TableHead>Join Date</TableHead>
               <TableHead>Courses</TableHead>
               <TableHead>Progress</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -168,7 +166,11 @@ export function StudentManagement({
               const stats = getStudentStats(student);
 
               return (
-                <TableRow key={student.id}>
+                <TableRow
+                  key={student.id}
+                  onClick={() => handleViewStudent(student)}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                >
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <Avatar className="w-8 h-8">
@@ -197,28 +199,7 @@ export function StudentManagement({
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewStudent(student)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => onDeleteStudent(student.id)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Remove Student
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+
                 </TableRow>
               );
             })}
