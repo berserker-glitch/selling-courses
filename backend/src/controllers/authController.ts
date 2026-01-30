@@ -212,3 +212,37 @@ export const getUsers = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching users' });
     }
 };
+// --- Category Enrollment ---
+
+export const enrollStudentInCategory = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        if (user.role !== 'TEACHER' && user.role !== 'ADMIN') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        const { studentId, categoryId } = req.body;
+
+        if (!studentId || !categoryId) {
+            return res.status(400).json({ message: 'Student ID and Category ID are required' });
+        }
+
+        // Verify student exists
+        const student = await prisma.user.findUnique({ where: { id: studentId } });
+        if (!student) return res.status(404).json({ message: 'Student not found' });
+
+        // Connect category
+        await prisma.user.update({
+            where: { id: studentId },
+            data: {
+                enrolledCategories: {
+                    connect: { id: categoryId }
+                }
+            }
+        });
+
+        res.json({ message: 'Student enrolled in category successfully' });
+    } catch (error: any) {
+        res.status(400).json({ message: error.message || 'Error enrolling student' });
+    }
+};

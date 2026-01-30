@@ -9,5 +9,6 @@ router.post('/login', login);
 router.get('/me', protect, getMe);
 router.post('/create-student', protect, createStudent);
 router.get('/users', protect, getUsers);
+router.post('/enroll-category', protect, enrollStudentInCategory);
 
 export default router;

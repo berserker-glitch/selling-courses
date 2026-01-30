@@ -52,9 +52,12 @@ app.get('/health', (req, res) => {
 // Routes
 import authRoutes from './routes/authRoutes';
 import courseRoutes from './routes/courseRoutes';
+import categoryRoutes from './routes/categoryRoutes';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/categories', categoryRoutes);
+
 import progressRoutes from './routes/progressRoutes';
 app.use('/api', progressRoutes); // Mounts at /api/lessons/... and /api/courses/.../progress
 

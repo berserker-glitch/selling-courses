@@ -9,7 +9,7 @@ const createCourseSchema = z.object({
     title: z.string().min(3),
     description: z.string().min(10),
     thumbnail: z.string().optional(),
-    category: z.string()
+    categoryId: z.string().uuid("Invalid Category ID") // Expect ID now
 });
 
 const lessonSchema = z.object({
@@ -26,16 +26,15 @@ export const getCourses = async (req: Request, res: Response) => {
         const courses = await prisma.course.findMany({
             include: {
                 teacher: { select: { name: true, email: true } },
+                category: true, // Include category details
                 lessons: true,
                 _count: { select: { lessons: true, enrollments: true } }
             }
         });
 
-        // Provide simplified data usually, or full data? 
-        // Matching frontend expectations (from mock-data):
-        // id, title, description, thumbnail, category, enrolledStudents, lessons (count?)
-
-        // Transform to match frontend interface potentially, or just return as is.
+        // Map to flat structure if needed, or frontend can handle course.category.name
+        // For backward compatibility (if frontend expects course.category to be a string), we might map it.
+        // But usually better to update frontend. Let's send full object.
 
         res.json(courses);
     } catch (error) {
@@ -51,6 +50,7 @@ export const getCourseById = async (req: Request, res: Response) => {
             include: {
                 lessons: { orderBy: { order: 'asc' } },
                 teacher: { select: { name: true } },
+                category: true,
                 _count: { select: { enrollments: true } }
             }
         });
@@ -74,10 +74,20 @@ export const createCourse = async (req: Request, res: Response) => {
 
         const data = createCourseSchema.parse(req.body);
 
+        // Fetch category name for fallback if needed, or just link
+        // const category = await prisma.category.findUnique({ where: { id: data.categoryId } });
+
         const course = await prisma.course.create({
             data: {
-                ...data,
+                title: data.title,
+                description: data.description,
+                thumbnail: data.thumbnail,
+                categoryId: data.categoryId,
                 teacherId: user.id
+            },
+            include: {
+                category: true, // Return with category loaded
+                lessons: true
             }
         });
 
@@ -85,10 +95,12 @@ export const createCourse = async (req: Request, res: Response) => {
     } catch (error: any) {
         if (error instanceof z.ZodError) {
             // Explicitly cast to any to handle Zod version type mismatches
-            const validationError = error as any;
-            const issues = validationError.errors || validationError.issues || [];
+            const zodError = error as any;
+            const issues = zodError.errors || zodError.issues || [];
             console.log('Validation Error:', issues);
-            return res.status(400).json({ message: issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ') });
+            return res.status(400).json({
+                message: issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ')
+            });
         }
         console.error('Create Course Error:', error);
         res.status(400).json({ message: error.message || 'Error creating course' });

@@ -67,7 +67,7 @@ export function CourseManagement({
 
   const filteredCourses = courses.filter(course =>
     course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.category.toLowerCase().includes(searchTerm.toLowerCase())
+    (course.category?.name || 'Uncategorized').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleAddCourse = (e: React.FormEvent) => {
@@ -223,13 +223,13 @@ export function CourseManagement({
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary" className="font-medium">
-                      {course.category}
+                      {course.category?.name || 'Uncategorized'}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2 text-sm text-foreground/80">
                       <BookOpen className="h-4 w-4 text-muted-foreground" />
-                      {course.lessons.length}
+                      {course.lessons?.length || 0}
                     </div>
                   </TableCell>
                   <TableCell>

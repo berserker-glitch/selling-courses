@@ -6,6 +6,12 @@ export interface User {
     avatar?: string;
 }
 
+export interface Category {
+    id: string;
+    name: string;
+    description?: string;
+}
+
 export interface Lesson {
     id: string;
     title: string;
@@ -24,7 +30,8 @@ export interface Course {
     lessons: Lesson[];
     progress?: number;
     enrolledStudents?: number;
-    category: string;
+    categoryId?: string;
+    category?: Category;
     teacherId?: string;
 }
 
@@ -32,7 +39,8 @@ export interface Student {
     id: string;
     name: string;
     email: string;
-    enrolledCourses: string[];
+    enrolledCourses: string[]; // Keep for specific overrides?
+    enrolledCategories?: string[]; // New
     progress: Record<string, number>;
     joinDate: string;
 }

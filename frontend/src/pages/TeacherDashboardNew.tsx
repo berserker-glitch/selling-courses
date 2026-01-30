@@ -73,7 +73,7 @@ export default function TeacherDashboardNew() {
   const handleAddCourse = async (courseData: Omit<Course, 'id'>) => {
     try {
       const { data } = await api.post('/courses', courseData);
-      setCourses([...courses, data]);
+      setCourses([...courses, { ...data, lessons: [] }]);
       toast({
         title: "Course created!",
         description: `${data.title} has been added successfully.`,

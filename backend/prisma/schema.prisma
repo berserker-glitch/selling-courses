@@ -17,10 +17,22 @@ model User {
   updatedAt DateTime @updatedAt
 
   enrollments Enrollment[]
+  enrolledCategories Category[] @relation("StudentCategories")
   sessions    Session[]
   auditLogs   AuditLog[]
   lessonProgress LessonProgress[]
   courses     Course[]     @relation("TeacherCourses")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  courses     Course[]
+  students    User[]   @relation("StudentCategories")
 }
 
 model Course {
@@ -28,7 +40,12 @@ model Course {
   title       String
   description String   @db.Text
   thumbnail   String?
-  category    String
+  
+  // Changed from string to relation
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  categoryName String?  // Temporary field to keep old data accessible if needed/fallback
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
