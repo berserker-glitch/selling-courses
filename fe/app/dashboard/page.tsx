@@ -6,6 +6,7 @@ import { db, Course } from '@/lib/mock-db';
 import { useRouter } from 'next/navigation';
 import { DashboardNavbar } from '@/components/layout/DashboardNavbar';
 import { PlayCircle, Lock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function StudentDashboard() {
     const router = useRouter();
@@ -26,21 +27,25 @@ export default function StudentDashboard() {
     if (!user) return null;
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background text-foreground">
             <DashboardNavbar />
 
             <main className="max-w-7xl mx-auto px-4 py-8">
                 <header className="mb-8">
-                    <h1 className="text-3xl font-bold mb-2">My Courses</h1>
-                    <p className="text-muted-foreground">Continue your learning journey.</p>
+                    <h1 className="heading-xl mb-4 text-3xl md:text-5xl">My Courses</h1>
+                    <p className="text-muted-foreground text-lg">Continue your learning journey.</p>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <section aria-label="Course List" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {courses.map(course => (
-                        <div
+                        <article
                             key={course.id}
                             onClick={() => router.push(`/course/${course.id}`)}
-                            className="glass-card group cursor-pointer overflow-hidden border border-border/50 bg-card hover:border-primary/50"
+                            className="glass-card group cursor-pointer overflow-hidden border border-border/50 bg-card hover:border-primary/50 focus-visible:ring-4 focus-visible:ring-primary focus-visible:outline-none"
+                            tabIndex={0}
+                            role="button"
+                            onKeyDown={(e) => { if (e.key === 'Enter') router.push(`/course/${course.id}`); }}
+                            aria-label={`View course: ${course.title}`}
                         >
                             <div className="aspect-video relative overflow-hidden">
                                 <div className="absolute inset-0 bg-image bg-cover bg-center transition-transform duration-500 group-hover:scale-110" style={{ backgroundImage: `url(${course.thumbnailUrl})` }} />
@@ -61,27 +66,31 @@ export default function StudentDashboard() {
                             </div>
 
                             <div className="p-4">
-                                <p className="text-sm text-muted-foreground line-clamp-2">{course.description}</p>
+                                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{course.description}</p>
 
-                                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                                <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border/50 pt-4">
                                     <div className="flex items-center space-x-1">
                                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                                         <span>Active Access</span>
                                     </div>
-                                    <span>ID: {course.id}</span>
+                                    <span className="font-mono opacity-50">ID: {course.id}</span>
                                 </div>
                             </div>
-                        </div>
+                        </article>
                     ))}
 
                     {courses.length === 0 && (
-                        <div className="col-span-full py-12 text-center border-2 border-dashed border-border rounded-xl">
-                            <Lock className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                            <h3 className="text-lg font-medium">No Active Courses</h3>
-                            <p className="text-muted-foreground text-sm">Contact your administrator to enroll in courses.</p>
+                        <div className="col-span-full py-16 text-center border-2 border-dashed border-border rounded-xl bg-card/50">
+                            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                                <Lock className="w-8 h-8 text-muted-foreground opacity-50" />
+                            </div>
+                            <h3 className="text-lg font-bold mb-2">No Active Courses</h3>
+                            <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                                You are not currently enrolled in any courses. Please contact your administrator to request access.
+                            </p>
                         </div>
                     )}
-                </div>
+                </section>
             </main>
         </div>
     );
