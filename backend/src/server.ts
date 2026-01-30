@@ -19,7 +19,9 @@ const allowedOrigins = [
     process.env.FRONTEND_URL || 'http://localhost:5173',
     'http://localhost:5173',
     'http://localhost:5174',
-    'http://localhost:8080'
+    'http://localhost:8080',
+    'http://192.168.1.102:8080', // LAN Access
+    'http://192.168.1.102:5173'
 ];
 
 app.use(helmet());

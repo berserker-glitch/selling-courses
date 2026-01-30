@@ -24,7 +24,14 @@ export default function CourseDetail() {
     const navigate = useNavigate();
     const [course, setCourse] = useState<Course | null>(null);
     const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Default open on desktop
+    const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
+
+    const matchIsMobile = () => window.innerWidth <= 1024;
+
+    // ...
+
+    // In Lesson map:
+    // onClick={() => { !isLocked && setActiveLesson(lesson); if (matchIsMobile()) setIsSidebarOpen(false); }}
 
     const [user, setUser] = useState<any>(null);
 
@@ -88,6 +95,12 @@ export default function CourseDetail() {
             </div>
 
             {/* Sidebar - Lesson List */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
             <aside
                 className={cn(
                     "fixed inset-y-0 left-0 z-40 w-80 transform border-r border-slate-200 bg-white/60 backdrop-blur-xl transition-transform duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-950/60 lg:relative lg:translate-x-0 pt-16 lg:pt-0",
