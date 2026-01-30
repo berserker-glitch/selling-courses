@@ -31,7 +31,8 @@ export const createCategory = async (req: Request, res: Response) => {
         res.status(201).json(category);
     } catch (error: any) {
         if (error instanceof z.ZodError) {
-            return res.status(400).json({ message: error.errors[0].message });
+            const issues = (error as any).errors || (error as any).issues;
+            return res.status(400).json({ message: issues[0]?.message || "Validation Error" });
         }
         res.status(400).json({ message: "Error creating category. Name might be duplicate." });
     }
@@ -40,7 +41,7 @@ export const createCategory = async (req: Request, res: Response) => {
 export const deleteCategory = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        await prisma.category.delete({ where: { id } });
+        await prisma.category.delete({ where: { id: String(id) } });
         res.json({ message: "Category deleted" });
     } catch (error) {
         res.status(500).json({ message: "Error deleting category" });
