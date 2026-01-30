@@ -179,7 +179,7 @@ export function VideoPlayer({
       {/* Video Player */}
       <div
         ref={containerRef}
-        className="group relative overflow-hidden rounded-none border-[3px] border-foreground bg-black shadow-neo"
+        className="group relative overflow-hidden rounded-xl border bg-black shadow-sm"
         onMouseMove={handlePointerActivity}
         onMouseEnter={handlePointerActivity}
         onTouchStart={handlePointerActivity}
@@ -202,13 +202,12 @@ export function VideoPlayer({
 
         {/* Play/Pause Overlay */}
         <div
-          className={`absolute inset-0 flex cursor-pointer items-center justify-center transition-opacity ${
-            !isPlaying || showControls ? 'opacity-100 bg-black/30' : 'opacity-0'
-          }`}
+          className={`absolute inset-0 flex cursor-pointer items-center justify-center transition-opacity ${!isPlaying || showControls ? 'opacity-100 bg-black/30' : 'opacity-0'
+            }`}
           onClick={togglePlay}
         >
           {!isPlaying && (
-            <div className="rounded-none border-[3px] border-foreground bg-white/30 p-5 backdrop-blur-sm">
+            <div className="rounded-full bg-white/20 p-5 backdrop-blur-sm">
               <Play className="h-12 w-12 text-white" />
             </div>
           )}
@@ -216,16 +215,15 @@ export function VideoPlayer({
 
         {/* Controls */}
         <div
-          className={`absolute inset-x-0 bottom-0 flex flex-col gap-3 border-t-[3px] border-foreground bg-foreground/90 p-4 transition-all duration-300 ${
-            showControls ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
-          }`}
+          className={`absolute inset-x-0 bottom-0 flex flex-col gap-3 bg-gradient-to-t from-black/90 to-transparent p-4 transition-all duration-300 ${showControls ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
+            }`}
         >
           <div className="flex items-center justify-between text-[11px] font-semibold uppercase text-white/80">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
           <div
-            className="h-2 w-full cursor-pointer rounded-full border-[3px] border-white/40 bg-white/10"
+            className="h-1.5 w-full cursor-pointer rounded-full bg-white/20"
             onClick={handleSeek}
           >
             <div className="h-full rounded-full bg-white" style={{ width: `${progress}%` }} />
@@ -236,7 +234,7 @@ export function VideoPlayer({
               <Button
                 variant="ghost"
                 size="sm"
-                className="border-[3px] border-white/50 bg-white/10 text-white shadow-none hover:bg-white/20"
+                className="text-white hover:bg-white/20"
                 onClick={togglePlay}
               >
                 {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
@@ -246,7 +244,7 @@ export function VideoPlayer({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="border-[3px] border-white/50 bg-white/10 text-white shadow-none hover:bg-white/20"
+                  className="text-white hover:bg-white/20"
                   onClick={toggleMute}
                 >
                   {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
@@ -266,7 +264,7 @@ export function VideoPlayer({
               <Button
                 variant="ghost"
                 size="icon"
-                className="border-[3px] border-white/50 bg-white/10 text-white shadow-none hover:bg-white/20"
+                className="text-white hover:bg-white/20"
                 onClick={toggleFullscreen}
               >
                 {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
@@ -279,31 +277,31 @@ export function VideoPlayer({
       {/* Video Information */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-black uppercase text-foreground">{lesson.title}</h1>
-          <div className="rounded-none border-[3px] border-foreground bg-muted px-4 py-2 text-xs font-semibold uppercase text-foreground/80 shadow-neo-xs">
+          <h1 className="text-3xl font-bold text-foreground">{lesson.title}</h1>
+          <div className="rounded-md bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
             Duration: {lesson.duration}
           </div>
         </div>
         <div className="flex items-center gap-4 text-xs font-semibold uppercase text-foreground/70">
           {isCompleted && (
-            <div className="flex items-center gap-2 rounded-none border-[3px] border-foreground bg-success px-3 py-1 text-success-foreground shadow-neo-xs">
+            <div className="flex items-center gap-2 rounded-full bg-success px-3 py-1 text-success-foreground">
               <CheckCircle className="h-4 w-4" />
               Completed
             </div>
           )}
         </div>
         {lesson.description && (
-          <div className="rounded-none border-[3px] border-foreground bg-card p-5 shadow-neo-xs">
-            <p className="text-sm font-medium text-foreground/80">{lesson.description}</p>
+          <div className="rounded-lg border bg-card p-5 shadow-sm">
+            <p className="text-sm font-medium text-muted-foreground">{lesson.description}</p>
           </div>
         )}
       </div>
 
       {/* Navigation Controls */}
-      <div className="flex items-center justify-between rounded-none border-[3px] border-foreground bg-card p-4 shadow-neo">
+      <div className="flex items-center justify-between rounded-lg border bg-card p-4 shadow-sm">
         <Button variant="outline" onClick={onPrevious} disabled={!hasPrevious} className="flex items-center gap-2">
           <SkipBack className="h-4 w-4" />
-          <span className="text-xs font-semibold uppercase">Previous Lesson</span>
+          <span className="text-xs font-medium">Previous Lesson</span>
         </Button>
 
         <div className="text-center">
@@ -317,7 +315,7 @@ export function VideoPlayer({
           disabled={!hasNext}
           className="flex items-center gap-2"
         >
-          <span className="text-xs font-semibold uppercase">Next Lesson</span>
+          <span className="text-xs font-medium">Next Lesson</span>
           <SkipForward className="h-4 w-4" />
         </Button>
       </div>

@@ -113,13 +113,13 @@ export function CourseManagement({
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-6 rounded-none border-[3px] border-foreground bg-card p-8 shadow-neo">
+      <div className="flex flex-wrap items-center justify-between gap-6 rounded-xl border bg-card p-8 shadow-sm">
         <div className="space-y-2">
-          <span className="inline-flex items-center gap-2 rounded-none border-[3px] border-foreground bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-widest text-secondary-foreground shadow-neo-xs">
+          <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
             Builder Control
           </span>
-          <h1 className="text-4xl font-black uppercase text-foreground">Course Management</h1>
-          <p className="max-w-2xl text-sm font-medium text-foreground/70">
+          <h1 className="text-4xl font-bold text-foreground">Course Management</h1>
+          <p className="max-w-2xl text-sm font-medium text-muted-foreground">
             Draft, tweak, and launch learning blocks. Bold moves only.
           </p>
         </div>
@@ -130,10 +130,10 @@ export function CourseManagement({
               Add Course
             </Button>
           </DialogTrigger>
-          <DialogContent className="border-[3px] border-foreground bg-card shadow-neo">
+          <DialogContent>
             <DialogHeader>
-              <DialogTitle className="text-3xl font-black uppercase">Create New Course</DialogTitle>
-              <DialogDescription className="text-xs font-semibold uppercase text-foreground/60">
+              <DialogTitle className="text-3xl font-bold">Create New Course</DialogTitle>
+              <DialogDescription className="text-xs font-medium uppercase text-muted-foreground">
                 Ship a new module to the curriculum
               </DialogDescription>
             </DialogHeader>
@@ -187,7 +187,7 @@ export function CourseManagement({
           </DialogContent>
         </Dialog>
       </div>
-      
+
 
       {/* Search */}
       <div className="relative">
@@ -208,18 +208,18 @@ export function CourseManagement({
           const isExpanded = expandedCourses.has(course.id);
 
           return (
-            <Card key={course.id} className="border-[3px] border-foreground bg-card shadow-neo">
+            <Card key={course.id} className="shadow-sm border">
               <CardHeader className="pb-4">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div className="flex flex-1 gap-4">
-                    <div className="flex h-16 w-16 items-center justify-center border-[3px] border-foreground bg-primary text-2xl text-primary-foreground shadow-neo-xs">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-md bg-primary text-2xl text-primary-foreground">
                       {course.thumbnail}
                     </div>
                     <div className="space-y-3">
-                      <CardTitle className="text-2xl">
+                      <CardTitle className="text-2xl font-bold">
                         {course.title}
                       </CardTitle>
-                      <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase text-foreground/70">
+                      <div className="flex flex-wrap items-center gap-3 text-xs font-medium uppercase text-muted-foreground">
                         <Badge variant="secondary">{course.category}</Badge>
                         <span className="flex items-center gap-1">
                           <BookOpen className="h-4 w-4" />
@@ -256,7 +256,7 @@ export function CourseManagement({
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="border-[3px] border-foreground bg-card shadow-neo-xs">
+                      <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() => {
                             setSelectedCourseId(course.id);
@@ -302,7 +302,7 @@ export function CourseManagement({
                   </div>
 
                   {course.lessons.length === 0 ? (
-                    <div className="rounded-none border-[3px] border-foreground bg-muted py-10 text-center text-sm font-semibold uppercase text-foreground/60 shadow-neo-xs">
+                    <div className="rounded-lg border bg-muted/50 py-10 text-center text-sm font-medium text-muted-foreground uppercase">
                       <BookOpen className="mx-auto mb-3 h-8 w-8" />
                       No lessons yet. Add your first block to get started.
                     </div>
@@ -311,15 +311,15 @@ export function CourseManagement({
                       {course.lessons.map((lesson, index) => (
                         <div
                           key={lesson.id}
-                          className="flex items-center justify-between rounded-none border-[3px] border-foreground bg-card p-4 shadow-neo-xs"
+                          className="flex items-center justify-between rounded-lg border bg-card p-4 shadow-sm"
                         >
                           <div className="flex items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center border-[3px] border-foreground bg-primary text-sm font-black text-primary-foreground">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
                               {index + 1}
                             </div>
                             <div>
-                              <h5 className="text-sm font-black uppercase text-foreground">{lesson.title}</h5>
-                              <div className="flex items-center gap-2 text-xs font-semibold uppercase text-foreground/60">
+                              <h5 className="text-sm font-bold uppercase text-foreground">{lesson.title}</h5>
+                              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase">
                                 <Clock className="h-3 w-3" />
                                 <span>{lesson.duration}</span>
                               </div>
@@ -331,7 +331,7 @@ export function CourseManagement({
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="border-[3px] border-foreground bg-card shadow-neo-xs">
+                            <DropdownMenuContent align="end">
                               <DropdownMenuItem className="font-semibold uppercase">
                                 <Play className="h-4 w-4 mr-2" />
                                 Preview Lesson

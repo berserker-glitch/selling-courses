@@ -37,35 +37,35 @@ export function TeacherOverview({ courses, students, onSectionChange }: TeacherO
   return (
     <div className="space-y-10">
       {/* Header */}
-      <div className="rounded-none border-[3px] border-foreground bg-card p-8 shadow-neo">
+      <div className="rounded-xl border bg-card p-8 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="space-y-2">
-            <span className="inline-flex items-center gap-2 rounded-none border-[3px] border-foreground bg-accent px-3 py-1 text-xs font-bold uppercase tracking-widest text-accent-foreground shadow-neo-xs">
+            <span className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
               Control Center
             </span>
-            <h1 className="text-4xl font-black uppercase text-foreground">
+            <h1 className="text-4xl font-bold text-foreground">
               Dashboard Overview
             </h1>
-            <p className="max-w-2xl text-sm font-medium text-foreground/70">
+            <p className="max-w-2xl text-sm font-medium text-muted-foreground">
               Monitor everything at a glance. Keep teaching bold, structured, and fearless.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3 text-xs font-semibold uppercase">
-            <div className="flex flex-col gap-1 rounded-none border-[3px] border-foreground bg-card p-3 text-right shadow-neo-xs">
-              <span className="text-foreground/70">Courses</span>
-              <span className="text-3xl font-black text-foreground">{courses.length}</span>
+          <div className="grid grid-cols-2 gap-3 text-xs font-medium uppercase">
+            <div className="flex flex-col gap-1 rounded-lg border bg-card p-3 text-right shadow-sm">
+              <span className="text-muted-foreground">Courses</span>
+              <span className="text-3xl font-bold text-foreground">{courses.length}</span>
             </div>
-            <div className="flex flex-col gap-1 rounded-none border-[3px] border-foreground bg-card p-3 text-right shadow-neo-xs">
-              <span className="text-foreground/70">Students</span>
-              <span className="text-3xl font-black text-foreground">{students.length}</span>
+            <div className="flex flex-col gap-1 rounded-lg border bg-card p-3 text-right shadow-sm">
+              <span className="text-muted-foreground">Students</span>
+              <span className="text-3xl font-bold text-foreground">{students.length}</span>
             </div>
-            <div className="flex flex-col gap-1 rounded-none border-[3px] border-foreground bg-card p-3 text-right shadow-neo-xs">
-              <span className="text-foreground/70">Active</span>
-              <span className="text-3xl font-black text-foreground">{activeStudents}</span>
+            <div className="flex flex-col gap-1 rounded-lg border bg-card p-3 text-right shadow-sm">
+              <span className="text-muted-foreground">Active</span>
+              <span className="text-3xl font-bold text-foreground">{activeStudents}</span>
             </div>
-            <div className="flex flex-col gap-1 rounded-none border-[3px] border-foreground bg-card p-3 text-right shadow-neo-xs">
-              <span className="text-foreground/70">Lessons</span>
-              <span className="text-3xl font-black text-foreground">{totalLessons}</span>
+            <div className="flex flex-col gap-1 rounded-lg border bg-card p-3 text-right shadow-sm">
+              <span className="text-muted-foreground">Lessons</span>
+              <span className="text-3xl font-bold text-foreground">{totalLessons}</span>
             </div>
           </div>
         </div>
@@ -110,14 +110,14 @@ export function TeacherOverview({ courses, students, onSectionChange }: TeacherO
             {recentActivity.map((activity, index) => (
               <div
                 key={index}
-                className="flex items-start gap-4 rounded-none border-[3px] border-foreground bg-card p-4 shadow-neo-xs"
+                className="flex items-start gap-4 rounded-lg border bg-card p-4 shadow-sm"
               >
-                <div className="flex h-10 w-10 items-center justify-center border-[3px] border-foreground bg-secondary text-secondary-foreground">
-                  <span className="text-sm font-bold uppercase">{index + 1}</span>
+                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-secondary text-secondary-foreground">
+                  <span className="text-sm font-bold">{index + 1}</span>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-foreground">{activity.message}</p>
-                  <p className="text-xs font-medium uppercase text-foreground/60">{activity.time}</p>
+                  <p className="text-sm font-medium text-foreground">{activity.message}</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase">{activity.time}</p>
                 </div>
               </div>
             ))}
@@ -147,25 +147,25 @@ export function TeacherOverview({ courses, students, onSectionChange }: TeacherO
             return (
               <div
                 key={course.id}
-                className="flex flex-col gap-4 rounded-none border-[3px] border-foreground bg-card p-5 shadow-neo-xs md:flex-row md:items-center md:justify-between"
+                className="flex flex-col gap-4 rounded-lg border bg-card p-5 shadow-sm md:flex-row md:items-center md:justify-between"
               >
                 <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center border-[3px] border-foreground bg-primary text-2xl text-primary-foreground">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-md bg-primary text-2xl text-primary-foreground">
                     {course.thumbnail}
                   </div>
                   <div>
-                    <h3 className="text-lg font-black uppercase text-foreground">{course.title}</h3>
-                    <p className="text-xs font-semibold uppercase text-foreground/60">
+                    <h3 className="text-lg font-bold text-foreground">{course.title}</h3>
+                    <p className="text-xs font-medium text-muted-foreground uppercase">
                       {enrolledStudents} students • {course.lessons.length} lessons
                     </p>
                   </div>
                 </div>
                 <div className="flex flex-1 items-center justify-end gap-6">
                   <div className="text-right">
-                    <div className="text-sm font-black uppercase">{avgProgress}% avg</div>
+                    <div className="text-sm font-bold">{avgProgress}% avg</div>
                     <Progress value={avgProgress} className="mt-2 h-3 w-36" />
                   </div>
-                  <Badge variant="secondary">{enrolledStudents} Enrolled</Badge>
+                  <Badge variant="secondary" className="font-medium">{enrolledStudents} Enrolled</Badge>
                 </div>
               </div>
             );

@@ -42,19 +42,19 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md border-[3px] border-foreground bg-card shadow-neo">
+      <Card className="w-full max-w-md shadow-sm">
         <CardContent className="space-y-8 p-10">
           <div className="space-y-3 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center border-[3px] border-foreground bg-primary text-primary-foreground shadow-neo-xs">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <BookOpen className="h-6 w-6" />
             </div>
-            <h2 className="text-3xl font-black uppercase text-foreground">Sign In</h2>
-            <p className="text-xs font-semibold uppercase text-foreground/60">Access your command center</p>
+            <h2 className="text-3xl font-bold text-foreground">Sign In</h2>
+            <p className="text-xs font-medium text-muted-foreground uppercase">Access your command center</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs font-semibold uppercase">
+              <Label htmlFor="email" className="text-xs font-medium uppercase">
                 Email
               </Label>
               <Input
@@ -68,7 +68,7 @@ export default function Login() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-xs font-semibold uppercase">
+              <Label htmlFor="password" className="text-xs font-medium uppercase">
                 Password
               </Label>
               <Input
@@ -87,9 +87,9 @@ export default function Login() {
           </form>
 
           {/* Demo Accounts */}
-          <div className="rounded-none border-[3px] border-foreground bg-muted p-4 text-center shadow-neo-xs">
-            <p className="text-xs font-semibold uppercase text-foreground/70">Demo Access</p>
-            <div className="mt-3 space-y-2 text-xs font-bold uppercase text-foreground">
+          <div className="rounded-lg bg-muted/50 p-4 text-center">
+            <p className="text-xs font-medium text-muted-foreground uppercase">Demo Access</p>
+            <div className="mt-3 space-y-2 text-xs font-bold text-foreground">
               <div className="flex items-center justify-between">
                 <span>Teacher</span>
                 <span>sarah@teacher.com</span>

@@ -222,7 +222,7 @@ export function StudentManagement({
 
       {/* Student Details Drawer */}
       <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        <SheetContent className="w-[420px] sm:w-[560px] border-[3px] border-foreground bg-card shadow-neo rounded-none">
+        <SheetContent className="w-[420px] shadow-xl sm:w-[560px]">
           {selectedStudent && (
             <>
               <SheetHeader className="space-y-2 text-left">
@@ -234,16 +234,16 @@ export function StudentManagement({
 
               <div className="mt-8 space-y-6">
                 {/* Student Info */}
-                <div className="flex items-center gap-4 rounded-none border-[3px] border-foreground bg-muted p-5 shadow-neo-xs">
-                  <Avatar className="h-16 w-16 border-[3px] border-foreground bg-card shadow-neo-xs">
-                    <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                <div className="flex items-center gap-4 rounded-lg bg-muted/50 p-5">
+                  <Avatar className="h-16 w-16">
+                    <AvatarFallback className="bg-primary text-lg text-primary-foreground">
                       {getStudentInitials(selectedStudent.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="text-xl font-black uppercase text-foreground">{selectedStudent.name}</h3>
-                    <p className="text-sm font-medium text-foreground/70">{selectedStudent.email}</p>
-                    <p className="text-xs font-semibold uppercase text-foreground/60">
+                    <h3 className="text-xl font-bold text-foreground">{selectedStudent.name}</h3>
+                    <p className="text-sm font-medium text-muted-foreground">{selectedStudent.email}</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase">
                       Joined {new Date(selectedStudent.joinDate).toLocaleDateString()}
                     </p>
                   </div>
@@ -251,17 +251,17 @@ export function StudentManagement({
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-none border-[3px] border-foreground bg-card p-5 text-center shadow-neo-xs">
-                    <div className="text-3xl font-black text-primary">
+                  <div className="rounded-lg border bg-card p-5 text-center shadow-sm">
+                    <div className="text-3xl font-bold text-primary">
                       {getStudentStats(selectedStudent).overallProgress}%
                     </div>
-                    <div className="text-xs font-semibold uppercase text-foreground/60">Overall Progress</div>
+                    <div className="text-xs font-medium text-muted-foreground uppercase">Overall Progress</div>
                   </div>
-                  <div className="rounded-none border-[3px] border-foreground bg-card p-5 text-center shadow-neo-xs">
-                    <div className="text-3xl font-black text-foreground">
+                  <div className="rounded-lg border bg-card p-5 text-center shadow-sm">
+                    <div className="text-3xl font-bold text-foreground">
                       {getStudentStats(selectedStudent).enrolledCourses}
                     </div>
-                    <div className="text-xs font-semibold uppercase text-foreground/60">Courses Enrolled</div>
+                    <div className="text-xs font-medium text-muted-foreground uppercase">Courses Enrolled</div>
                   </div>
                 </div>
 
@@ -269,7 +269,7 @@ export function StudentManagement({
                 <div className="space-y-4">
                   <h4 className="text-lg font-black uppercase text-foreground">Enrolled Courses</h4>
                   {selectedStudent.enrolledCourses.length === 0 ? (
-                    <div className="rounded-none border-[3px] border-foreground bg-muted py-8 text-center text-sm font-semibold uppercase text-foreground/60 shadow-neo-xs">
+                    <div className="rounded-lg border bg-muted/50 py-8 text-center text-sm font-medium text-muted-foreground">
                       Not enrolled in any courses yet.
                     </div>
                   ) : (
@@ -279,27 +279,22 @@ export function StudentManagement({
                         const progress = selectedStudent.progress[courseId] || 0;
 
                         return course ? (
-                          <div key={courseId} className="rounded-none border-[3px] border-foreground bg-card p-5 shadow-neo-xs">
+                          <div key={courseId} className="rounded-lg border bg-card p-5 shadow-sm">
                             <div className="mb-3 flex items-center justify-between">
                               <div className="flex items-center gap-3">
-                                <span className="flex h-12 w-12 items-center justify-center rounded-none border-[3px] border-foreground bg-primary text-xl text-primary-foreground shadow-neo-xs">
+                                <span className="flex h-12 w-12 items-center justify-center rounded-md bg-primary text-xl text-primary-foreground">
                                   {course.thumbnail}
                                 </span>
                                 <div>
-                                  <h5 className="text-base font-black uppercase text-foreground">{course.title}</h5>
-                                  <p className="text-xs font-semibold uppercase text-foreground/60">{course.category}</p>
+                                  <h5 className="text-base font-bold text-foreground">{course.title}</h5>
+                                  <p className="text-xs font-medium text-muted-foreground uppercase">{course.category}</p>
                                 </div>
                               </div>
-                              <Badge variant={progress === 100 ? 'default' : 'secondary'} className="rounded-none border-[3px] border-foreground shadow-neo-xs">
+                              <Badge variant={progress === 100 ? 'default' : 'secondary'} className="shadow-sm">
                                 {progress === 100 ? 'Completed' : `${progress}%`}
                               </Badge>
                             </div>
-                            <div className="h-3 w-full rounded-none border-[3px] border-foreground bg-muted">
-                              <div
-                                className="h-full rounded-none bg-primary"
-                                style={{ width: `${progress}%` }}
-                              />
-                            </div>
+                            <Progress value={progress} className="h-3" />
                           </div>
                         ) : null;
                       })}
@@ -308,10 +303,10 @@ export function StudentManagement({
                 </div>
 
                 {/* Actions */}
-                <div className="flex space-x-3 border-t-[3px] border-foreground pt-5">
+                <div className="flex space-x-3 border-t pt-5">
                   <Button
                     variant="destructive"
-                    className="flex-1 rounded-none border-[3px] border-foreground shadow-neo-xs"
+                    className="flex-1 shadow-sm"
                     onClick={() => {
                       onDeleteStudent(selectedStudent.id);
                       setIsDrawerOpen(false);
