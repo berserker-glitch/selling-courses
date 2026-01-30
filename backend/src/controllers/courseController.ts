@@ -105,6 +105,31 @@ export const deleteCourse = async (req: Request, res: Response) => {
     }
 };
 
+export const updateCourse = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const user = (req as any).user;
+
+        const course = await prisma.course.findUnique({ where: { id } });
+        if (!course) return res.status(404).json({ message: 'Course not found' });
+
+        if (course.teacherId !== user.id && user.role !== 'ADMIN') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        const data = createCourseSchema.partial().parse(req.body);
+
+        const updated = await prisma.course.update({
+            where: { id },
+            data
+        });
+
+        res.json(updated);
+    } catch (error: any) {
+        res.status(400).json({ message: error.message || 'Error updating course' });
+    }
+};
+
 // --- Lesson Handlers ---
 
 export const addLesson = async (req: Request, res: Response) => {
@@ -135,6 +160,50 @@ export const addLesson = async (req: Request, res: Response) => {
         res.status(201).json(lesson);
     } catch (error: any) {
         res.status(400).json({ message: error.message || 'Error adding lesson' });
+    }
+};
+
+export const updateLesson = async (req: Request, res: Response) => {
+    try {
+        const { courseId, lessonId } = req.params;
+        const user = (req as any).user;
+
+        const course = await prisma.course.findUnique({ where: { id: courseId } });
+        if (!course) return res.status(404).json({ message: 'Course not found' });
+
+        if (course.teacherId !== user.id && user.role !== 'ADMIN') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        const data = lessonSchema.partial().parse(req.body);
+
+        const lesson = await prisma.lesson.update({
+            where: { id: lessonId },
+            data
+        });
+
+        res.json(lesson);
+    } catch (error: any) {
+        res.status(400).json({ message: error.message || 'Error updating lesson' });
+    }
+};
+
+export const deleteLesson = async (req: Request, res: Response) => {
+    try {
+        const { courseId, lessonId } = req.params;
+        const user = (req as any).user;
+
+        const course = await prisma.course.findUnique({ where: { id: courseId } });
+        if (!course) return res.status(404).json({ message: 'Course not found' });
+
+        if (course.teacherId !== user.id && user.role !== 'ADMIN') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        await prisma.lesson.delete({ where: { id: lessonId } });
+        res.json({ message: 'Lesson deleted' });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message || 'Error deleting lesson' });
     }
 };
 

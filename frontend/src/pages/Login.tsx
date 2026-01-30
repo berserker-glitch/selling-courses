@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { BookOpen } from 'lucide-react';
 import { mockUsers } from '@/lib/mock-data';
+import api from '@/lib/api';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -17,27 +18,24 @@ export default function Login() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate login delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const { data } = await api.post('/auth/login', { email, password });
 
-    // Mock authentication - check if user exists
-    const user = mockUsers.find(u => u.email === email);
-
-    if (user) {
-      // Store user in localStorage (mock session)
-      localStorage.setItem('currentUser', JSON.stringify(user));
+      // Store token and user
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('currentUser', JSON.stringify(data.user));
 
       // Navigate based on role
-      if (user.role === 'teacher') {
+      if (data.user.role === 'TEACHER' || data.user.role === 'ADMIN') {
         navigate('/teacher');
       } else {
         navigate('/student');
       }
-    } else {
-      alert('Invalid credentials. Try: sarah@teacher.com (teacher) or alex@student.com (student)');
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Login failed');
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (

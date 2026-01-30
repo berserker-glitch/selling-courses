@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { BookOpen, Play, LogOut, User, ArrowRight, Sparkles } from 'lucide-react';
 import { mockCourses, studentCourseProgress } from '@/lib/mock-data';
+import api from '@/lib/api';
 
 interface UserData {
   name: string;
@@ -100,7 +101,19 @@ export default function StudentDashboard() {
     navigate(`/course/${courseId}`);
   };
 
-  const enrolledCourses = mockCourses;
+  const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const { data } = await api.get('/courses'); // Assuming endpoint returns courses
+        setEnrolledCourses(data);
+      } catch (error) {
+        console.error('Failed to fetch courses', error);
+      }
+    };
+    if (user) fetchCourses();
+  }, [user]);
 
   if (!user) return null;
 

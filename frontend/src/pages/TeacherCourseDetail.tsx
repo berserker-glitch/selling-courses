@@ -21,7 +21,8 @@ import {
     Trash2,
     Edit
 } from 'lucide-react';
-import { mockCourses, studentCourseProgress, Course, Lesson } from '@/lib/mock-data';
+import { mockUsers, Course, Lesson } from '@/lib/mock-data';
+import api from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -43,20 +44,23 @@ export default function TeacherCourseDetail() {
     const [newLessonTitle, setNewLessonTitle] = useState('');
 
     useEffect(() => {
-        const foundCourse = mockCourses.find(c => c.id === courseId);
-        if (foundCourse) {
-            setCourse(foundCourse);
-            // Default to first lesson
-            if (foundCourse.lessons.length > 0) {
-                setActiveLesson(foundCourse.lessons[0]);
-                // Initialize edit state
-                setEditedTitle(foundCourse.lessons[0].title);
-                setEditedDescription(foundCourse.lessons[0].description || '');
-                setEditedVideoUrl(foundCourse.lessons[0].videoUrl);
+        const fetchCourse = async () => {
+            try {
+                const { data } = await api.get(`/courses/${courseId}`);
+                setCourse(data);
+                // Default to first lesson if available and no active lesson
+                if (data.lessons && data.lessons.length > 0) {
+                    setActiveLesson(data.lessons[0]);
+                    setEditedTitle(data.lessons[0].title);
+                    setEditedDescription(data.lessons[0].description || '');
+                    setEditedVideoUrl(data.lessons[0].videoUrl);
+                }
+            } catch (error) {
+                console.error('Failed to fetch course', error);
+                navigate('/teacher');
             }
-        } else {
-            navigate('/teacher');
-        }
+        };
+        if (courseId) fetchCourse();
     }, [courseId, navigate]);
 
     useEffect(() => {
@@ -71,44 +75,51 @@ export default function TeacherCourseDetail() {
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-    const handleSaveChanges = () => {
+    const handleSaveChanges = async () => {
         if (!course || !activeLesson) return;
 
-        // In a real app, make an API call here
-        const updatedLesson = {
-            ...activeLesson,
-            title: editedTitle,
-            description: editedDescription,
-            videoUrl: editedVideoUrl
-        };
+        try {
+            const { data } = await api.put(`/courses/${course.id}/lessons/${activeLesson.id}`, {
+                title: editedTitle,
+                description: editedDescription,
+                videoUrl: editedVideoUrl
+            });
 
-        const updatedLessons = course.lessons.map(l => l.id === activeLesson.id ? updatedLesson : l);
-        const updatedCourse = { ...course, lessons: updatedLessons };
+            const updatedLessons = course.lessons.map(l => l.id === activeLesson.id ? data : l);
+            const updatedCourse = { ...course, lessons: updatedLessons };
 
-        setCourse(updatedCourse);
-        setActiveLesson(updatedLesson);
-        setIsEditingLesson(false);
+            setCourse(updatedCourse);
+            setActiveLesson(data);
+            setIsEditingLesson(false);
 
-        // Notify user (mock)
-        console.log('Saved changes for lesson:', updatedLesson.id);
+            // Should show a toast here
+        } catch (error) {
+            console.error('Failed to save lesson', error);
+            alert('Failed to save changes');
+        }
     };
 
-    const handleAddLesson = (e: React.FormEvent) => {
+    const handleAddLesson = async (e: React.FormEvent) => {
         e.preventDefault();
-        const newLesson: Lesson = {
-            id: `new-lesson-${Date.now()}`,
-            title: newLessonTitle,
-            duration: '00:00',
-            videoUrl: '',
-            description: ''
-        };
+        try {
+            // Default values for new lesson
+            const { data } = await api.post(`/courses/${course.id}/lessons`, {
+                title: newLessonTitle,
+                duration: '00:00',
+                videoUrl: 'https://example.com/placeholder.mp4', // Placeholder or required?
+                description: ''
+            });
 
-        const updatedCourse = { ...course, lessons: [...course.lessons, newLesson] };
-        setCourse(updatedCourse);
-        setActiveLesson(newLesson);
-        setNewLessonTitle('');
-        setIsAddLessonOpen(false);
-        setIsEditingLesson(true); // Auto start editing the new lesson
+            const updatedCourse = { ...course, lessons: [...course.lessons, data] };
+            setCourse(updatedCourse);
+            setActiveLesson(data);
+            setNewLessonTitle('');
+            setIsAddLessonOpen(false);
+            setIsEditingLesson(true);
+        } catch (error) {
+            console.error('Failed to create lesson', error);
+            alert('Failed to create lesson');
+        }
     };
 
     return (
