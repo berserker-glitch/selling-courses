@@ -26,6 +26,7 @@ export const getCourses = async (req: Request, res: Response) => {
         const courses = await prisma.course.findMany({
             include: {
                 teacher: { select: { name: true, email: true } },
+                lessons: true,
                 _count: { select: { lessons: true, enrollments: true } }
             }
         });

@@ -34,7 +34,12 @@ export default function TeacherDashboardNew() {
 
           // Fetch Courses
           const coursesRes = await api.get('/courses');
-          setCourses(coursesRes.data);
+          // Ensure lessons is always an array to prevent crashes if backend returns partial data
+          const sanitizedCourses = coursesRes.data.map((c: any) => ({
+            ...c,
+            lessons: c.lessons || []
+          }));
+          setCourses(sanitizedCourses);
 
           // Fetch Students
           const studentsRes = await api.get('/auth/users?role=STUDENT');
