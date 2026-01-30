@@ -64,10 +64,21 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
     try {
-        const { email, password } = loginSchema.parse(req.body);
+        let { email, password } = loginSchema.parse(req.body);
+        email = email.trim();
+        password = password.trim();
 
         const user = await prisma.user.findUnique({ where: { email } });
-        if (!user || !(await bcrypt.compare(password, user.password))) {
+        if (!user) {
+            console.log(`Login failed: User ${email} not found`);
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            console.log(`Login failed: Password mismatch for ${email}`);
+            // console.log('Provided:', password); // Be careful with logging passwords in prod, ok for local debug
+            // console.log('Stored Hash:', user.password);
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
@@ -136,6 +147,8 @@ export const createStudent = async (req: Request, res: Response) => {
 
         // Generate Random Password
         const password = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+        console.log(`Debug - Generated Password for ${email}: ${password}`);
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create User

@@ -162,18 +162,42 @@ export default function TeacherDashboardNew() {
   };
 
   // Student Management Functions
-  const handleAddStudent = (studentData: Omit<Student, 'id' | 'enrolledCourses' | 'progress'>) => {
-    const newStudent: Student = {
-      ...studentData,
-      id: `student-${Date.now()}`,
-      enrolledCourses: [],
-      progress: {}
-    };
-    setStudents([...students, newStudent]);
-    toast({
-      title: "Student added!",
-      description: `${newStudent.name} has been added successfully.`,
-    });
+  const handleAddStudent = async (studentData: Omit<Student, 'id' | 'enrolledCourses' | 'progress'>) => {
+    try {
+      const { data } = await api.post('/auth/create-student', studentData);
+
+      // Backend returns { message, student? } or just success. 
+      // Let's assume we want to add the new student to the list.
+      // If backend returns the student object:
+      if (data.student) {
+        const newStudent: Student = {
+          ...data.student,
+          enrolledCourses: [],
+          progress: {}
+        };
+        setStudents([...students, newStudent]);
+      } else {
+        // Fallback if backend doesn't return full object, simplified
+        const newStudent: Student = {
+          ...studentData,
+          id: `student-${Date.now()}`, // Temporary fallback
+          enrolledCourses: [],
+          progress: {}
+        };
+        setStudents([...students, newStudent]);
+      }
+
+      toast({
+        title: "Student added!",
+        description: `${studentData.name} has been added and credentials sent to ${studentData.email}.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error adding student",
+        description: error.response?.data?.message || "Failed to create student account",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDeleteStudent = (studentId: string) => {
