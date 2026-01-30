@@ -19,13 +19,15 @@ import {
   BookOpen,
   MoreVertical
 } from 'lucide-react';
-import { Course, Lesson, Student } from '@/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Course, Lesson, Student, Category } from '@/types';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface CourseManagementProps {
   courses: Course[];
   students: Student[];
-  onAddCourse: (course: Omit<Course, 'id'>) => void;
+  categories: Category[]; // Added prop
+  onAddCourse: (course: any) => void; // looser type for now to handle migration or Omit<Course, 'id'> with categoryId
   onEditCourse: (courseId: string, updates: Partial<Course>) => void;
   onDeleteCourse: (courseId: string) => void;
   onAddLesson: (courseId: string, lesson: Omit<Lesson, 'id'>) => void;
@@ -36,6 +38,7 @@ interface CourseManagementProps {
 export function CourseManagement({
   courses,
   students,
+  categories, // Destructure new prop
   onAddCourse,
   onEditCourse,
   onDeleteCourse,
@@ -54,7 +57,7 @@ export function CourseManagement({
   const [newCourse, setNewCourse] = useState({
     title: '',
     description: '',
-    category: '',
+    categoryId: '',
     thumbnail: '📚'
   });
 
@@ -73,7 +76,7 @@ export function CourseManagement({
   const handleAddCourse = (e: React.FormEvent) => {
     e.preventDefault();
     onAddCourse({ ...newCourse, lessons: [] });
-    setNewCourse({ title: '', description: '', category: '', thumbnail: '📚' });
+    setNewCourse({ title: '', description: '', categoryId: '', thumbnail: '📚' });
     setIsAddCourseOpen(false);
   };
 
@@ -147,12 +150,21 @@ export function CourseManagement({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
-                  <Input
-                    value={newCourse.category}
-                    onChange={(e) => setNewCourse({ ...newCourse, category: e.target.value })}
-                    placeholder="e.g. Design"
-                    required
-                  />
+                  <Select
+                    value={newCourse.categoryId}
+                    onValueChange={(value) => setNewCourse({ ...newCourse, categoryId: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="thumbnail">Thumbnail</Label>

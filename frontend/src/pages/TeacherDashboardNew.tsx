@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { TeacherSidebar } from '@/components/teacher/TeacherSidebar';
 import { CourseManagement } from '@/components/teacher/CourseManagement';
 import { StudentManagement } from '@/components/teacher/StudentManagement';
+import { CategoryManagement } from '@/components/teacher/CategoryManagement';
 import { useToast } from '@/hooks/use-toast';
 import { Course, Student, Lesson, Category } from '@/types';
 
