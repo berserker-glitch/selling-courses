@@ -229,6 +229,59 @@ export default function TeacherDashboardNew() {
     });
   };
 
+  // Category Management Functions
+  const handleAddCategory = async (categoryData: { name: string; description: string }) => {
+    try {
+      const { data } = await api.post('/categories', categoryData);
+      setCategories([...categories, data]);
+      toast({
+        title: "Category created!",
+        description: `${data.name} has been added successfully.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to create category",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    try {
+      await api.delete(`/categories/${categoryId}`);
+      setCategories(categories.filter(c => c.id !== categoryId));
+      toast({
+        title: "Category deleted",
+        description: "The category has been removed successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to delete category",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEnrollCategory = async (studentId: string, categoryId: string) => {
+    try {
+      await api.post('/auth/enroll-category', { studentId, categoryId });
+      toast({
+        title: "Enrollment Successful",
+        description: "Student has been enrolled in the category.",
+      });
+      // Optionally refresh students/categories if needed, but for now just toast.
+      // We might want to update local state if we were tracking enrolledCategories in student object.
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to enroll student",
+        variant: "destructive"
+      });
+    }
+  };
+
 
   const renderContent = () => {
     switch (activeSection) {
@@ -251,8 +304,18 @@ export default function TeacherDashboardNew() {
           <StudentManagement
             students={students}
             courses={courses}
+            categories={categories}
             onAddStudent={handleAddStudent}
             onDeleteStudent={handleDeleteStudent}
+            onEnrollCategory={handleEnrollCategory}
+          />
+        );
+      case 'categories':
+        return (
+          <CategoryManagement
+            categories={categories}
+            onAddCategory={handleAddCategory}
+            onDeleteCategory={handleDeleteCategory}
           />
         );
       default:

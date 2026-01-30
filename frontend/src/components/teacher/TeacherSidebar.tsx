@@ -16,6 +16,7 @@ export function TeacherSidebar({ user, activeSection, onSectionChange, onLogout 
   const menuItems = [
     { id: 'courses', label: 'Courses', icon: BookOpen },
     { id: 'students', label: 'Students', icon: Users },
+    { id: 'categories', label: 'Categories', icon: Folder },
   ];
 
 

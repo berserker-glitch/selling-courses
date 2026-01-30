@@ -15,22 +15,29 @@ import {
   Calendar,
   Trash2
 } from 'lucide-react';
-import { Student, Course } from '@/lib/mock-data';
 
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Student, Course, Category } from '@/types'; // Update imports path if needed, usually '@/types'
 
 interface StudentManagementProps {
   students: Student[];
   courses: Course[];
+  categories: Category[]; // New prop
   onAddStudent: (student: Omit<Student, 'id' | 'enrolledCourses' | 'progress'>) => void;
   onDeleteStudent: (studentId: string) => void;
+  onEnrollCategory: (studentId: string, categoryId: string) => void; // New prop
 }
 
 export function StudentManagement({
   students,
   courses,
+  categories,
   onAddStudent,
-  onDeleteStudent
+  onDeleteStudent,
+  onEnrollCategory
 }: StudentManagementProps) {
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
