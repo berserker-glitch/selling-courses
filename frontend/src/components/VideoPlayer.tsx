@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Maximize, Minimize, CheckCircle } from 'lucide-react';
-import { Lesson } from '@/lib/mock-data';
+import { Lesson } from '@/types';
 
 interface VideoPlayerProps {
   lesson: Lesson;
@@ -12,6 +12,8 @@ interface VideoPlayerProps {
   hasPrevious?: boolean;
   hasNext?: boolean;
   isCompleted?: boolean;
+  userEmail?: string; // For watermark
+  userId?: string; // For watermark
 }
 
 export function VideoPlayer({
@@ -69,6 +71,41 @@ export function VideoPlayer({
       video.removeEventListener('ended', handleEnded);
     };
   }, [isCompleted, onComplete]);
+
+  // Anti-Piracy: Auto-pause on tab switch
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isPlaying) {
+        const video = videoRef.current;
+        if (video) {
+          video.pause();
+          setIsPlaying(false);
+          setShowControls(true);
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isPlaying]);
+
+  // Anti-Piracy: DevTools Detection (Basic Heuristic - Screen Resize/Dimension check)
+  useEffect(() => {
+    const checkDevTools = () => {
+      // Rudimentary check
+      const threshold = 160;
+      if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
+        // Possible devtools open.
+        // Action: Pause video or show warning?
+        // For now, pause is safer.
+        if (isPlaying) {
+          videoRef.current?.pause();
+          setIsPlaying(false);
+        }
+      }
+    };
+    window.addEventListener('resize', checkDevTools);
+    return () => window.removeEventListener('resize', checkDevTools);
+  }, [isPlaying]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -199,6 +236,20 @@ export function VideoPlayer({
           }}
           onClick={togglePlay}
         />
+
+        {/* Anti-Piracy Watermark */}
+        <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden opacity-30 select-none">
+          {/* Moving watermark pattern */}
+          <div className="absolute top-10 left-10 text-white/20 text-xs font-bold -rotate-12">
+            {userEmail} • {userId?.substring(0, 8)}
+          </div>
+          <div className="absolute bottom-20 right-20 text-white/20 text-xs font-bold -rotate-12">
+            {userId?.substring(0, 8)} • {userEmail}
+          </div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/10 text-4xl font-black -rotate-45 whitespace-nowrap">
+            DO NOT DISTRIBUTE
+          </div>
+        </div>
 
         {/* Play/Pause Overlay */}
         <div

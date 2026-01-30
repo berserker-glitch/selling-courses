@@ -4,7 +4,7 @@ import { TeacherSidebar } from '@/components/teacher/TeacherSidebar';
 import { CourseManagement } from '@/components/teacher/CourseManagement';
 import { StudentManagement } from '@/components/teacher/StudentManagement';
 import { useToast } from '@/hooks/use-toast';
-import { mockStudents, Course, Student, Lesson } from '@/lib/mock-data';
+import { Course, Student, Lesson } from '@/types';
 
 interface UserData {
   name: string;
@@ -20,7 +20,7 @@ export default function TeacherDashboardNew() {
   const [user, setUser] = useState<UserData | null>(null);
   const [activeSection, setActiveSection] = useState('courses');
   const [courses, setCourses] = useState<Course[]>([]);
-  const [students, setStudents] = useState<Student[]>(mockStudents); // Keep students mock for now
+  const [students, setStudents] = useState<Student[]>([]); // mockStudents removed
   const navigate = useNavigate();
   const { toast } = useToast();
 

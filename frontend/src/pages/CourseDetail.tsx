@@ -15,6 +15,8 @@ import {
     Sparkles
 } from 'lucide-react';
 import { mockCourses, studentCourseProgress, studentLessonProgress, Course, Lesson } from '@/lib/mock-data';
+import { VideoPlayer } from '@/components/VideoPlayer';
+import api from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 export default function CourseDetail() {
@@ -24,17 +26,39 @@ export default function CourseDetail() {
     const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Default open on desktop
 
+    const [user, setUser] = useState<any>(null);
+
     useEffect(() => {
-        // In a real app, fetch course data here
-        const foundCourse = mockCourses.find(c => c.id === courseId);
-        if (foundCourse) {
-            setCourse(foundCourse);
-            // Default to first lesson
-            setActiveLesson(foundCourse.lessons[0]);
+        const userData = localStorage.getItem('currentUser');
+        if (userData) {
+            setUser(JSON.parse(userData));
         } else {
-            // Handle not found
-            navigate('/student');
+            navigate('/login');
         }
+
+        const fetchCourse = async () => {
+            try {
+                const { data } = await api.get(`/courses/${courseId}`);
+                setCourse(data);
+
+                // Fetch progress
+                try {
+                    const progressRes = await api.get(`/courses/${courseId}/progress`);
+                    // Assuming backend returns progress map or similar. 
+                    // For now just basic course data is enough to start.
+                } catch (e) { console.error("Progress fetch failed", e); }
+
+                // Default to first lesson
+                if (data.lessons && data.lessons.length > 0) {
+                    setActiveLesson(data.lessons[0]);
+                }
+            } catch (error) {
+                console.error('Failed to fetch course', error);
+                navigate('/student');
+            }
+        };
+
+        if (courseId) fetchCourse();
     }, [courseId, navigate]);
 
     if (!course || !activeLesson) return null;
@@ -157,14 +181,33 @@ export default function CourseDetail() {
 
                     {/* Video Player Wrapper */}
                     <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-200 bg-black shadow-2xl dark:border-slate-800 group">
-                        {/* Simulated Video Player */}
-                        <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
-                            <div className="text-center space-y-4">
-                                <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm transition-transform duration-300 group-hover:scale-110 cursor-pointer text-white">
-                                    <PlayCircle className="h-10 w-10 fill-current" />
+                        <div className="absolute inset-0 bg-slate-900">
+                            {activeLesson.videoUrl ? (
+                                <VideoPlayer
+                                    lesson={activeLesson}
+                                    userEmail={user?.email}
+                                    userId={user?.id}
+                                    // onNext/onPrevious implementation requires course index logic
+                                    hasPrevious={course.lessons.findIndex(l => l.id === activeLesson.id) > 0}
+                                    hasNext={course.lessons.findIndex(l => l.id === activeLesson.id) < course.lessons.length - 1}
+                                    onPrevious={() => {
+                                        const idx = course.lessons.findIndex(l => l.id === activeLesson.id);
+                                        if (idx > 0) setActiveLesson(course.lessons[idx - 1]);
+                                    }}
+                                    onNext={() => {
+                                        const idx = course.lessons.findIndex(l => l.id === activeLesson.id);
+                                        if (idx < course.lessons.length - 1) setActiveLesson(course.lessons[idx + 1]);
+                                    }}
+                                    onComplete={() => {
+                                        // Call API to complete
+                                        api.put(`/lessons/${activeLesson.id}/progress`, { completed: true });
+                                    }}
+                                />
+                            ) : (
+                                <div className="flex h-full items-center justify-center text-slate-500">
+                                    No video available
                                 </div>
-                                <p className="text-sm font-medium text-slate-400">Video Placeholder for {activeLesson.title}</p>
-                            </div>
+                            )}
                         </div>
                     </div>
 
