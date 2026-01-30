@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,67 @@ interface UserData {
   email: string;
   role: string;
 }
+
+const SpotlightCard = ({
+  children,
+  className = "",
+  onClick
+}: {
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+}) => {
+  const divRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [opacity, setOpacity] = useState(0);
+
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    if (!divRef.current) return;
+
+    const div = divRef.current;
+    const rect = div.getBoundingClientRect();
+
+    setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+
+  const handleFocus = () => {
+    setOpacity(1);
+  };
+
+  const handleBlur = () => {
+    setOpacity(0);
+  };
+
+  const handleMouseEnter = () => {
+    setOpacity(1);
+  };
+
+  const handleMouseLeave = () => {
+    setOpacity(0);
+  };
+
+  return (
+    <div
+      ref={divRef}
+      onMouseMove={handleMouseMove}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={onClick}
+      className={`relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 ${className}`}
+    >
+      <div
+        className="pointer-events-none absolute -inset-px opacity-0 transition duration-300"
+        style={{
+          opacity,
+          background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, rgba(100,100,255,0.1), transparent 40%)`,
+        }}
+      />
+      <div className="relative h-full">{children}</div>
+    </div>
+  );
+};
 
 export default function StudentDashboard() {
   const [user, setUser] = useState<UserData | null>(null);
@@ -44,114 +105,112 @@ export default function StudentDashboard() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-background selection:bg-primary/10">
-      {/* Subtle background element */}
-      <div className="fixed inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20"></div>
+    <div className="relative min-h-screen w-full overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 selection:bg-indigo-500/30">
 
-      {/* Navbar */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+      {/* Aurora Background */}
+      <div className="absolute inset-0 -z-10 opacity-40 dark:opacity-30">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
+      </div>
+
+      {/* Navbar with blur */}
+      <nav className="sticky top-0 z-50 border-b border-black/5 bg-white/50 backdrop-blur-xl dark:border-white/5 dark:bg-slate-950/50">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <div className="flex items-center gap-2 font-bold text-xl tracking-tighter">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white dark:bg-white dark:text-black">
               <Sparkles className="h-4 w-4" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-foreground/80">Learning Hub</span>
+            Lern.
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden items-center gap-2 text-sm font-medium text-muted-foreground md:flex">
-              <User className="h-4 w-4" />
-              <span>{user.name}</span>
-            </div>
+          <div className="flex items-center gap-6">
+            <span className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white cursor-pointer transition-colors">
+              Explore
+            </span>
+            <span className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white cursor-pointer transition-colors">
+              Community
+            </span>
+            <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
             <Button
               variant="ghost"
-              size="sm"
               onClick={handleLogout}
-              className="text-muted-foreground hover:text-foreground hover:bg-transparent"
+              className="text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
-              <LogOut className="h-4 w-4" />
+              Sign out
             </Button>
           </div>
         </div>
-      </header>
+      </nav>
 
-      <main className="mx-auto max-w-7xl px-6 py-12">
-        {/* Minimal Header */}
-        <div className="mb-12 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight text-primary">My Courses</h1>
-            <p className="text-muted-foreground">Continue where you left off.</p>
-          </div>
-          <Button variant="link" className="group h-auto p-0 text-muted-foreground hover:text-primary hover:no-underline">
-            View History
-            <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" />
-          </Button>
+      <main className="mx-auto max-w-7xl px-6 py-20">
+
+        {/* Editorial Header */}
+        <div className="mb-20 space-y-4">
+          <h1 className="text-5xl font-extrabold tracking-tight sm:text-7xl">
+            Keep <span className="text-indigo-600 dark:text-indigo-400">Growing.</span>
+          </h1>
+          <p className="max-w-2xl text-lg text-slate-600 dark:text-slate-400">
+            Pick up where you left off. Your journey to mastery is just getting started.
+            Dive back into your active modules.
+          </p>
         </div>
 
-        {/* Course Grid */}
+        {/* Dashboard Grid */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {enrolledCourses.map((course, index) => {
+          {enrolledCourses.map((course) => {
             const progress = studentCourseProgress[course.id] || 0;
             const isStarted = progress > 0;
 
             return (
-              <Card
+              <SpotlightCard
                 key={course.id}
-                className="group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border-muted/60 bg-card/50 backdrop-blur-sm"
-                style={{ animationDelay: `${index * 50}ms` }}
+                className="cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-500"
                 onClick={() => handleOpenCourse(course.id)}
               >
-                <div onClick={(e) => { e.stopPropagation(); handleOpenCourse(course.id); }} className="absolute inset-0 z-10 cursor-pointer" />
-
-                <CardContent className="p-0">
-                  {/* Minimal Header Area with Icon */}
-                  <div className="flex items-start justify-between p-6 pb-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/50 text-secondary-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
-                      <BookOpen className="h-6 w-6" />
+                <div className="flex flex-col h-full p-8">
+                  <div className="mb-6 flex items-center justify-between">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400">
+                      {course.thumbnail ? (
+                        <span className="text-xl">{course.thumbnail}</span>
+                      ) : (
+                        <BookOpen className="h-5 w-5" />
+                      )}
                     </div>
-                    {isStarted ? (
-                      <span className="flex items-center gap-1.5 rounded-full bg-green-500/10 px-2.5 py-0.5 text-[10px] font-medium text-green-600 dark:text-green-400">
-                        <span className="relative flex h-1.5 w-1.5">
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-                          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500"></span>
-                        </span>
-                        In Progress
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-secondary px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                        Not Started
+                    {isStarted && (
+                      <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                        {progress}% Complete
                       </span>
                     )}
                   </div>
 
-                  <div className="px-6 pb-6">
-                    <h3 className="mb-2 text-xl font-semibold tracking-tight text-foreground transition-colors group-hover:text-primary">
-                      {course.title}
-                    </h3>
-                    <p className="mb-6 line-clamp-2 text-sm text-muted-foreground">
-                      {course.description || "Master the fundamentals and advanced concepts in this comprehensive module designed for success."}
-                    </p>
+                  <h3 className="mb-2 text-xl font-bold tracking-tight">{course.title}</h3>
+                  <p className="mb-6 flex-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                    {course.description || "Master the concepts with our comprehensive curriculum designed for professionals."}
+                  </p>
 
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-xs font-medium">
-                        <span className="text-muted-foreground">{course.lessons.length} Lessons</span>
-                        <span className="text-foreground">{progress}%</span>
+                  <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800/50">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        {course.lessons.length} Modules
+                      </span>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-1 transition-transform">
+                        {isStarted ? 'Resume' : 'Start'}
+                        <ArrowRight className="h-4 w-4" />
                       </div>
-                      <Progress
-                        value={progress}
-                        className="h-1.5 bg-secondary"
-                      />
                     </div>
+                    {isStarted && (
+                      <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                        <div
+                          className="h-full bg-indigo-500 transition-all duration-500 ease-out"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
-
-                  {/* Hover Action */}
-                  <div className="border-t bg-muted/30 px-6 py-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    <div className="flex items-center justify-center gap-2 text-xs font-semibold text-primary">
-                      {isStarted ? 'Resume Learning' : 'Start Course'} <Play className="h-3 w-3 fill-current" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </SpotlightCard>
             );
           })}
         </div>
