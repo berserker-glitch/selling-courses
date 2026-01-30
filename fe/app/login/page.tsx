@@ -50,7 +50,7 @@ export default function LoginPage() {
                     <div className="w-16 h-16 bg-primary mx-auto rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/50 text-white">
                         <Shield className="w-8 h-8" />
                     </div>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500">
+                    <h1 className="heading-xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500 text-3xl md:text-4xl mb-0">
                         Mohibi Maths
                     </h1>
                     <p className="text-muted-foreground text-sm">Secure Learning Environment</p>
@@ -63,12 +63,14 @@ export default function LoginPage() {
 
                     <form onSubmit={handleLogin} className="space-y-6">
                         {/* Role Tabs */}
-                        <div className="grid grid-cols-2 p-1 bg-muted/50 rounded-xl border border-white/5">
+                        <div className="grid grid-cols-2 p-1 bg-muted/50 rounded-xl border border-white/5" role="tablist" aria-label="Login Role Selection">
                             <button
                                 type="button"
+                                role="tab"
+                                aria-selected={role === 'STUDENT'}
                                 onClick={() => setRole('STUDENT')}
                                 className={cn(
-                                    "flex items-center justify-center space-x-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300",
+                                    "flex items-center justify-center space-x-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary",
                                     role === 'STUDENT'
                                         ? "bg-background shadow-lg text-primary scale-[1.02]"
                                         : "text-muted-foreground hover:text-foreground"
@@ -79,9 +81,11 @@ export default function LoginPage() {
                             </button>
                             <button
                                 type="button"
+                                role="tab"
+                                aria-selected={role === 'ADMIN'}
                                 onClick={() => setRole('ADMIN')}
                                 className={cn(
-                                    "flex items-center justify-center space-x-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300",
+                                    "flex items-center justify-center space-x-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary",
                                     role === 'ADMIN'
                                         ? "bg-background shadow-lg text-destructive scale-[1.02]"
                                         : "text-muted-foreground hover:text-foreground"
@@ -94,30 +98,34 @@ export default function LoginPage() {
 
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1">
+                                <label htmlFor="username" className="label-text">
                                     Username
                                 </label>
                                 <input
+                                    id="username"
                                     type="text"
                                     required
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full bg-background/50 border border-border/50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 transition-all font-mono placeholder:text-muted-foreground/50"
+                                    className="input-field font-mono"
                                     placeholder={role === 'ADMIN' ? 'admin' : 'MM-2024-XXX'}
+                                    aria-label="Username"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1">
+                                <label htmlFor="password" className="label-text">
                                     Password
                                 </label>
                                 <input
+                                    id="password"
                                     type="password"
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-background/50 border border-border/50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 transition-all font-mono placeholder:text-muted-foreground/50"
+                                    className="input-field font-mono"
                                     placeholder="••••••••"
+                                    aria-label="Password"
                                 />
                             </div>
                         </div>
@@ -126,18 +134,17 @@ export default function LoginPage() {
                             type="submit"
                             disabled={loading}
                             className={cn(
-                                "w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
-                                role === 'ADMIN'
-                                    ? "bg-gradient-to-r from-red-600 to-red-800 text-white shadow-lg shadow-red-500/20 hover:shadow-red-500/40"
-                                    : "bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg shadow-primary/20 hover:shadow-primary/40"
+                                role === 'ADMIN' ? "btn-destructive" : "btn-primary",
+                                "w-full"
                             )}
+                            aria-label={loading ? "Logging in..." : "Initialize Session"}
                         >
                             {loading ? (
                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
                                 <>
                                     <span>Initialize Session</span>
-                                    <ArrowRight className="w-4 h-4" />
+                                    <ArrowRight className="w-4 h-4 ml-2" />
                                 </>
                             )}
                         </button>

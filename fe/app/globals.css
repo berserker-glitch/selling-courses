@@ -173,6 +173,46 @@
   .blur-content {
     @apply blur-xl grayscale opacity-50 transition-all duration-200;
   }
+
+  /* Typography */
+  .heading-xl {
+    @apply text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500 mb-4;
+  }
+
+  .heading-lg {
+    @apply text-3xl font-bold text-foreground mb-2;
+  }
+
+  /* Form Elements */
+  .input-field {
+    @apply w-full bg-background/50 border border-input rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-ring transition-all placeholder:text-muted-foreground/50;
+  }
+
+  .label-text {
+    @apply text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1 mb-2 block;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-xl font-bold transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-3;
+  }
+
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-primary to-indigo-600 text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40;
+  }
+
+  .btn-destructive {
+    @apply btn bg-gradient-to-r from-destructive to-red-800 text-destructive-foreground shadow-lg shadow-destructive/20 hover:shadow-destructive/40;
+  }
+
+  .btn-ghost {
+    @apply btn hover:bg-muted/50 text-muted-foreground hover:text-foreground;
+  }
+
+  /* Accessibility focus ring integration */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
 }
 
 @layer base {
