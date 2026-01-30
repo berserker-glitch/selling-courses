@@ -9,6 +9,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 import CourseDetail from "./pages/CourseDetail";
 import TeacherCourseDetail from "./pages/TeacherCourseDetail";
 import NotFound from "./pages/NotFound";
+import { SecurityOverlay } from "./components/SecurityOverlay";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <SecurityOverlay />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />

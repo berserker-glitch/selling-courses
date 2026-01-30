@@ -44,7 +44,7 @@ export const getCourses = async (req: Request, res: Response) => {
 
 export const getCourseById = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const { id } = req.params as { id: string };
         const course = await prisma.course.findUnique({
             where: { id },
             include: {
@@ -88,7 +88,7 @@ export const createCourse = async (req: Request, res: Response) => {
 
 export const deleteCourse = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const { id } = req.params as { id: string };
         const user = (req as any).user;
 
         const course = await prisma.course.findUnique({ where: { id } });
@@ -107,7 +107,7 @@ export const deleteCourse = async (req: Request, res: Response) => {
 
 export const updateCourse = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const { id } = req.params as { id: string };
         const user = (req as any).user;
 
         const course = await prisma.course.findUnique({ where: { id } });
@@ -134,7 +134,7 @@ export const updateCourse = async (req: Request, res: Response) => {
 
 export const addLesson = async (req: Request, res: Response) => {
     try {
-        const { courseId } = req.params;
+        const { courseId } = req.params as { courseId: string };
         const user = (req as any).user;
 
         const course = await prisma.course.findUnique({ where: { id: courseId } });
@@ -165,7 +165,7 @@ export const addLesson = async (req: Request, res: Response) => {
 
 export const updateLesson = async (req: Request, res: Response) => {
     try {
-        const { courseId, lessonId } = req.params;
+        const { courseId, lessonId } = req.params as { courseId: string; lessonId: string };
         const user = (req as any).user;
 
         const course = await prisma.course.findUnique({ where: { id: courseId } });
@@ -190,7 +190,7 @@ export const updateLesson = async (req: Request, res: Response) => {
 
 export const deleteLesson = async (req: Request, res: Response) => {
     try {
-        const { courseId, lessonId } = req.params;
+        const { courseId, lessonId } = req.params as { courseId: string; lessonId: string };
         const user = (req as any).user;
 
         const course = await prisma.course.findUnique({ where: { id: courseId } });
@@ -211,7 +211,7 @@ export const deleteLesson = async (req: Request, res: Response) => {
 
 export const enrollCourse = async (req: Request, res: Response) => {
     try {
-        const { courseId } = req.params;
+        const { courseId } = req.params as { courseId: string };
         const user = (req as any).user; // From auth middleware
 
         // Check if already enrolled

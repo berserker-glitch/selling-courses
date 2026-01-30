@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -13,7 +13,7 @@ export const logAudit = async (
             data: {
                 userId,
                 action,
-                metadata: metadata ? JSON.stringify(metadata) : null,
+                metadata: metadata ?? Prisma.DbNull,
                 ip: req?.ip || null,
                 userAgent: req?.headers ? req.headers['user-agent'] : null
             }

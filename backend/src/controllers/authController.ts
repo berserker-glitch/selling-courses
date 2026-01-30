@@ -111,3 +111,58 @@ export const login = async (req: Request, res: Response) => {
 export const getMe = async (req: any, res: Response) => {
     res.json(req.user);
 };
+
+// --- Student Creation (Teacher Only) ---
+
+import { sendStudentCredentials } from '../services/emailService';
+
+export const createStudent = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        if (user.role !== 'TEACHER' && user.role !== 'ADMIN') {
+            return res.status(403).json({ message: 'Only teachers can create student accounts' });
+        }
+
+        const { name, email } = z.object({
+            name: z.string().min(2),
+            email: z.string().email()
+        }).parse(req.body);
+
+        // Check if user exists
+        const existing = await prisma.user.findUnique({ where: { email } });
+        if (existing) {
+            return res.status(400).json({ message: 'User with this email already exists' });
+        }
+
+        // Generate Random Password
+        const password = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create User
+        const student = await prisma.user.create({
+            data: {
+                name,
+                email,
+                password: hashedPassword,
+                role: 'STUDENT'
+            }
+        });
+
+        // Send Email
+        const emailSent = await sendStudentCredentials(email, name, password);
+
+        if (!emailSent) {
+            // Optional: Rollback user creation or just warn?
+            // For now, warn but return success with message
+            return res.status(201).json({
+                message: 'Student created but email failed to send. Please send credentials manually.',
+                student: { id: student.id, email: student.email, password }
+            });
+        }
+
+        res.status(201).json({ message: 'Student created and email sent successfully' });
+
+    } catch (error: any) {
+        res.status(400).json({ message: error.message || 'Error creating student' });
+    }
+};

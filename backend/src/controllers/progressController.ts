@@ -12,23 +12,29 @@ const progressSchema = z.object({
 
 export const updateLessonProgress = async (req: Request, res: Response) => {
     try {
-        const { lessonId } = req.params;
+        const { lessonId } = req.params as { lessonId: string };
         const user = (req as any).user;
         const { completed, watchedDuration } = progressSchema.parse(req.body);
 
         // Upsert progress
-        const progress = await prisma.lessonProgress.create({ // Should be upsert if composite unique key exists
-            // But schema didn't have composite key on LessonProgress(userId, lessonId) in my draft?
-            // Let's check schema. If no unique constraint, we have to findFirst then update/create.
-            data: {
+        const progress = await prisma.lessonProgress.upsert({
+            where: {
+                userId_lessonId: {
+                    userId: user.id,
+                    lessonId
+                }
+            },
+            update: {
+                completed,
+                watchedDuration: watchedDuration || '0'
+            },
+            create: {
                 userId: user.id,
                 lessonId,
                 completed,
                 watchedDuration: watchedDuration || '0'
             }
         });
-        // Note: Real implementation needs strict Upsert logic. 
-        // For now, assuming create works or we'd refine schema to have @@unique([userId, lessonId]) in usage.
 
         // Log completion
         if (completed) {
@@ -43,7 +49,7 @@ export const updateLessonProgress = async (req: Request, res: Response) => {
 
 export const getCourseProgress = async (req: Request, res: Response) => {
     try {
-        const { courseId } = req.params;
+        const { courseId } = req.params as { courseId: string };
         const user = (req as any).user;
 
         const enrollment = await prisma.enrollment.findUnique({
