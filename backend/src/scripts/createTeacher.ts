@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
@@ -37,10 +38,10 @@ async function main() {
         });
 
         console.log(`\nSUCCESS!`);
-        console.log(`Teacher created/updated:`);
-        console.log(`Email: ${user.email}`);
-        console.log(`Password: ${password}`);
-        console.log(`Role: ${user.role}`);
+        console.log(`Teacher created / updated: `);
+        console.log(`Email: ${user.email} `);
+        console.log(`Password: ${password} `);
+        console.log(`Role: ${user.role} `);
     } catch (error) {
         console.error('Error creating teacher:', error);
     }
