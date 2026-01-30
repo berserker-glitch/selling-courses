@@ -5,7 +5,9 @@ import { sessionStore } from '@/lib/store';
 import { db, User, Video, Course } from '@/lib/mock-db';
 import { useRouter } from 'next/navigation';
 import { SecurePlayer } from '@/components/player/SecurePlayer';
-import { ChevronLeft, ShieldAlert } from 'lucide-react';
+import { ChevronLeft, ShieldAlert, Play, CheckCircle2, ListVideo } from 'lucide-react';
+import { DashboardNavbar } from '@/components/layout/DashboardNavbar';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export default function WatchPage({ params }: { params: Promise<{ videoId: string }> }) {
@@ -14,6 +16,7 @@ export default function WatchPage({ params }: { params: Promise<{ videoId: strin
     const [user, setUser] = useState<User | null>(null);
     const [video, setVideo] = useState<Video | null>(null);
     const [course, setCourse] = useState<Course | null>(null);
+    const [playlist, setPlaylist] = useState<Video[]>([]);
 
     useEffect(() => {
         const currentUser = sessionStore.getUser();
@@ -34,12 +37,15 @@ export default function WatchPage({ params }: { params: Promise<{ videoId: strin
             setVideo(foundVideo);
             const foundCourse = db.courses.findById(foundVideo.courseId);
             setCourse(foundCourse || null);
+            if (foundCourse) {
+                setPlaylist(db.videos.byCourseId(foundCourse.id));
+            }
 
             db.logs.add({
                 userId: currentUser.id,
                 action: 'PLAYBACK_START',
                 metadata: { videoId: videoId, title: foundVideo.title },
-                ip: '127.0.0.1'
+                ip: '127.0.0.1' // Mock IP
             });
         } else {
             router.push('/dashboard');
@@ -51,64 +57,129 @@ export default function WatchPage({ params }: { params: Promise<{ videoId: strin
                     userId: currentUser.id,
                     action: 'PLAYBACK_STOP',
                     metadata: { videoId: videoId },
-                    ip: '127.0.0.1'
+                    ip: '127.0.0.1' // Mock IP
                 });
             }
         };
     }, [videoId, router]);
 
-    if (!user || !video) return null;
+    const handlePlaylistClick = (vidId: string) => {
+        if (vidId === videoId) return;
+        router.push(`/watch/${vidId}`);
+    };
+
+    if (!user || !video || !course) return null;
 
     return (
-        <div className="min-h-screen bg-black text-white flex flex-col">
-            {/* Dark Header */}
-            <header className="h-16 border-b border-white/10 flex items-center justify-between px-6 bg-zinc-950">
-                <div className="flex items-center space-x-4">
+        <div className="min-h-screen bg-background text-foreground flex flex-col">
+            <DashboardNavbar />
+
+            <main className="max-w-[1600px] mx-auto w-full px-4 py-6 md:py-8 flex-1">
+
+                {/* Breadcrumb / Back Navigation */}
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
                     <button
-                        onClick={() => router.back()}
-                        className="p-2 hover:bg-white/10 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-white"
-                        aria-label="Back to Dashboard"
+                        onClick={() => router.push('/dashboard')}
+                        className="hover:text-primary transition-colors flex items-center"
                     >
-                        <ChevronLeft className="w-5 h-5 text-zinc-400" />
+                        <ChevronLeft className="w-4 h-4 mr-1" />
+                        Dashboard
                     </button>
-                    <div>
-                        <h1 className="text-sm font-bold text-zinc-200">{video.title}</h1>
-                        <p className="text-xs text-zinc-500">{course?.title}</p>
-                    </div>
+                    <span>/</span>
+                    <span className="font-semibold text-foreground">{course.title}</span>
                 </div>
 
-                <div className="flex items-center space-x-2 text-xs font-mono text-zinc-500" role="status" aria-label="Security Status">
-                    <ShieldAlert className="w-4 h-4 text-green-500" aria-hidden="true" />
-                    <span>SECURE CONNECTION</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse ml-2" />
-                </div>
-            </header>
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
-            {/* Player Container */}
-            <main className="flex-1 flex items-center justify-center p-4 md:p-8 bg-zinc-950 relative overflow-hidden">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-blue-900/10 blur-[100px] rounded-full pointer-events-none" />
+                    {/* Left Column: Player & Info (3 cols) */}
+                    <div className="lg:col-span-3 space-y-6">
 
-                <div className="w-full max-w-5xl z-10 space-y-4">
-                    {/* Security Warning */}
-                    <div className="text-center mb-6 opacity-50 hover:opacity-100 transition-opacity">
-                        <p className="text-[10px] uppercase tracking-widest text-zinc-600">
-                            Forensic Watermarking Active • ID: {user.studentNumber} • IP: 127.0.0.1
-                        </p>
+                        {/* Visual Player Wrapper */}
+                        <div className="glass-card bg-card border border-border/50 overflow-hidden shadow-2xl shadow-black/5 relative group">
+                            {/* Security Badge Overlay */}
+                            <div className="absolute top-4 right-4 z-20 flex items-center space-x-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] uppercase font-bold tracking-widest pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity">
+                                <ShieldAlert className="w-3 h-3 text-green-500" />
+                                <span>Secure Stream</span>
+                            </div>
+
+                            <SecurePlayer
+                                user={user}
+                                videoId={video.id}
+                                title={video.title}
+                            />
+                        </div>
+
+                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                            <div>
+                                <h1 className="heading-xl text-2xl md:text-4xl mb-2">{video.title}</h1>
+                                <p className="text-muted-foreground text-lg">{course.description}</p>
+                            </div>
+                            {/* Action buttons could go here (e.g. "Mark Complete", "Notes") */}
+                        </div>
+
+                        <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-700 dark:text-yellow-400 text-sm flex items-start space-x-3">
+                            <ShieldAlert className="w-5 h-5 shrink-0" />
+                            <p>
+                                <strong>Security Notice:</strong> Your session is being monitored. Visible and invisible forensic watermarks containing your User ID ({user.studentNumber}) are embedded in the stream. Screen recording or sharing is strictly prohibited and will result in immediate account termination.
+                            </p>
+                        </div>
+
                     </div>
 
-                    <SecurePlayer
-                        user={user}
-                        videoId={video.id}
-                        title={video.title}
-                    />
+                    {/* Right Column: Playlist Sidebar (1 col) */}
+                    <div className="lg:col-span-1">
+                        <div className="glass-card bg-card border border-border/50 sticky top-24 flex flex-col h-[calc(100vh-140px)]">
+                            <div className="p-4 border-b border-border/50 flex items-center justify-between bg-muted/30">
+                                <div className="flex items-center space-x-2">
+                                    <ListVideo className="w-5 h-5 text-primary" />
+                                    <h3 className="font-bold text-lg">Course Content</h3>
+                                </div>
+                                <span className="text-xs font-medium text-muted-foreground bg-background px-2 py-1 rounded-md border border-border/50 max-w">
+                                    {playlist.length} Lessons
+                                </span>
+                            </div>
 
-                    <div className="bg-zinc-900/50 backdrop-blur-md border border-white/5 rounded-xl p-6 mt-8">
-                        <h2 className="heading-lg text-lg mb-2 text-white">Session Notes</h2>
-                        <p className="text-sm text-zinc-400">
-                            This session is monitored. Any attempt to record, screenshot, or share this content will result in immediate account termination.
-                            Your unique session ID is <span className="font-mono text-white bg-white/10 px-1 rounded">{Math.random().toString(36).substring(7)}</span>.
-                        </p>
+                            <div className="overflow-y-auto flex-1 p-2 space-y-2 custom-scrollbar">
+                                {playlist.map((vid, idx) => {
+                                    const isActive = vid.id === video.id;
+                                    return (
+                                        <button
+                                            key={vid.id}
+                                            onClick={() => handlePlaylistClick(vid.id)}
+                                            className={cn(
+                                                "w-full flex items-start space-x-3 p-3 rounded-lg text-left transition-all border border-transparent",
+                                                isActive
+                                                    ? "bg-primary/10 border-primary/20 shadow-sm"
+                                                    : "hover:bg-muted/50 hover:border-border/50"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold transition-colors",
+                                                isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                                            )}>
+                                                {isActive ? <Play className="w-3 h-3 ml-0.5 fill-current" /> : idx + 1}
+                                            </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className={cn(
+                                                    "text-sm font-semibold truncate",
+                                                    isActive ? "text-primary" : "text-foreground"
+                                                )}>
+                                                    {vid.title}
+                                                </h4>
+                                                <div className="flex items-center justify-between mt-1 text-[10px] text-muted-foreground">
+                                                    <span>Video • {vid.duration}</span>
+                                                    {/* Mock completion status used previously */}
+                                                    {/* {idx < 2 && <CheckCircle2 className="w-3 h-3 text-green-500" />} */}
+                                                </div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
+
                 </div>
             </main>
         </div>
