@@ -15,7 +15,6 @@ interface TeacherSidebarProps {
 
 export function TeacherSidebar({ user, activeSection, onSectionChange, onLogout }: TeacherSidebarProps) {
   const menuItems = [
-    { id: 'overview', label: 'Overview', icon: Home },
     { id: 'courses', label: 'Courses', icon: BookOpen },
     { id: 'students', label: 'Students', icon: Users },
   ];
@@ -40,8 +39,8 @@ export function TeacherSidebar({ user, activeSection, onSectionChange, onLogout 
               key={item.id}
               onClick={() => onSectionChange(item.id)}
               className={`w-full flex items-center gap-3 rounded-lg border px-4 py-3 text-sm font-medium transition-all duration-150 ${isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'bg-sidebar text-sidebar-foreground hover:bg-sidebar-accent'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-sidebar text-sidebar-foreground hover:bg-sidebar-accent'
                 }`}
             >
               <Icon className="h-5 w-5" />

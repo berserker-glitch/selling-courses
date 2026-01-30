@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TeacherSidebar } from '@/components/teacher/TeacherSidebar';
-import { TeacherOverview } from '@/components/teacher/TeacherOverview';
 import { CourseManagement } from '@/components/teacher/CourseManagement';
 import { StudentManagement } from '@/components/teacher/StudentManagement';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +14,7 @@ interface UserData {
 
 export default function TeacherDashboardNew() {
   const [user, setUser] = useState<UserData | null>(null);
-  const [activeSection, setActiveSection] = useState('overview');
+  const [activeSection, setActiveSection] = useState('courses');
   const [courses, setCourses] = useState<Course[]>(mockCourses);
   const [students, setStudents] = useState<Student[]>(mockStudents);
   const navigate = useNavigate();
@@ -104,11 +103,11 @@ export default function TeacherDashboardNew() {
     setCourses(courses.map(course =>
       course.id === courseId
         ? {
-            ...course,
-            lessons: course.lessons.map(lesson =>
-              lesson.id === lessonId ? { ...lesson, ...updates } : lesson
-            )
-          }
+          ...course,
+          lessons: course.lessons.map(lesson =>
+            lesson.id === lessonId ? { ...lesson, ...updates } : lesson
+          )
+        }
         : course
     ));
 
@@ -157,14 +156,6 @@ export default function TeacherDashboardNew() {
 
   const renderContent = () => {
     switch (activeSection) {
-      case 'overview':
-        return (
-          <TeacherOverview
-            courses={courses}
-            students={students}
-            onSectionChange={setActiveSection}
-          />
-        );
       case 'courses':
         return (
           <CourseManagement
