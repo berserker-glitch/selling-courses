@@ -23,7 +23,10 @@ export function VideoPlayer({
   onComplete,
   hasPrevious = false,
   hasNext = false,
+
   isCompleted = false,
+  userEmail,
+  userId,
 }: VideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);

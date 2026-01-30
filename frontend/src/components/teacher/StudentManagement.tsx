@@ -296,6 +296,43 @@ export function StudentManagement({
                   )}
                 </div>
 
+                {/* Category Enrollment */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-black uppercase text-foreground">Category Enrollment</h4>
+                  <div className="flex items-center gap-4 rounded-lg border bg-card p-5 shadow-sm">
+                    <div className="flex-1">
+                      <Label className="mb-2 block">Enroll in Category</Label>
+                      <Select
+                        value={selectedCategory}
+                        onValueChange={setSelectedCategory}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        if (selectedCategory && selectedStudent) {
+                          onEnrollCategory(selectedStudent.id, selectedCategory);
+                          setSelectedCategory('');
+                        }
+                      }}
+                      disabled={!selectedCategory}
+                      className="mt-6"
+                    >
+                      Enroll
+                    </Button>
+                  </div>
+                </div>
+
                 {/* Actions */}
                 <div className="flex space-x-3 border-t pt-5">
                   <Button

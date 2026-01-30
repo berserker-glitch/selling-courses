@@ -23,21 +23,40 @@ const lessonSchema = z.object({
 
 export const getCourses = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        let where: any = {};
+
+        if (user.role === 'STUDENT') {
+            // Fetch fresh user data with enrolled categories
+            const dbUser = await prisma.user.findUnique({
+                where: { id: user.id },
+                include: { enrolledCategories: true }
+            });
+
+            if (!dbUser || !dbUser.enrolledCategories.length) {
+                // If no categories enrolled, return empty
+                return res.json([]);
+            }
+
+            const categoryIds = dbUser.enrolledCategories.map(c => c.id);
+            where = {
+                categoryId: { in: categoryIds }
+            };
+        }
+
         const courses = await prisma.course.findMany({
+            where,
             include: {
                 teacher: { select: { name: true, email: true } },
-                category: true, // Include category details
+                category: true,
                 lessons: true,
                 _count: { select: { lessons: true, enrollments: true } }
             }
         });
 
-        // Map to flat structure if needed, or frontend can handle course.category.name
-        // For backward compatibility (if frontend expects course.category to be a string), we might map it.
-        // But usually better to update frontend. Let's send full object.
-
         res.json(courses);
     } catch (error) {
+        console.error('Get Courses Error:', error); // Better logging
         res.status(500).json({ message: 'Error fetching courses' });
     }
 };
