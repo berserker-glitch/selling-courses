@@ -95,14 +95,14 @@ export default function CourseDetail() {
     <div className="flex min-h-screen flex-col bg-background">
 
       {/* Mobile lesson selector */}
-      <section className="border-b-[3px] border-foreground bg-card px-4 py-6 shadow-neo md:hidden">
+      <section className="border-b bg-card px-4 py-6 shadow-sm md:hidden">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-black uppercase text-foreground">Playlist</h3>
+          <h3 className="text-sm font-bold text-foreground">Playlist</h3>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate('/student')}
-            className="rounded-none border-[3px] border-foreground bg-card shadow-neo-xs"
+            className="rounded-lg border shadow-sm"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -116,22 +116,21 @@ export default function CourseDetail() {
               <button
                 key={lesson.id}
                 onClick={() => handleSelectLesson(index)}
-                className={`w-full rounded-none border-[3px] border-foreground p-4 text-left shadow-neo-xs transition-transform duration-150 ${
-                  isActive ? 'bg-primary text-primary-foreground' : 'bg-card text-foreground'
-                }`}
+                className={`w-full rounded-lg border p-4 text-left shadow-sm transition-all duration-150 ${isActive ? 'bg-primary text-primary-foreground' : 'bg-card text-foreground'
+                  }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`flex h-10 w-10 items-center justify-center border-[3px] border-foreground text-sm font-black ${isActive ? 'bg-card text-foreground' : 'bg-muted'}`}>
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-md border text-sm font-bold ${isActive ? 'bg-card text-foreground' : 'bg-muted'}`}>
                     {isCompleted ? <CheckCircle className="h-5 w-5" /> : index + 1}
                   </div>
                   <div className="flex-1 space-y-2">
-                    <div className="text-sm font-black uppercase">{lesson.title}</div>
+                    <div className="text-sm font-bold">{lesson.title}</div>
                     {lesson.description && (
-                      <p className={`text-xs font-semibold uppercase ${isActive ? 'text-primary-foreground/80' : 'text-foreground/60'} line-clamp-2`}>
+                      <p className={`text-xs font-medium ${isActive ? 'text-primary-foreground/80' : 'text-muted-foreground'} line-clamp-2`}>
                         {lesson.description}
                       </p>
                     )}
-                    <div className={`flex items-center gap-2 text-[0.65rem] font-semibold uppercase ${isActive ? 'text-primary-foreground/90' : 'text-foreground/50'}`}>
+                    <div className={`flex items-center gap-2 text-[0.65rem] font-medium uppercase ${isActive ? 'text-primary-foreground/90' : 'text-muted-foreground'}`}>
                       <Clock className="h-3 w-3" />
                       {lesson.duration}
                       {isCompleted && <span>Done</span>}
@@ -147,18 +146,18 @@ export default function CourseDetail() {
 
       <div className="flex w-full flex-1 flex-col md:flex-row">
         {/* Left Sidebar - Desktop */}
-        <aside className="hidden md:flex md:w-80 md:flex-col md:border-r-[3px] md:border-foreground md:bg-card md:shadow-neo">
+        <aside className="hidden md:flex md:w-80 md:flex-col md:border-r md:bg-card">
           <div className="sticky top-0 flex h-screen flex-col">
-            <div className="flex items-center justify-between border-b-[3px] border-foreground px-6 py-5">
+            <div className="flex items-center justify-between border-b px-6 py-5">
               <div>
-                <h2 className="text-lg font-black uppercase text-foreground">Lesson Playlist</h2>
-                <p className="mt-1 text-[11px] font-semibold uppercase text-foreground/60">Click any card to jump ahead</p>
+                <h2 className="text-lg font-bold text-foreground">Lesson Playlist</h2>
+                <p className="mt-1 text-[11px] font-medium text-muted-foreground uppercase">Click any card to jump ahead</p>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate('/student')}
-                className="rounded-none border-[3px] border-foreground bg-card shadow-neo-xs"
+                className="rounded-lg border shadow-sm"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
@@ -168,25 +167,24 @@ export default function CourseDetail() {
                 {course.lessons.map((lesson, index) => (
                   <button
                     key={lesson.id}
-                    className={`w-full rounded-none border-[3px] border-foreground p-4 text-left shadow-neo-xs transition-transform duration-150 ${
-                      index === selectedLessonIndex
+                    className={`w-full rounded-lg border p-4 text-left shadow-sm transition-all duration-150 ${index === selectedLessonIndex
                         ? 'bg-primary text-primary-foreground'
-                        : 'bg-card text-foreground hover:-translate-y-[2px] hover:-translate-x-[2px]'
-                    }`}
+                        : 'bg-card text-foreground hover:bg-accent'
+                      }`}
                     onClick={() => handleSelectLesson(index)}
                   >
                     <div className="flex items-start gap-3">
-                      <div className={`flex h-10 w-10 items-center justify-center border-[3px] border-foreground ${completedLessons[lesson.id] ? 'bg-success text-success-foreground' : 'bg-muted text-foreground'} text-sm font-black`}>
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-md border ${completedLessons[lesson.id] ? 'bg-success text-success-foreground' : 'bg-muted text-foreground'} text-sm font-bold`}>
                         {completedLessons[lesson.id] ? <CheckCircle className="h-5 w-5" /> : index + 1}
                       </div>
                       <div className="flex-1 space-y-2">
-                        <div className="text-sm font-black uppercase">{lesson.title}</div>
+                        <div className="text-sm font-bold">{lesson.title}</div>
                         {lesson.description && (
-                          <p className="text-xs font-semibold uppercase text-foreground/60 line-clamp-2">
+                          <p className="text-xs font-medium text-muted-foreground line-clamp-2">
                             {lesson.description}
                           </p>
                         )}
-                        <div className="flex items-center gap-2 text-[0.65rem] font-semibold uppercase text-foreground/60">
+                        <div className="flex items-center gap-2 text-[0.65rem] font-medium text-muted-foreground uppercase">
                           <Clock className="h-3 w-3" />
                           {lesson.duration}
                           {completedLessons[lesson.id] && <span>Completed</span>}
@@ -218,20 +216,20 @@ export default function CourseDetail() {
               />
 
               {selectedLesson.description && (
-                <div className="rounded-none border-[3px] border-foreground bg-card p-6 shadow-neo">
+                <div className="rounded-xl border bg-card p-6 shadow-sm">
                   <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <h2 className="text-2xl font-black uppercase text-foreground md:text-3xl">{selectedLesson.title}</h2>
-                      <p className="mt-1 text-xs font-semibold uppercase text-foreground/60">{selectedLesson.duration}</p>
+                      <h2 className="text-2xl font-bold text-foreground md:text-3xl">{selectedLesson.title}</h2>
+                      <p className="mt-1 text-xs font-medium text-muted-foreground uppercase">{selectedLesson.duration}</p>
                     </div>
                     {isSelectedLessonCompleted && (
-                      <span className="inline-flex items-center gap-2 rounded-none border-[3px] border-foreground bg-success px-3 py-1 text-xs font-semibold uppercase text-success-foreground shadow-neo-xs">
+                      <span className="inline-flex items-center gap-2 rounded-full bg-success px-3 py-1 text-xs font-medium text-success-foreground">
                         <CheckCircle className="h-4 w-4" />
                         Completed
                       </span>
                     )}
                   </div>
-                  <p className="mt-4 text-sm font-medium text-foreground/70">
+                  <p className="mt-4 text-sm font-medium text-muted-foreground">
                     {selectedLesson.description}
                   </p>
                 </div>
@@ -239,7 +237,7 @@ export default function CourseDetail() {
 
               {!isSelectedLessonCompleted && (
                 <Button
-                  className="rounded-none border-[3px] border-foreground shadow-neo-xs"
+                  className="shadow-sm"
                   onClick={handleCompleteLesson}
                 >
                   <CheckCircle className="mr-2 h-4 w-4" />
@@ -248,18 +246,18 @@ export default function CourseDetail() {
               )}
 
               {/* Lesson Resources */}
-              <div className="rounded-none border-[3px] border-foreground bg-card p-6 shadow-neo">
+              <div className="rounded-xl border bg-card p-6 shadow-sm">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <h3 className="text-lg font-black uppercase text-foreground">Next Actions</h3>
-                    <p className="text-xs font-semibold uppercase text-foreground/60">Keep the momentum going.</p>
+                    <h3 className="text-lg font-bold text-foreground">Next Actions</h3>
+                    <p className="text-xs font-medium text-muted-foreground">Keep the momentum going.</p>
                   </div>
-                  <div className="flex flex-wrap gap-3 text-xs font-semibold uppercase">
-                    <Button variant="secondary" className="rounded-none border-[3px] border-foreground shadow-neo-xs">
+                  <div className="flex flex-wrap gap-3 text-xs font-medium">
+                    <Button variant="secondary" className="shadow-sm">
                       <ListChecks className="mr-2 h-4 w-4" />
                       Practice Quiz
                     </Button>
-                    <Button variant="secondary" className="rounded-none border-[3px] border-foreground shadow-neo-xs">
+                    <Button variant="secondary" className="shadow-sm">
                       <FileText className="mr-2 h-4 w-4" />
                       Review Notes
                     </Button>
@@ -269,11 +267,11 @@ export default function CourseDetail() {
             </div>
           ) : (
             <div className="flex h-full flex-col items-center justify-center space-btn gap-4 text-center">
-              <div className="flex h-24 w-24 items-center justify-center border-[3px] border-foreground bg-muted text-foreground shadow-neo">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-muted text-foreground">
                 <BookOpen className="h-10 w-10" />
               </div>
-              <h3 className="text-2xl font-black uppercase text-foreground">Select a Lesson</h3>
-              <p className="text-xs font-semibold uppercase text-foreground/60">
+              <h3 className="text-2xl font-bold text-foreground">Select a Lesson</h3>
+              <p className="text-xs font-medium text-muted-foreground">
                 Choose a lesson from the playlist to start watching.
               </p>
             </div>

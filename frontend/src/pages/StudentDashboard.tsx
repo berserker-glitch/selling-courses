@@ -67,17 +67,16 @@ export default function StudentDashboard() {
     <div className="bg-background">
       {/* Mobile layout */}
       <div className="flex min-h-screen flex-col md:hidden">
-        <header className="border-b-[3px] border-foreground bg-card shadow-neo">
+        <header className="border-b bg-card shadow-sm">
           <div className="flex items-center justify-between px-4 py-4">
             <div>
-              <p className="text-[10px] font-semibold uppercase text-foreground/60">Student Control</p>
-              <h1 className="text-xl font-black uppercase text-foreground">{user.name}</h1>
+              <p className="text-[10px] font-medium text-muted-foreground uppercase">Student Control</p>
+              <h1 className="text-xl font-bold text-foreground">{user.name}</h1>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="rounded-none border-[3px] border-foreground px-4 shadow-neo-xs"
             >
               <LogOut className="mr-2 h-4 w-4" />
               Logout
@@ -87,16 +86,16 @@ export default function StudentDashboard() {
 
         <main className="flex-1 space-y-6 px-4 py-6">
           {nextCourse && (
-            <section className="space-y-4 rounded-none border-[3px] border-foreground bg-card p-5 shadow-neo">
-              <span className="inline-flex w-max items-center gap-2 rounded-none border-[3px] border-foreground bg-secondary px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-secondary-foreground shadow-neo-xs">
+            <div className="space-y-4 rounded-lg border bg-card p-5 shadow-sm">
+              <span className="inline-flex w-max items-center gap-2 rounded-full bg-secondary px-3 py-1 text-[10px] font-medium text-secondary-foreground">
                 Continue Learning
               </span>
               <div>
-                <h2 className="text-2xl font-black uppercase text-foreground">{nextCourse.title}</h2>
-                <p className="mt-2 text-sm font-medium text-foreground/70 line-clamp-2">{nextCourse.description}</p>
+                <h2 className="text-2xl font-bold text-foreground">{nextCourse.title}</h2>
+                <p className="mt-2 text-sm font-medium text-muted-foreground line-clamp-2">{nextCourse.description}</p>
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-semibold uppercase text-foreground">
+                <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
                   <span>Progress</span>
                   <span>{studentCourseProgress[nextCourse.id] || 0}%</span>
                 </div>
@@ -106,20 +105,20 @@ export default function StudentDashboard() {
                 <Play className="mr-2 h-4 w-4" />
                 Resume Course
               </Button>
-            </section>
+            </div>
           )}
 
           <section className="space-y-3">
-            <h3 className="text-sm font-black uppercase text-foreground">Snapshot</h3>
+            <h3 className="text-sm font-bold uppercase text-muted-foreground">Snapshot</h3>
             <div className="-mx-1 flex gap-3 overflow-x-auto pb-2">
               {stats.map((stat) => (
                 <div
                   key={stat.label}
-                  className="min-w-[160px] flex-1 rounded-none border-[3px] border-foreground bg-card p-4 shadow-neo-xs"
+                  className="min-w-[160px] flex-1 rounded-lg border bg-card p-4 shadow-sm"
                 >
-                  <p className="text-[10px] font-semibold uppercase text-foreground/60">{stat.label}</p>
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase">{stat.label}</p>
                   <div
-                    className={`mt-3 inline-flex items-center rounded-none border-[3px] border-foreground px-3 py-2 text-xl font-black uppercase shadow-neo-xs ${stat.accentClasses}`}
+                    className={`mt-3 inline-flex items-center rounded-md px-3 py-2 text-xl font-bold ${stat.accentClasses}`}
                   >
                     {stat.value}
                   </div>
@@ -130,14 +129,14 @@ export default function StudentDashboard() {
 
           <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black uppercase text-foreground">Your Courses</h3>
-              <Button variant="ghost" size="sm" className="rounded-none border-[3px] border-foreground px-3 shadow-neo-xs">
+              <h3 className="text-sm font-bold uppercase text-muted-foreground">Your Courses</h3>
+              <Button variant="ghost" size="sm">
                 View Archive
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
             {enrolledCourses.length === 0 ? (
-              <div className="rounded-none border-[3px] border-foreground bg-muted py-10 text-center text-xs font-semibold uppercase text-foreground/60 shadow-neo-xs">
+              <div className="rounded-lg border bg-muted/50 py-10 text-center text-xs font-medium text-muted-foreground">
                 Add your first course to get started.
               </div>
             ) : (
@@ -146,20 +145,20 @@ export default function StudentDashboard() {
                   const progress = studentCourseProgress[course.id] || 0;
 
                   return (
-                    <Card key={course.id} className="rounded-none border-[3px] border-foreground bg-card shadow-neo-xs">
+                    <Card key={course.id} className="shadow-sm">
                       <CardContent className="space-y-4 p-5">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-none border-[3px] border-foreground bg-primary text-xl text-primary-foreground shadow-neo-xs">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary text-xl text-primary-foreground">
                             {course.thumbnail}
                           </div>
                           <div>
-                            <h4 className="text-base font-black uppercase text-foreground">{course.title}</h4>
-                            <p className="text-xs font-semibold uppercase text-foreground/60">{course.lessons.length} lessons</p>
+                            <h4 className="text-base font-bold text-foreground">{course.title}</h4>
+                            <p className="text-xs font-medium text-muted-foreground">{course.lessons.length} lessons</p>
                           </div>
                         </div>
-                        <p className="text-sm font-medium text-foreground/70 line-clamp-3">{course.description}</p>
+                        <p className="text-sm font-medium text-muted-foreground line-clamp-3">{course.description}</p>
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between text-xs font-semibold uppercase text-foreground">
+                          <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
                             <span>Progress</span>
                             <span>{progress}%</span>
                           </div>
@@ -183,19 +182,19 @@ export default function StudentDashboard() {
       <div className="hidden md:block">
         <div className="min-h-screen bg-background">
           {/* Header */}
-          <header className="border-b-[3px] border-foreground bg-card shadow-neo">
+          <header className="border-b bg-card shadow-sm">
             <div className="mx-auto flex max-w-5xl items-center justify-between px-8 py-5">
               <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center border-[3px] border-foreground bg-primary text-primary-foreground shadow-neo-xs">
+                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary text-primary-foreground">
                   <BookOpen className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase text-foreground/60">Student Control Panel</p>
-                  <h1 className="text-2xl font-black uppercase text-foreground">Learning Hub</h1>
+                  <p className="text-xs font-medium text-muted-foreground uppercase">Student Control Panel</p>
+                  <h1 className="text-2xl font-bold text-foreground">Learning Hub</h1>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 rounded-none border-[3px] border-foreground bg-card px-4 py-2 text-sm font-semibold uppercase text-foreground shadow-neo-xs">
+                <div className="flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm">
                   <User className="h-4 w-4" />
                   {user.name}
                 </div>
@@ -208,29 +207,30 @@ export default function StudentDashboard() {
           </header>
 
           {/* Main Content */}
+          {/* Main Content */}
           <main className="mx-auto max-w-5xl px-8 py-12">
-            <section className="mb-12 space-y-4 rounded-none border-[3px] border-foreground bg-card p-8 shadow-neo">
+            <section className="mb-12 space-y-4 rounded-xl border bg-card p-8 shadow-sm">
               <div className="flex flex-col gap-3 text-left">
-                <span className="w-max rounded-none border-[3px] border-foreground bg-accent px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent-foreground shadow-neo-xs">
+                <span className="w-max rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
                   Welcome back
                 </span>
-                <h2 className="text-4xl font-black uppercase text-foreground">{user.name}, keep building</h2>
-                <p className="max-w-xl text-sm font-medium text-foreground/70">
+                <h2 className="text-4xl font-bold text-foreground">{user.name}, keep building</h2>
+                <p className="max-w-xl text-sm font-medium text-muted-foreground">
                   Your modules are waiting. Pick up where you left off or start fresh. Every block adds to your masterpiece.
                 </p>
               </div>
-              <div className="grid grid-cols-1 gap-4 text-xs font-semibold uppercase text-foreground md:grid-cols-3">
-                <div className="rounded-none border-[3px] border-foreground bg-primary px-4 py-3 text-primary-foreground shadow-neo-xs">
+              <div className="grid grid-cols-1 gap-4 text-xs font-medium text-foreground md:grid-cols-3">
+                <div className="rounded-lg bg-primary px-4 py-3 text-primary-foreground shadow-sm">
                   <p>Courses Active</p>
-                  <p className="mt-2 text-3xl font-black">{enrolledCourses.length}</p>
+                  <p className="mt-2 text-3xl font-bold">{enrolledCourses.length}</p>
                 </div>
-                <div className="rounded-none border-[3px] border-foreground bg-secondary px-4 py-3 text-secondary-foreground shadow-neo-xs">
+                <div className="rounded-lg bg-secondary px-4 py-3 text-secondary-foreground shadow-sm">
                   <p>Hours Logged</p>
-                  <p className="mt-2 text-3xl font-black">42+</p>
+                  <p className="mt-2 text-3xl font-bold">42+</p>
                 </div>
-                <div className="rounded-none border-[3px] border-foreground bg-accent px-4 py-3 text-accent-foreground shadow-neo-xs">
+                <div className="rounded-lg bg-accent px-4 py-3 text-accent-foreground shadow-sm">
                   <p>Achievements</p>
-                  <p className="mt-2 text-3xl font-black">7</p>
+                  <p className="mt-2 text-3xl font-bold">7</p>
                 </div>
               </div>
             </section>
@@ -238,7 +238,7 @@ export default function StudentDashboard() {
             {/* Courses Grid */}
             <section>
               <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-2xl font-black uppercase text-foreground">Your Courses</h3>
+                <h3 className="text-2xl font-bold text-foreground">Your Courses</h3>
                 <Button variant="ghost" size="sm">
                   View Archive
                   <ArrowRight className="h-4 w-4" />
@@ -252,24 +252,24 @@ export default function StudentDashboard() {
                   return (
                     <Card
                       key={course.id}
-                      className="cursor-pointer transition-transform duration-150 hover:-translate-y-1"
+                      className="cursor-pointer transition-all duration-150 hover:shadow-md"
                       onClick={() => handleOpenCourse(course.id)}
                     >
                       <CardContent className="space-y-5 p-6">
                         <div className="flex items-center gap-4">
-                          <div className="flex h-12 w-12 items-center justify-center border-[3px] border-foreground bg-primary text-primary-foreground shadow-neo-xs">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary text-primary-foreground">
                             <BookOpen className="h-6 w-6" />
                           </div>
                           <div>
-                            <h4 className="text-lg font-black uppercase text-foreground">{course.title}</h4>
-                            <p className="text-xs font-semibold uppercase text-foreground/60">{course.lessons.length} Lessons</p>
+                            <h4 className="text-lg font-bold text-foreground">{course.title}</h4>
+                            <p className="text-xs font-medium text-muted-foreground uppercase">{course.lessons.length} Lessons</p>
                           </div>
                         </div>
 
-                        <p className="text-sm font-medium text-foreground/70 line-clamp-3">{course.description}</p>
+                        <p className="text-sm font-medium text-muted-foreground line-clamp-3">{course.description}</p>
 
                         <div className="space-y-2">
-                          <div className="flex justify-between text-xs font-semibold uppercase text-foreground">
+                          <div className="flex justify-between text-xs font-medium text-muted-foreground">
                             <span>Progress</span>
                             <span>{progress}%</span>
                           </div>
@@ -288,12 +288,12 @@ export default function StudentDashboard() {
 
               {/* Empty State */}
               {enrolledCourses.length === 0 && (
-                <div className="mt-12 rounded-none border-[3px] border-foreground bg-card p-16 text-center shadow-neo">
-                  <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center border-[3px] border-foreground bg-muted text-foreground shadow-neo-xs">
+                <div className="mt-12 rounded-xl border bg-card p-16 text-center shadow-sm">
+                  <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted text-foreground">
                     <BookOpen className="h-8 w-8" />
                   </div>
-                  <h3 className="text-2xl font-black uppercase text-foreground">No Courses Yet</h3>
-                  <p className="mt-2 text-sm font-medium text-foreground/70">You haven't enrolled in any courses yet. Dive in and start your first build.</p>
+                  <h3 className="text-2xl font-bold text-foreground">No Courses Yet</h3>
+                  <p className="mt-2 text-sm font-medium text-muted-foreground">You haven't enrolled in any courses yet. Dive in and start your first build.</p>
                 </div>
               )}
             </section>
