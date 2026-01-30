@@ -27,7 +27,7 @@ export default function AdminDashboard() {
         const user = db.users.findUnique({ id: userId });
         if (user) {
             db.users.update(userId, { isBanned: !user.isBanned });
-            setUsers([...db.users.all()]); // Refresh
+            setUsers([...db.users.all()]);
             toast.success(`User ${user.username} has been ${!user.isBanned ? 'banned' : 'unbanned'}.`);
         }
     };
@@ -35,33 +35,33 @@ export default function AdminDashboard() {
     if (!currentUser) return null;
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background text-foreground">
             <DashboardNavbar />
 
             <main className="max-w-7xl mx-auto px-4 py-8">
-                <header className="mb-8 flex items-center justify-between">
+                <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-destructive to-red-600">Admin Control Center</h1>
-                        <p className="text-muted-foreground">Monitor security and manage student access.</p>
+                        <h1 className="heading-xl text-3xl md:text-5xl mb-2 bg-gradient-to-r from-destructive to-red-600">Admin Control Center</h1>
+                        <p className="text-muted-foreground text-lg">Monitor security and manage student access.</p>
                     </div>
-                    <button className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-bold flex items-center space-x-2 hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+                    <button className="btn-primary flex items-center space-x-2">
                         <UserPlus className="w-4 h-4" />
                         <span>Create Student</span>
                     </button>
                 </header>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <section aria-label="Statistics" className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                     <StatCard icon={Users} label="Total Students" value={users.filter(u => u.role === 'STUDENT').length} color="text-blue-500" />
                     <StatCard icon={Activity} label="Active Sessions" value={logs.filter(l => l.action === 'LOGIN').length} color="text-green-500" />
                     <StatCard icon={AlertTriangle} label="Security Flags" value={logs.filter(l => l.action.includes('VIOLATION')).length} color="text-yellow-500" />
                     <StatCard icon={Ban} label="Banned Users" value={users.filter(u => u.isBanned).length} color="text-red-500" />
-                </div>
+                </section>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* User Management */}
-                    <div className="lg:col-span-2 glass-card border border-border/50 bg-card p-6">
-                        <h2 className="text-xl font-bold mb-4 flex items-center">
+                    <section aria-label="User Management" className="lg:col-span-2 glass-card border border-border/50 bg-card p-6">
+                        <h2 className="heading-lg text-xl flex items-center">
                             <Database className="w-5 h-5 mr-2" />
                             User Database
                         </h2>
@@ -97,7 +97,8 @@ export default function AdminDashboard() {
                                             <td className="py-3 px-2">
                                                 <button
                                                     onClick={() => toggleBan(user.id)}
-                                                    className={`text-xs font-bold px-3 py-1 rounded-md transition-colors ${user.isBanned ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' : 'bg-destructive/10 text-destructive hover:bg-destructive/20'}`}
+                                                    className={`btn px-3 py-1 text-xs h-auto min-h-0 ${user.isBanned ? 'btn-ghost text-green-500 hover:text-green-600' : 'btn-ghost text-destructive hover:text-destructive'}`}
+                                                    aria-label={user.isBanned ? `Unban ${user.username}` : `Ban ${user.username}`}
                                                 >
                                                     {user.isBanned ? 'UNBAN' : 'BAN'}
                                                 </button>
@@ -107,15 +108,15 @@ export default function AdminDashboard() {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    </section>
 
                     {/* Activity Log */}
-                    <div className="glass-card border border-border/50 bg-card p-6">
-                        <h2 className="text-xl font-bold mb-4 flex items-center">
+                    <section aria-label="Activity Log" className="glass-card border border-border/50 bg-card p-6">
+                        <h2 className="heading-lg text-xl flex items-center">
                             <Activity className="w-5 h-5 mr-2" />
                             Live Audit Log
                         </h2>
-                        <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar" role="log">
                             {logs.map((log, i) => (
                                 <div key={i} className="flex flex-col p-3 rounded-lg bg-muted/30 border border-border/50 text-xs">
                                     <div className="flex items-center justify-between mb-1">
@@ -132,7 +133,7 @@ export default function AdminDashboard() {
                                 <div className="text-center text-muted-foreground py-8">No activity recorded</div>
                             )}
                         </div>
-                    </div>
+                    </section>
                 </div>
             </main>
         </div>
@@ -143,7 +144,7 @@ function StatCard({ icon: Icon, label, value, color }: any) {
     return (
         <div className="glass-card p-4 flex items-center space-x-4 border border-border/50 bg-card">
             <div className={`w-10 h-10 rounded-full bg-background flex items-center justify-center shadow-sm ${color}`}>
-                <Icon className="w-5 h-5" />
+                <Icon className="w-5 h-5" aria-hidden="true" />
             </div>
             <div>
                 <div className="text-2xl font-bold">{value}</div>

@@ -10,7 +10,6 @@
   --font-serif: Merriweather, serif;
 
   --radius: 0.75rem;
-  /* Increased radius for modern look */
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -76,7 +75,6 @@
   --popover-foreground: oklch(0.15 0.02 240);
 
   --primary: oklch(0.45 0.25 260);
-  /* Deep Royal Blue */
   --primary-foreground: oklch(0.98 0.01 240);
 
   --secondary: oklch(0.95 0.02 240);
@@ -109,7 +107,7 @@
 }
 
 .dark {
-  /* Premium Dark Mode - Deep Blue/Black Glass */
+  /* Premium Dark Mode */
   --background: oklch(0.1 0.02 240);
   --foreground: oklch(0.95 0.02 240);
 
@@ -120,7 +118,6 @@
   --popover-foreground: oklch(0.95 0.02 240);
 
   --primary: oklch(0.6 0.2 250);
-  /* Vivid Blue */
   --primary-foreground: oklch(0.1 0.02 240);
 
   --secondary: oklch(0.2 0.04 240);
@@ -151,6 +148,8 @@
 }
 
 @layer utilities {
+
+  /* Layout & Effects */
   .glass {
     @apply bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/20 dark:border-white/10;
   }
@@ -163,13 +162,12 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-indigo-500 to-purple-500;
   }
 
-  /* Security & Watermark specific */
+  /* Security */
   .watermark-overlay {
     @apply fixed pointer-events-none select-none z-50 opacity-40 mix-blend-overlay font-mono text-sm dark:text-white/50 text-black/50 whitespace-nowrap;
     text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2);
   }
 
-  /* Anti-recording text blur */
   .blur-content {
     @apply blur-xl grayscale opacity-50 transition-all duration-200;
   }
@@ -192,21 +190,21 @@
     @apply text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1 mb-2 block;
   }
 
-  /* Buttons */
+  /* Buttons - Expanded to avoid recursive @apply errors */
   .btn {
-    @apply inline-flex items-center justify-center rounded-xl font-bold transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-3;
+    @apply inline-flex items-center justify-center rounded-xl font-bold transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-3 cursor-pointer;
   }
 
   .btn-primary {
-    @apply btn bg-gradient-to-r from-primary to-indigo-600 text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40;
+    @apply inline-flex items-center justify-center rounded-xl font-bold transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-3 cursor-pointer bg-gradient-to-r from-primary to-indigo-600 text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40;
   }
 
   .btn-destructive {
-    @apply btn bg-gradient-to-r from-destructive to-red-800 text-destructive-foreground shadow-lg shadow-destructive/20 hover:shadow-destructive/40;
+    @apply inline-flex items-center justify-center rounded-xl font-bold transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-3 cursor-pointer bg-gradient-to-r from-destructive to-red-800 text-destructive-foreground shadow-lg shadow-destructive/20 hover:shadow-destructive/40;
   }
 
   .btn-ghost {
-    @apply btn hover:bg-muted/50 text-muted-foreground hover:text-foreground;
+    @apply inline-flex items-center justify-center rounded-xl font-bold transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-3 cursor-pointer hover:bg-muted/50 text-muted-foreground hover:text-foreground;
   }
 
   /* Accessibility focus ring integration */
