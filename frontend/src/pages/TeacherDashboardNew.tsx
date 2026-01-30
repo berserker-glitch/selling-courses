@@ -4,7 +4,7 @@ import { TeacherSidebar } from '@/components/teacher/TeacherSidebar';
 import { CourseManagement } from '@/components/teacher/CourseManagement';
 import { StudentManagement } from '@/components/teacher/StudentManagement';
 import { useToast } from '@/hooks/use-toast';
-import { Course, Student, Lesson } from '@/types';
+import { Course, Student, Lesson, Category } from '@/types';
 
 interface UserData {
   name: string;
@@ -20,7 +20,8 @@ export default function TeacherDashboardNew() {
   const [user, setUser] = useState<UserData | null>(null);
   const [activeSection, setActiveSection] = useState('courses');
   const [courses, setCourses] = useState<Course[]>([]);
-  const [students, setStudents] = useState<Student[]>([]); // mockStudents removed
+  const [students, setStudents] = useState<Student[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]); // New state
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -43,15 +44,17 @@ export default function TeacherDashboardNew() {
 
           // Fetch Students
           const studentsRes = await api.get('/auth/users?role=STUDENT');
-          // Start with empty progress/enrolled for now as the basic user object doesn't have it
-          // We can map it if we update the backend to include enrollment data, 
-          // but for now let's just show the list.
           const studentsWithMeta = studentsRes.data.map((s: any) => ({
             ...s,
             enrolledCourses: [], // Placeholder
             progress: {}         // Placeholder
           }));
           setStudents(studentsWithMeta);
+
+          // Fetch Categories
+          const categoriesRes = await api.get('/categories');
+          setCategories(categoriesRes.data);
+
         } else {
           navigate('/login');
         }
@@ -233,6 +236,7 @@ export default function TeacherDashboardNew() {
           <CourseManagement
             courses={courses}
             students={students}
+            categories={categories}
             onAddCourse={handleAddCourse}
             onEditCourse={handleEditCourse}
             onDeleteCourse={handleDeleteCourse}
