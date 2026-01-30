@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,6 +43,7 @@ export function CourseManagement({
   onEditLesson,
   onDeleteLesson
 }: CourseManagementProps) {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
   const [isAddLessonOpen, setIsAddLessonOpen] = useState(false);
@@ -204,10 +206,7 @@ export function CourseManagement({
               return (
                 <TableRow
                   key={course.id}
-                  onClick={() => {
-                    setSelectedCourseId(course.id);
-                    setManagingCourse(course);
-                  }}
+                  onClick={() => navigate(`/teacher/course/${course.id}`)}
                   className="cursor-pointer hover:bg-muted/50 transition-colors"
                 >
                   <TableCell>

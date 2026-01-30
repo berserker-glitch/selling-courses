@@ -1,0 +1,173 @@
+import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+import { z } from 'zod';
+
+const prisma = new PrismaClient();
+
+// Schemas
+const createCourseSchema = z.object({
+    title: z.string().min(3),
+    description: z.string().min(10),
+    thumbnail: z.string().optional(),
+    category: z.string()
+});
+
+const lessonSchema = z.object({
+    title: z.string().min(3),
+    description: z.string().optional(),
+    videoUrl: z.string().url(),
+    duration: z.string()
+});
+
+// --- Course Handlers ---
+
+export const getCourses = async (req: Request, res: Response) => {
+    try {
+        const courses = await prisma.course.findMany({
+            include: {
+                teacher: { select: { name: true, email: true } },
+                _count: { select: { lessons: true, enrollments: true } }
+            }
+        });
+
+        // Provide simplified data usually, or full data? 
+        // Matching frontend expectations (from mock-data):
+        // id, title, description, thumbnail, category, enrolledStudents, lessons (count?)
+
+        // Transform to match frontend interface potentially, or just return as is.
+
+        res.json(courses);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching courses' });
+    }
+};
+
+export const getCourseById = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const course = await prisma.course.findUnique({
+            where: { id },
+            include: {
+                lessons: { orderBy: { order: 'asc' } },
+                teacher: { select: { name: true } },
+                _count: { select: { enrollments: true } }
+            }
+        });
+
+        if (!course) {
+            return res.status(404).json({ message: 'Course not found' });
+        }
+
+        res.json(course);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching course' });
+    }
+};
+
+export const createCourse = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        if (user.role !== 'TEACHER' && user.role !== 'ADMIN') {
+            return res.status(403).json({ message: 'Only teachers can create courses' });
+        }
+
+        const data = createCourseSchema.parse(req.body);
+
+        const course = await prisma.course.create({
+            data: {
+                ...data,
+                teacherId: user.id
+            }
+        });
+
+        res.status(201).json(course);
+    } catch (error: any) {
+        res.status(400).json({ message: error.message || 'Error creating course' });
+    }
+};
+
+export const deleteCourse = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const user = (req as any).user;
+
+        const course = await prisma.course.findUnique({ where: { id } });
+        if (!course) return res.status(404).json({ message: 'Course not found' });
+
+        if (course.teacherId !== user.id && user.role !== 'ADMIN') {
+            return res.status(403).json({ message: 'Not authorized to delete this course' });
+        }
+
+        await prisma.course.delete({ where: { id } });
+        res.json({ message: 'Course deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting course' });
+    }
+};
+
+// --- Lesson Handlers ---
+
+export const addLesson = async (req: Request, res: Response) => {
+    try {
+        const { courseId } = req.params;
+        const user = (req as any).user;
+
+        const course = await prisma.course.findUnique({ where: { id: courseId } });
+        if (!course) return res.status(404).json({ message: 'Course not found' });
+
+        if (course.teacherId !== user.id && user.role !== 'ADMIN') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        const data = lessonSchema.parse(req.body);
+
+        // Get current lesson count for order
+        const count = await prisma.lesson.count({ where: { courseId } });
+
+        const lesson = await prisma.lesson.create({
+            data: {
+                ...data,
+                courseId,
+                order: count + 1
+            }
+        });
+
+        res.status(201).json(lesson);
+    } catch (error: any) {
+        res.status(400).json({ message: error.message || 'Error adding lesson' });
+    }
+};
+
+// --- Enrollment / Progress ---
+
+export const enrollCourse = async (req: Request, res: Response) => {
+    try {
+        const { courseId } = req.params;
+        const user = (req as any).user; // From auth middleware
+
+        // Check if already enrolled
+        const existing = await prisma.enrollment.findUnique({
+            where: {
+                userId_courseId: {
+                    userId: user.id,
+                    courseId
+                }
+            }
+        });
+
+        if (existing) {
+            return res.status(400).json({ message: 'Already enrolled' });
+        }
+
+        const enrollment = await prisma.enrollment.create({
+            data: {
+                userId: user.id,
+                courseId
+            }
+        });
+
+        res.status(201).json(enrollment);
+    } catch (error) {
+        res.status(500).json({ message: 'Error enrolling in course' });
+    }
+}
