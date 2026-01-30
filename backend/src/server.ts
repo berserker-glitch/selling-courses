@@ -29,6 +29,8 @@ import courseRoutes from './routes/courseRoutes';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
+import progressRoutes from './routes/progressRoutes';
+app.use('/api', progressRoutes); // Mounts at /api/lessons/... and /api/courses/.../progress
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
