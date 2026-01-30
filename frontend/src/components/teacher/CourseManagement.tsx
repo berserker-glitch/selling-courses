@@ -19,7 +19,7 @@ import {
   BookOpen,
   MoreVertical
 } from 'lucide-react';
-import { Course, Lesson, Student } from '@/lib/mock-data';
+import { Course, Lesson, Student } from '@/types';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface CourseManagementProps {
@@ -140,6 +140,7 @@ export function CourseManagement({
                   value={newCourse.description}
                   onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
                   placeholder="Briefly describe the course content..."
+                  minLength={10}
                   required
                 />
               </div>

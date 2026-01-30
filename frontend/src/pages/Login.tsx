@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { BookOpen } from 'lucide-react';
-import { mockUsers } from '@/lib/mock-data';
+
 import api from '@/lib/api';
+import { useToast } from "@/hooks/use-toast"
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -14,25 +15,42 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  const { toast } = useToast();
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Login form submitted');
     setIsLoading(true);
 
     try {
+      console.log('Attempting login with:', email, 'to', '/auth/login');
       const { data } = await api.post('/auth/login', { email, password });
+      console.log('Login success:', data);
 
       // Store token and user
       localStorage.setItem('token', data.token);
       localStorage.setItem('currentUser', JSON.stringify(data.user));
 
+      toast({
+        title: "Welcome back!",
+        description: "Successfully logged in.",
+      })
+
       // Navigate based on role
       if (data.user.role === 'TEACHER' || data.user.role === 'ADMIN') {
         navigate('/teacher');
       } else {
-        navigate('/student');
+        navigate('/student'); // Verify this route exists
       }
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Login failed');
+      console.error('Login error:', error);
+      console.error('Response data:', error.response?.data);
+
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.response?.data?.message || 'Could not connect to server.',
+      });
     } finally {
       setIsLoading(false);
     }

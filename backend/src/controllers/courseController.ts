@@ -82,6 +82,14 @@ export const createCourse = async (req: Request, res: Response) => {
 
         res.status(201).json(course);
     } catch (error: any) {
+        if (error instanceof z.ZodError) {
+            // Explicitly cast to any to handle Zod version type mismatches
+            const validationError = error as any;
+            const issues = validationError.errors || validationError.issues || [];
+            console.log('Validation Error:', issues);
+            return res.status(400).json({ message: issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ') });
+        }
+        console.error('Create Course Error:', error);
         res.status(400).json({ message: error.message || 'Error creating course' });
     }
 };

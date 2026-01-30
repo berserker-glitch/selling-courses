@@ -33,8 +33,20 @@ export default function TeacherDashboardNew() {
           setUser(userData);
 
           // Fetch Courses
-          const { data } = await api.get('/courses');
-          setCourses(data);
+          const coursesRes = await api.get('/courses');
+          setCourses(coursesRes.data);
+
+          // Fetch Students
+          const studentsRes = await api.get('/auth/users?role=STUDENT');
+          // Start with empty progress/enrolled for now as the basic user object doesn't have it
+          // We can map it if we update the backend to include enrollment data, 
+          // but for now let's just show the list.
+          const studentsWithMeta = studentsRes.data.map((s: any) => ({
+            ...s,
+            enrolledCourses: [], // Placeholder
+            progress: {}         // Placeholder
+          }));
+          setStudents(studentsWithMeta);
         } else {
           navigate('/login');
         }

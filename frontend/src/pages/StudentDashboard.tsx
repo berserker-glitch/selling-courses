@@ -82,7 +82,7 @@ export default function StudentDashboard() {
     const currentUser = localStorage.getItem('currentUser');
     if (currentUser) {
       const userData = JSON.parse(currentUser);
-      if (userData.role !== 'student') {
+      if (userData.role !== 'STUDENT') {
         navigate('/login');
         return;
       }
@@ -173,6 +173,7 @@ export default function StudentDashboard() {
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {enrolledCourses.map((course) => {
+            const studentCourseProgress: Record<string, number> = {}; // Placeholder or fetch real progress
             const progress = studentCourseProgress[course.id] || 0;
             const isStarted = progress > 0;
 

@@ -179,3 +179,36 @@ export const createStudent = async (req: Request, res: Response) => {
         res.status(400).json({ message: error.message || 'Error creating student' });
     }
 };
+// --- User Management ---
+
+export const getUsers = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        // Verify admin or teacher
+        if (user.role !== 'TEACHER' && user.role !== 'ADMIN') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        const { role } = req.query;
+
+        const whereClause: any = {};
+        if (role) {
+            whereClause.role = role;
+        }
+
+        const users = await prisma.user.findMany({
+            where: whereClause,
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                createdAt: true
+            }
+        });
+
+        res.json(users);
+    } catch (error: any) {
+        res.status(500).json({ message: 'Error fetching users' });
+    }
+};
