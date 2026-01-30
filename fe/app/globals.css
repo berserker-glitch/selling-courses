@@ -156,7 +156,7 @@
   }
 
   .glass-card {
-    @apply glass rounded-xl shadow-lg hover:shadow-xl transition-all duration-300;
+    @apply bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300;
   }
 
   .text-gradient {
@@ -171,7 +171,7 @@
 
   /* Anti-recording text blur */
   .blur-content {
-    @apply blur-xl grayscale opacity-50 transaction-all duration-200;
+    @apply blur-xl grayscale opacity-50 transition-all duration-200;
   }
 }
 
