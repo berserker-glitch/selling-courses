@@ -148,7 +148,7 @@ export function StudentManagement({
       </div>
 
       {/* Students Table */}
-      <div className="border border-foreground/10 rounded-lg">
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -186,7 +186,7 @@ export function StudentManagement({
                   <TableCell>
                     <div className="flex items-center space-x-2">
                       <span className="text-sm font-medium">{stats.overallProgress}%</span>
-                      <div className="w-16 bg-foreground/10 rounded-full h-2">
+                      <div className="h-2 w-16 rounded-full bg-secondary">
                         <div
                           className="bg-primary h-2 rounded-full transition-all"
                           style={{ width: `${stats.overallProgress}%` }}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
   Search,
   Plus,
@@ -16,9 +17,8 @@ import {
   Users,
   Clock,
   BookOpen,
-  ChevronDown,
-  ChevronRight,
-  MoreVertical
+  MoreVertical,
+  Settings
 } from 'lucide-react';
 import { Course, Lesson, Student } from '@/lib/mock-data';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -48,7 +48,7 @@ export function CourseManagement({
   const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
   const [isAddLessonOpen, setIsAddLessonOpen] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
-  const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
+  const [managingCourse, setManagingCourse] = useState<Course | null>(null);
 
   // Form states
   const [newCourse, setNewCourse] = useState({
@@ -83,18 +83,9 @@ export function CourseManagement({
       onAddLesson(selectedCourseId, newLesson);
       setNewLesson({ title: '', description: '', duration: '', videoUrl: '' });
       setIsAddLessonOpen(false);
-      setSelectedCourseId(null);
+      // Don't close the sheet, just the add dialog if it was separate, but here we might do it inline or separate. 'selectedCourseId' is used for the adding logic.
+      // If we are "managing" a course, we want to keep that open.
     }
-  };
-
-  const toggleCourseExpansion = (courseId: string) => {
-    const newExpanded = new Set(expandedCourses);
-    if (newExpanded.has(courseId)) {
-      newExpanded.delete(courseId);
-    } else {
-      newExpanded.add(courseId);
-    }
-    setExpandedCourses(newExpanded);
   };
 
   const getEnrolledStudents = (courseId: string) => {
@@ -111,310 +102,315 @@ export function CourseManagement({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-6 rounded-xl border bg-card p-8 shadow-sm">
-        <div className="space-y-2">
-          <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
-            Builder Control
-          </span>
-          <h1 className="text-4xl font-bold text-foreground">Course Management</h1>
-          <p className="max-w-2xl text-sm font-medium text-muted-foreground">
-            Draft, tweak, and launch learning blocks. Bold moves only.
-          </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground mb-1">Courses</h1>
+          <p className="text-foreground/60">Manage your courses and curriculum.</p>
         </div>
         <Dialog open={isAddCourseOpen} onOpenChange={setIsAddCourseOpen}>
           <DialogTrigger asChild>
-            <Button className="min-w-[180px] justify-center">
-              <Plus className="h-4 w-4" />
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
               Add Course
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle className="text-3xl font-bold">Create New Course</DialogTitle>
-              <DialogDescription className="text-xs font-medium uppercase text-muted-foreground">
-                Ship a new module to the curriculum
+              <DialogTitle>Create New Course</DialogTitle>
+              <DialogDescription>
+                Design a new learning module for your students.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddCourse} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="title" className="text-xs font-semibold uppercase">Course Title</Label>
+                <Label htmlFor="title">Course Title</Label>
                 <Input
                   id="title"
                   value={newCourse.title}
                   onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
-                  placeholder="Advanced Typography"
+                  placeholder="e.g. Advanced Typography"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-xs font-semibold uppercase">Description</Label>
+                <Label htmlFor="description">Description</Label>
                 <Textarea
                   value={newCourse.description}
                   onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
-                  placeholder="Build a fearless curriculum with depth and personality."
+                  placeholder="Briefly describe the course content..."
                   required
                 />
               </div>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="category" className="text-xs font-semibold uppercase">Category</Label>
+                  <Label htmlFor="category">Category</Label>
                   <Input
                     value={newCourse.category}
                     onChange={(e) => setNewCourse({ ...newCourse, category: e.target.value })}
-                    placeholder="Design Systems"
+                    placeholder="e.g. Design"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="thumbnail" className="text-xs font-semibold uppercase">Thumbnail</Label>
+                  <Label htmlFor="thumbnail">Thumbnail</Label>
                   <Input
                     value={newCourse.thumbnail}
                     onChange={(e) => setNewCourse({ ...newCourse, thumbnail: e.target.value })}
-                    placeholder="📚"
+                    placeholder="Emoji or URL"
                     maxLength={2}
                   />
                 </div>
               </div>
-              <div className="flex items-center justify-end gap-3">
+              <div className="flex justify-end gap-3">
                 <Button type="button" variant="outline" onClick={() => setIsAddCourseOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">Create Course</Button>
+                <Button type="submit">Create</Button>
               </div>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/60" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/40" />
         <Input
-          placeholder="Search brutal courses..."
+          placeholder="Search courses..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-12"
+          className="pl-10"
         />
       </div>
 
-      {/* Courses List */}
-      <div className="space-y-5">
-        {filteredCourses.map((course) => {
-          const enrolledStudents = getEnrolledStudents(course.id);
-          const avgProgress = getAverageProgress(course.id);
-          const isExpanded = expandedCourses.has(course.id);
+      {/* Courses Table */}
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Course</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Lessons</TableHead>
+              <TableHead>Students</TableHead>
+              <TableHead>Avg. Progress</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredCourses.map((course) => {
+              const enrolledStudents = getEnrolledStudents(course.id);
+              const avgProgress = getAverageProgress(course.id);
 
-          return (
-            <Card key={course.id} className="shadow-sm border">
-              <CardHeader className="pb-4">
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                  <div className="flex flex-1 gap-4">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-md bg-primary text-2xl text-primary-foreground">
-                      {course.thumbnail}
-                    </div>
-                    <div className="space-y-3">
-                      <CardTitle className="text-2xl font-bold">
-                        {course.title}
-                      </CardTitle>
-                      <div className="flex flex-wrap items-center gap-3 text-xs font-medium uppercase text-muted-foreground">
-                        <Badge variant="secondary">{course.category}</Badge>
-                        <span className="flex items-center gap-1">
-                          <BookOpen className="h-4 w-4" />
-                          {course.lessons.length} lessons
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          {enrolledStudents.length} students
-                        </span>
+              return (
+                <TableRow key={course.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-xl text-primary">
+                        {course.thumbnail}
                       </div>
-                      {enrolledStudents.length > 0 && (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-xs font-semibold uppercase text-foreground">
-                            <span>Average Progress</span>
-                            <span>{avgProgress}%</span>
-                          </div>
-                          <Progress value={avgProgress} className="h-3" />
-                        </div>
-                      )}
+                      <div>
+                        <div className="font-semibold text-foreground">{course.title}</div>
+                        <div className="text-xs text-muted-foreground line-clamp-1 max-w-[200px]">{course.description}</div>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleCourseExpansion(course.id)}
-                    >
-                      {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedCourseId(course.id);
-                            setIsAddLessonOpen(true);
-                          }}
-                          className="font-semibold uppercase"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Lesson
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="font-semibold uppercase">
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Course
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="font-semibold uppercase text-red-600"
-                          onClick={() => onDeleteCourse(course.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Course
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              </CardHeader>
-
-              {isExpanded && (
-                <CardContent className="space-y-4 bg-background">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-lg font-black uppercase text-foreground">Lessons</h4>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedCourseId(course.id);
-                        setIsAddLessonOpen(true);
-                      }}
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add Lesson
-                    </Button>
-                  </div>
-
-                  {course.lessons.length === 0 ? (
-                    <div className="rounded-lg border bg-muted/50 py-10 text-center text-sm font-medium text-muted-foreground uppercase">
-                      <BookOpen className="mx-auto mb-3 h-8 w-8" />
-                      No lessons yet. Add your first block to get started.
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="font-medium">
+                      {course.category}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2 text-sm text-foreground/80">
+                      <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      {course.lessons.length}
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {course.lessons.map((lesson, index) => (
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2 text-sm text-foreground/80">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      {enrolledStudents.length}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium">{avgProgress}%</span>
+                      <div className="h-2 w-16 rounded-full bg-secondary">
                         <div
-                          key={lesson.id}
-                          className="flex items-center justify-between rounded-lg border bg-card p-4 shadow-sm"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
-                              {index + 1}
-                            </div>
-                            <div>
-                              <h5 className="text-sm font-bold uppercase text-foreground">{lesson.title}</h5>
-                              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase">
-                                <Clock className="h-3 w-3" />
-                                <span>{lesson.duration}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem className="font-semibold uppercase">
-                                <Play className="h-4 w-4 mr-2" />
-                                Preview Lesson
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="font-semibold uppercase">
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit Lesson
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="font-semibold uppercase text-red-600"
-                                onClick={() => onDeleteLesson(course.id, lesson.id)}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete Lesson
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      ))}
+                          className="bg-primary h-2 rounded-full transition-all"
+                          style={{ width: `${avgProgress}%` }}
+                        />
+                      </div>
                     </div>
-                  )}
-                </CardContent>
-              )}
-            </Card>
-          );
-        })}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedCourseId(course.id);
+                          setManagingCourse(course);
+                        }}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedCourseId(course.id);
+                            setManagingCourse(course);
+                          }}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Manage Content
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDeleteCourse(course.id)}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete Course
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       </div>
 
-      {/* Add Lesson Dialog */}
+      {/* Course Manager Sheet */}
+      <Sheet open={!!managingCourse} onOpenChange={(open) => !open && setManagingCourse(null)}>
+        <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
+          {managingCourse && (
+            <>
+              <SheetHeader className="mb-6 space-y-4">
+                <SheetTitle className="text-2xl font-bold">{managingCourse.title}</SheetTitle>
+                <SheetDescription>
+                  Manage lessons and course settings.
+                </SheetDescription>
+                <div className="flex flex-wrap gap-4 rounded-lg border bg-muted/50 p-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">{getEnrolledStudents(managingCourse.id).length} Enrolled</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">
+                      {managingCourse.lessons.reduce((acc, l) => {
+                        const [min, sec] = l.duration.split(':').map(Number);
+                        return acc + min;
+                      }, 0)} mins total
+                    </span>
+                  </div>
+                </div>
+              </SheetHeader>
+
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold">Lessons</h3>
+                  <Button size="sm" onClick={() => {
+                    setSelectedCourseId(managingCourse.id);
+                    setIsAddLessonOpen(true);
+                  }}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Lesson
+                  </Button>
+                </div>
+
+                {managingCourse.lessons.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center text-muted-foreground">
+                    <BookOpen className="mb-3 h-8 w-8 opacity-50" />
+                    <p className="text-sm font-medium">No lessons yet</p>
+                    <p className="text-xs">Add your first lesson to get started</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {managingCourse.lessons.map((lesson, index) => (
+                      <div key={lesson.id} className="relative flex items-center gap-4 rounded-lg border bg-card p-4 transition-colors hover:bg-muted/50">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                          {index + 1}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="truncate font-semibold text-foreground">{lesson.title}</h4>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {lesson.duration}</span>
+                          </div>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => onDeleteLesson(managingCourse.id, lesson.id)} className="text-destructive focus:text-destructive">
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Remove
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Add Lesson Dialog (Can be triggered from Sheet) */}
       <Dialog open={isAddLessonOpen} onOpenChange={setIsAddLessonOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Lesson</DialogTitle>
-            <DialogDescription>
-              Add a lesson to {selectedCourseId && courses.find(c => c.id === selectedCourseId)?.title}
-            </DialogDescription>
+            <DialogTitle>Add Lesson</DialogTitle>
+            <DialogDescription>Add a new video lesson to this course.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddLesson} className="space-y-4">
-            <div>
-              <Label htmlFor="lessonTitle">Lesson Title</Label>
+            <div className="space-y-2">
+              <Label>Lesson Title</Label>
               <Input
-                id="lessonTitle"
                 value={newLesson.title}
                 onChange={(e) => setNewLesson({ ...newLesson, title: e.target.value })}
-                placeholder="Enter lesson title"
                 required
               />
             </div>
-            <div>
-              <Label htmlFor="lessonDescription">Description</Label>
+            <div className="space-y-2">
+              <Label>Description</Label>
               <Textarea
-                id="lessonDescription"
                 value={newLesson.description}
                 onChange={(e) => setNewLesson({ ...newLesson, description: e.target.value })}
-                placeholder="Enter lesson description"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="duration">Duration</Label>
+              <div className="space-y-2">
+                <Label>Duration (mm:ss)</Label>
                 <Input
-                  id="duration"
                   value={newLesson.duration}
                   onChange={(e) => setNewLesson({ ...newLesson, duration: e.target.value })}
-                  placeholder="e.g., 10:30"
+                  placeholder="10:00"
                   required
                 />
               </div>
-              <div>
-                <Label htmlFor="videoUrl">Video URL</Label>
+              <div className="space-y-2">
+                <Label>Video URL</Label>
                 <Input
-                  id="videoUrl"
                   value={newLesson.videoUrl}
                   onChange={(e) => setNewLesson({ ...newLesson, videoUrl: e.target.value })}
-                  placeholder="Video file URL"
+                  placeholder="https://..."
                   required
                 />
               </div>
             </div>
-            <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => setIsAddLessonOpen(false)}>
-                Cancel
-              </Button>
+            <div className="flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => setIsAddLessonOpen(false)}>Cancel</Button>
               <Button type="submit">Add Lesson</Button>
             </div>
           </form>
