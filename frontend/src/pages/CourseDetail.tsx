@@ -14,7 +14,7 @@ import {
     ChevronRight,
     Sparkles
 } from 'lucide-react';
-import { mockCourses, studentCourseProgress, studentLessonProgress, Course, Lesson } from '@/lib/mock-data';
+import { Course, Lesson } from '@/types';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import api from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -43,9 +43,8 @@ export default function CourseDetail() {
 
                 // Fetch progress
                 try {
-                    const progressRes = await api.get(`/courses/${courseId}/progress`);
-                    // Assuming backend returns progress map or similar. 
-                    // For now just basic course data is enough to start.
+                    // In a real app we might fetch progress separately or with the course
+                    // For now, assuming course object might have it or we skip complex merging
                 } catch (e) { console.error("Progress fetch failed", e); }
 
                 // Default to first lesson
@@ -114,9 +113,9 @@ export default function CourseDetail() {
                         <h2 className="text-lg font-bold leading-tight tracking-tight mb-2">{course.title}</h2>
                         <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
                             <span>Course Progress</span>
-                            <span>{studentCourseProgress[course.id] || 0}%</span>
+                            <span>{course.progress || 0}%</span>
                         </div>
-                        <Progress value={studentCourseProgress[course.id] || 0} className="h-1.5 bg-slate-200 dark:bg-slate-800" indicatorClassName="bg-sky-500" />
+                        <Progress value={course.progress || 0} className="h-1.5 bg-slate-200 dark:bg-slate-800" />
                     </div>
 
                     <Separator className="my-4 bg-slate-200/50 dark:bg-slate-800/50 opacity-50" />
@@ -126,8 +125,8 @@ export default function CourseDetail() {
                         <div className="space-y-2 pb-6">
                             {course.lessons.map((lesson, index) => {
                                 const isActive = activeLesson.id === lesson.id;
-                                const isCompleted = studentLessonProgress[lesson.id];
-                                const isLocked = index > 0 && !studentLessonProgress[course.lessons[index - 1].id] && !isCompleted;
+                                const isCompleted = lesson.completed; // Assumes fetched data has this
+                                const isLocked = index > 0 && !course.lessons[index - 1].completed && !isCompleted;
 
                                 return (
                                     <div

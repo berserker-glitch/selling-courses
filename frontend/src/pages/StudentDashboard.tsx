@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { BookOpen, Play, LogOut, User, ArrowRight, Sparkles } from 'lucide-react';
-import { mockCourses, studentCourseProgress } from '@/lib/mock-data';
+import { Course } from '@/types';
 import api from '@/lib/api';
 
 interface UserData {

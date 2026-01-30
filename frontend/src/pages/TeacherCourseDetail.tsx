@@ -21,7 +21,7 @@ import {
     Trash2,
     Edit
 } from 'lucide-react';
-import { mockUsers, Course, Lesson } from '@/lib/mock-data';
+import { Course, Lesson } from '@/types';
 import api from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
