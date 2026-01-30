@@ -281,7 +281,7 @@ export function StudentManagement({
                                 </span>
                                 <div>
                                   <h5 className="text-base font-bold text-foreground">{course.title}</h5>
-                                  <p className="text-xs font-medium text-muted-foreground uppercase">{course.category}</p>
+                                  <p className="text-xs font-medium text-muted-foreground uppercase">{course.category?.name || 'Uncategorized'}</p>
                                 </div>
                               </div>
                               <Badge variant={progress === 100 ? 'default' : 'secondary'} className="shadow-sm">

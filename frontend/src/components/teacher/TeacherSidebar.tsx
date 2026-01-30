@@ -1,4 +1,4 @@
-import { User, LogOut, BookOpen, Users } from 'lucide-react';
+import { User, LogOut, BookOpen, Users, Folder } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface TeacherSidebarProps {
