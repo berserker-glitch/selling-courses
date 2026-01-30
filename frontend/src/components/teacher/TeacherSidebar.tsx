@@ -1,6 +1,5 @@
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, BookOpen, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Users, Home } from 'lucide-react';
 
 interface TeacherSidebarProps {
   user: {
