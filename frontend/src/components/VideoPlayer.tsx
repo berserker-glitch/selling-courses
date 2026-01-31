@@ -1,33 +1,35 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Maximize, Minimize, CheckCircle } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize } from 'lucide-react';
 import { Lesson } from '@/types';
 
+/**
+ * VideoPlayer Props interface
+ * Defines the properties for the video player component including
+ * lesson data, navigation callbacks, and user info for watermarking
+ */
 interface VideoPlayerProps {
   lesson: Lesson;
-  onPrevious?: () => void;
-  onNext?: () => void;
   onComplete?: () => void;
-  hasPrevious?: boolean;
-  hasNext?: boolean;
   isCompleted?: boolean;
-  userEmail?: string; // For watermark
-  userId?: string; // For watermark
+  userEmail?: string;
+  userId?: string;
 }
 
+/**
+ * VideoPlayer Component
+ * A clean, minimal video player with anti-piracy features.
+ * Designed to be embedded in the CourseDetail page.
+ * Navigation controls are handled by the parent component.
+ */
 export function VideoPlayer({
   lesson,
-  onPrevious,
-  onNext,
   onComplete,
-  hasPrevious = false,
-  hasNext = false,
-
   isCompleted = false,
   userEmail,
   userId,
 }: VideoPlayerProps) {
+  // Video player state
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(100);
@@ -36,10 +38,17 @@ export function VideoPlayer({
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+
+  // DOM refs for video element and container
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hideControlsTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  /**
+   * Effect: Track video progress and trigger completion callback
+   * Updates progress bar and current time display
+   * Triggers onComplete when video reaches 90% watched
+   */
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -50,6 +59,7 @@ export function VideoPlayer({
       setProgress(percent);
       setCurrentTime(video.currentTime);
 
+      // Trigger completion at 90% progress
       if (percent >= 90 && !isCompleted && onComplete) {
         onComplete();
       }
@@ -75,7 +85,10 @@ export function VideoPlayer({
     };
   }, [isCompleted, onComplete]);
 
-  // Anti-Piracy: Auto-pause on tab switch
+  /**
+   * Effect: Anti-Piracy - Auto-pause on tab switch
+   * Prevents screen recording by pausing when user switches tabs
+   */
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && isPlaying) {
@@ -91,15 +104,14 @@ export function VideoPlayer({
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isPlaying]);
 
-  // Anti-Piracy: DevTools Detection (Basic Heuristic - Screen Resize/Dimension check)
+  /**
+   * Effect: Anti-Piracy - DevTools Detection
+   * Rudimentary check for DevTools by monitoring window dimensions
+   */
   useEffect(() => {
     const checkDevTools = () => {
-      // Rudimentary check
       const threshold = 160;
       if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
-        // Possible devtools open.
-        // Action: Pause video or show warning?
-        // For now, pause is safer.
         if (isPlaying) {
           videoRef.current?.pause();
           setIsPlaying(false);
@@ -110,15 +122,20 @@ export function VideoPlayer({
     return () => window.removeEventListener('resize', checkDevTools);
   }, [isPlaying]);
 
+  /**
+   * Effect: Handle fullscreen change events
+   */
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  /**
+   * Effect: Cleanup hide controls timeout on unmount
+   */
   useEffect(() => {
     return () => {
       if (hideControlsTimeout.current) {
@@ -127,6 +144,9 @@ export function VideoPlayer({
     };
   }, []);
 
+  /**
+   * Schedules hiding controls after a delay when video is playing
+   */
   const scheduleHideControls = () => {
     if (hideControlsTimeout.current) {
       clearTimeout(hideControlsTimeout.current);
@@ -142,11 +162,17 @@ export function VideoPlayer({
     }, 2500);
   };
 
+  /**
+   * Shows controls on pointer activity
+   */
   const handlePointerActivity = () => {
     setShowControls(true);
     scheduleHideControls();
   };
 
+  /**
+   * Toggles video play/pause state
+   */
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
@@ -162,6 +188,9 @@ export function VideoPlayer({
     }
   };
 
+  /**
+   * Handles seeking in the video via progress bar click
+   */
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     const video = videoRef.current;
     if (!video || !video.duration) return;
@@ -173,6 +202,9 @@ export function VideoPlayer({
     setCurrentTime(video.currentTime);
   };
 
+  /**
+   * Handles volume slider changes
+   */
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const video = videoRef.current;
     const newVolume = parseInt(e.target.value, 10);
@@ -184,6 +216,9 @@ export function VideoPlayer({
     }
   };
 
+  /**
+   * Toggles mute state
+   */
   const toggleMute = () => {
     const video = videoRef.current;
     if (!video) return;
@@ -194,6 +229,9 @@ export function VideoPlayer({
     setVolume(newMuted ? 0 : Math.round(video.volume * 100) || 100);
   };
 
+  /**
+   * Toggles fullscreen mode
+   */
   const toggleFullscreen = () => {
     const container = containerRef.current;
     if (!container) return;
@@ -205,173 +243,131 @@ export function VideoPlayer({
     }
   };
 
+  /**
+   * Formats seconds to MM:SS display
+   */
   const formatTime = (time: number) => {
     if (!Number.isFinite(time) || time < 0) return '0:00';
     const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60)
-      .toString()
-      .padStart(2, '0');
+    const seconds = Math.floor(time % 60).toString().padStart(2, '0');
     return `${minutes}:${seconds}`;
   };
 
   return (
-    <div className="space-y-8">
-      {/* Video Player */}
-      <div
-        ref={containerRef}
-        className="group relative overflow-hidden rounded-xl border bg-black shadow-sm"
-        onMouseMove={handlePointerActivity}
-        onMouseEnter={handlePointerActivity}
-        onTouchStart={handlePointerActivity}
-      >
-        <video
-          ref={videoRef}
-          className="aspect-video w-full"
-          src={lesson.videoUrl}
-          poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'%3E%3Crect width='800' height='450' fill='%23f3f4f6'/%3E%3Ctext x='400' y='225' text-anchor='middle' fill='%236b7280' font-family='Arial' font-size='24'%3EVideo Player%3C/text%3E%3C/svg%3E"
-          onPlay={() => {
-            setIsPlaying(true);
-            scheduleHideControls();
-          }}
-          onPause={() => {
-            setIsPlaying(false);
-            setShowControls(true);
-          }}
-          onClick={togglePlay}
-        />
+    <div
+      ref={containerRef}
+      className="relative w-full h-full overflow-hidden bg-slate-900 group"
+      onMouseMove={handlePointerActivity}
+      onMouseEnter={handlePointerActivity}
+      onTouchStart={handlePointerActivity}
+    >
+      {/* Video Element */}
+      <video
+        ref={videoRef}
+        className="w-full h-full object-contain"
+        src={lesson.videoUrl}
+        poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'%3E%3Crect width='800' height='450' fill='%231e293b'/%3E%3C/svg%3E"
+        onPlay={() => {
+          setIsPlaying(true);
+          scheduleHideControls();
+        }}
+        onPause={() => {
+          setIsPlaying(false);
+          setShowControls(true);
+        }}
+        onClick={togglePlay}
+      />
 
-        {/* Anti-Piracy Watermark */}
-        <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden opacity-30 select-none">
-          {/* Moving watermark pattern */}
-          <div className="absolute top-10 left-10 text-white/20 text-xs font-bold -rotate-12">
-            {userEmail} • {userId?.substring(0, 8)}
-          </div>
-          <div className="absolute bottom-20 right-20 text-white/20 text-xs font-bold -rotate-12">
-            {userId?.substring(0, 8)} • {userEmail}
-          </div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/10 text-4xl font-black -rotate-45 whitespace-nowrap">
-            DO NOT DISTRIBUTE
-          </div>
+      {/* Anti-Piracy Watermark - Subtle overlay with user info */}
+      <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden opacity-20 select-none">
+        <div className="absolute top-8 left-8 text-white/30 text-[10px] font-medium tracking-wide">
+          {userEmail}
         </div>
-
-        {/* Play/Pause Overlay */}
-        <div
-          className={`absolute inset-0 flex cursor-pointer items-center justify-center transition-opacity ${!isPlaying || showControls ? 'opacity-100 bg-black/30' : 'opacity-0'
-            }`}
-          onClick={togglePlay}
-        >
-          {!isPlaying && (
-            <div className="rounded-full bg-white/20 p-5 backdrop-blur-sm">
-              <Play className="h-12 w-12 text-white" />
-            </div>
-          )}
-        </div>
-
-        {/* Controls */}
-        <div
-          className={`absolute inset-x-0 bottom-0 flex flex-col gap-3 bg-gradient-to-t from-black/90 to-transparent p-4 transition-all duration-300 ${showControls ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
-            }`}
-        >
-          <div className="flex items-center justify-between text-[11px] font-semibold uppercase text-white/80">
-            <span>{formatTime(currentTime)}</span>
-            <span>{formatTime(duration)}</span>
-          </div>
-          <div
-            className="h-1.5 w-full cursor-pointer rounded-full bg-white/20"
-            onClick={handleSeek}
-          >
-            <div className="h-full rounded-full bg-white" style={{ width: `${progress}%` }} />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/20"
-                onClick={togglePlay}
-              >
-                {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-              </Button>
-
-              <div className="flex items-center gap-2 text-white">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/20"
-                  onClick={toggleMute}
-                >
-                  {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                </Button>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={volume}
-                  onChange={handleVolumeChange}
-                  className="h-1 w-24 cursor-pointer appearance-none rounded-full bg-white/30"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 text-white">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20"
-                onClick={toggleFullscreen}
-              >
-                {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
+        <div className="absolute bottom-16 right-8 text-white/30 text-[10px] font-medium tracking-wide">
+          {userId?.substring(0, 8)}
         </div>
       </div>
 
-      {/* Video Information */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-foreground">{lesson.title}</h1>
-          <div className="rounded-md bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-            Duration: {lesson.duration}
-          </div>
-        </div>
-        <div className="flex items-center gap-4 text-xs font-semibold uppercase text-foreground/70">
-          {isCompleted && (
-            <div className="flex items-center gap-2 rounded-full bg-success px-3 py-1 text-success-foreground">
-              <CheckCircle className="h-4 w-4" />
-              Completed
-            </div>
-          )}
-        </div>
-        {lesson.description && (
-          <div className="rounded-lg border bg-card p-5 shadow-sm">
-            <p className="text-sm font-medium text-muted-foreground">{lesson.description}</p>
+      {/* Play/Pause Overlay - Large centered play button */}
+      <div
+        className={`absolute inset-0 flex cursor-pointer items-center justify-center transition-all duration-300 ${!isPlaying || showControls ? 'opacity-100' : 'opacity-0'
+          }`}
+        onClick={togglePlay}
+      >
+        {!isPlaying && (
+          <div className="rounded-full bg-white/90 p-6 shadow-2xl transition-transform duration-200 hover:scale-110">
+            <Play className="h-12 w-12 text-slate-800 ml-1" fill="currentColor" />
           </div>
         )}
       </div>
 
-      {/* Navigation Controls */}
-      <div className="flex items-center justify-between rounded-lg border bg-card p-4 shadow-sm">
-        <Button variant="outline" onClick={onPrevious} disabled={!hasPrevious} className="flex items-center gap-2">
-          <SkipBack className="h-4 w-4" />
-          <span className="text-xs font-medium">Previous Lesson</span>
-        </Button>
-
-        <div className="text-center">
-          <Progress value={progress} className="mx-auto mb-2 h-3 w-40" />
-          <p className="text-xs font-semibold uppercase text-foreground/60">{Math.round(progress)}% Complete</p>
+      {/* Bottom Controls - Minimal gradient with progress and basic controls */}
+      <div
+        className={`absolute inset-x-0 bottom-0 flex flex-col gap-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12 transition-all duration-300 ${showControls ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
+          }`}
+      >
+        {/* Time Display */}
+        <div className="flex items-center justify-between text-[11px] font-medium text-white/80">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
         </div>
 
-        <Button
-          variant={isCompleted ? 'default' : 'outline'}
-          onClick={onNext}
-          disabled={!hasNext}
-          className="flex items-center gap-2"
+        {/* Progress Bar */}
+        <div
+          className="h-1 w-full cursor-pointer rounded-full bg-white/20 hover:h-1.5 transition-all"
+          onClick={handleSeek}
         >
-          <span className="text-xs font-medium">Next Lesson</span>
-          <SkipForward className="h-4 w-4" />
-        </Button>
+          <div
+            className="h-full rounded-full bg-white transition-all"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        {/* Control Buttons */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {/* Play/Pause Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/20 h-8 w-8 p-0"
+              onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+            >
+              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            </Button>
+
+            {/* Volume Controls */}
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+              >
+                {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              </Button>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={volume}
+                onChange={handleVolumeChange}
+                onClick={(e) => e.stopPropagation()}
+                className="h-1 w-20 cursor-pointer appearance-none rounded-full bg-white/30 accent-white"
+              />
+            </div>
+          </div>
+
+          {/* Fullscreen Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-white/20 h-8 w-8 p-0"
+            onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
     </div>
   );

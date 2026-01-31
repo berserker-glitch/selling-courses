@@ -15,7 +15,7 @@ const createCourseSchema = z.object({
 const lessonSchema = z.object({
     title: z.string().min(3),
     description: z.string().optional(),
-    videoUrl: z.string().url(),
+    videoId: z.string().optional(), // VDCipher video ID
     duration: z.string()
 });
 

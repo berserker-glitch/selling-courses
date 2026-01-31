@@ -61,7 +61,7 @@ model Lesson {
   courseId    String
   title       String
   description String?  @db.Text
-  videoUrl    String
+  videoId     String?   // VDCipher video ID (optional - can be added later)
   duration    String
   order       Int      @default(0)
   createdAt   DateTime @default(now())

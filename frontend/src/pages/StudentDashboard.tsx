@@ -173,19 +173,22 @@ export default function StudentDashboard() {
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {enrolledCourses.map((course) => {
-            const studentCourseProgress: Record<string, number> = {}; // Placeholder or fetch real progress
-            const progress = studentCourseProgress[course.id] || 0;
-            const isStarted = progress > 0;
+            // Calculate actual lesson completion progress
+            const completedLessons = course.lessons?.filter((l: any) => l.completed)?.length || 0;
+            const totalLessons = course.lessons?.length || 0;
+            const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+            const isStarted = completedLessons > 0;
 
             return (
               <SpotlightCard
                 key={course.id}
-                className="cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-500"
+                className="cursor-pointer group shadow-course hover:shadow-course-hover transition-all duration-500"
                 onClick={() => handleOpenCourse(course.id)}
               >
-                <div className="flex flex-col h-full p-8">
-                  <div className="mb-6 flex items-center justify-between">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400">
+                <div className="flex flex-col h-full p-6">
+                  {/* Card Header - Icon & Status Badge */}
+                  <div className="mb-5 flex items-center justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 text-white shadow-sm">
                       {course.thumbnail ? (
                         <span className="text-xl">{course.thumbnail}</span>
                       ) : (
@@ -193,35 +196,47 @@ export default function StudentDashboard() {
                       )}
                     </div>
                     {isStarted && (
-                      <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-200">
-                        {progress}% Complete
+                      <span className="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+                        {progress}%
                       </span>
                     )}
                   </div>
 
-                  <h3 className="mb-2 text-xl font-bold tracking-tight">{course.title}</h3>
-                  <p className="mb-6 flex-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                  {/* Course Title */}
+                  <h3 className="mb-2 text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                    {course.title}
+                  </h3>
+
+                  {/* Course Description */}
+                  <p className="mb-5 flex-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400 line-clamp-2">
                     {course.description || "Master the concepts with our comprehensive curriculum designed for professionals."}
                   </p>
 
-                  <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800/50">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        {course.lessons.length} Modules
+                  {/* Card Footer - Stats & Action */}
+                  <div className="mt-auto pt-5 border-t border-slate-100 dark:border-slate-800/50">
+                    {/* Lesson Count */}
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                        {completedLessons} / {totalLessons} lessons completed
                       </span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+                      <div
+                        className="h-full bg-gradient-to-r from-sky-400 to-blue-500 transition-all duration-500 ease-out rounded-full"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+
+                    {/* Action Link */}
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-sm font-semibold text-sky-600 dark:text-sky-400 group-hover:translate-x-1 transition-transform">
-                        {isStarted ? 'Resume' : 'Start'}
+                        {isStarted ? 'Continue Learning' : 'Start Course'}
                         <ArrowRight className="h-4 w-4" />
                       </div>
+                      <Play className="h-8 w-8 text-slate-300 dark:text-slate-700 group-hover:text-sky-500 transition-colors" />
                     </div>
-                    {isStarted && (
-                      <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                        <div
-                          className="h-full bg-sky-500 transition-all duration-500 ease-out"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    )}
                   </div>
                 </div>
               </SpotlightCard>
