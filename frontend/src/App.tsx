@@ -14,6 +14,9 @@ const queryClient = new QueryClient();
 
 import Profile from "./pages/Profile";
 
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -25,6 +28,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/teacher" element={<TeacherDashboardNew />} />
           <Route path="/student" element={<StudentDashboard />} />
           <Route path="/profile" element={<Profile />} />
