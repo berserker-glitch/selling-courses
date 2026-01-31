@@ -333,6 +333,7 @@ export default function CourseDetail() {
                             <VDCipherPlayer
                                 videoId={activeLesson.videoId}
                                 onComplete={handleComplete}
+                                userEmail={user?.email}
                             />
                         ) : (
                             <div className="flex h-full items-center justify-center text-slate-500">

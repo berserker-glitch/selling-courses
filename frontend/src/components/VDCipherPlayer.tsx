@@ -27,6 +27,8 @@ interface VDCipherPlayerProps {
     onComplete?: () => void;
     /** Additional CSS classes */
     className?: string;
+    /** User email for watermarking */
+    userEmail?: string;
 }
 
 /**
@@ -35,7 +37,7 @@ interface VDCipherPlayerProps {
  * @param props - Component props
  * @returns Video player iframe or loading/error state
  */
-export function VDCipherPlayer({ videoId, onComplete, className = '' }: VDCipherPlayerProps) {
+export function VDCipherPlayer({ videoId, onComplete, className = '', userEmail }: VDCipherPlayerProps) {
     // OTP and playback info from VDCipher API
     const [otp, setOtp] = useState<string | null>(null);
     const [playbackInfo, setPlaybackInfo] = useState<string | null>(null);
@@ -162,13 +164,32 @@ export function VDCipherPlayer({ videoId, onComplete, className = '' }: VDCipher
 
     // Render VDCipher player iframe with full permissions
     return (
-        <iframe
-            src={`https://player.vdocipher.com/v2/?otp=${otp}&playbackInfo=${playbackInfo}`}
-            className={`w-full h-full border-0 ${className}`}
-            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title="Course Video"
-        />
+        <div className={`relative w-full h-full group ${className}`}>
+            {/* Client-side Watermark Overlay (Backup/Extra Visibility) */}
+            {userEmail && (
+                <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden select-none">
+                    {/* Floating watermark top-left */}
+                    <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm px-2 py-1 rounded text-white/50 text-[10px] font-mono">
+                        {userEmail}
+                    </div>
+                    {/* Bouncing/Moving watermark (simulated with static positions for now, or CSS animation) */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 text-white text-xl font-bold -rotate-12 whitespace-nowrap">
+                        {userEmail}
+                    </div>
+                    <div className="absolute bottom-16 right-8 opacity-20 text-white/30 text-xs">
+                        ID: {userEmail.split('@')[0]}
+                    </div>
+                </div>
+            )}
+
+            <iframe
+                src={`https://player.vdocipher.com/v2/?otp=${otp}&playbackInfo=${playbackInfo}`}
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                title="Course Video"
+                allowFullScreen={true}
+            />
+        </div>
     );
 }
 

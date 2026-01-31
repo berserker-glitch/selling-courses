@@ -62,7 +62,16 @@ export const getVideoOTP = async (req: Request, res: Response) => {
             },
             body: JSON.stringify({
                 // Minimal request - no annotations to avoid potential issues
-                ttl: 300 // OTP valid for 5 minutes
+                ttl: 300, // OTP valid for 5 minutes
+                // Watermark with user email (Anti-piracy)
+                annotate: JSON.stringify([{
+                    type: 'rtext',
+                    text: user.email || 'Watermark',
+                    alpha: '0.30',
+                    color: '0xFFFFFF',
+                    size: '15',
+                    interval: '5000'
+                }])
             })
         });
 
