@@ -65,7 +65,7 @@ export function CourseManagement({
     title: '',
     description: '',
     duration: '',
-    videoUrl: ''
+    videoId: '' // VDCipher video ID
   });
 
   const filteredCourses = courses.filter(course =>
@@ -84,7 +84,7 @@ export function CourseManagement({
     e.preventDefault();
     if (selectedCourseId) {
       onAddLesson(selectedCourseId, newLesson);
-      setNewLesson({ title: '', description: '', duration: '', videoUrl: '' });
+      setNewLesson({ title: '', description: '', duration: '', videoId: '' });
       setIsAddLessonOpen(false);
       // Don't close the sheet, just the add dialog if it was separate, but here we might do it inline or separate. 'selectedCourseId' is used for the adding logic.
       // If we are "managing" a course, we want to keep that open.
@@ -397,13 +397,13 @@ export function CourseManagement({
                 />
               </div>
               <div className="space-y-2">
-                <Label>Video URL</Label>
+                <Label>VDCipher Video ID</Label>
                 <Input
-                  value={newLesson.videoUrl}
-                  onChange={(e) => setNewLesson({ ...newLesson, videoUrl: e.target.value })}
-                  placeholder="https://..."
-                  required
+                  value={newLesson.videoId}
+                  onChange={(e) => setNewLesson({ ...newLesson, videoId: e.target.value })}
+                  placeholder="Enter video ID from VDCipher"
                 />
+                <p className="text-xs text-muted-foreground">Find video IDs in your VDCipher dashboard</p>
               </div>
             </div>
             <div className="flex justify-end gap-3">

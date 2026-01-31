@@ -64,6 +64,9 @@ export const getCourses = async (req: Request, res: Response) => {
 export const getCourseById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params as { id: string };
+        const user = (req as any).user;
+
+        // Fetch course with lessons
         const course = await prisma.course.findUnique({
             where: { id },
             include: {
@@ -78,8 +81,43 @@ export const getCourseById = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Course not found' });
         }
 
+        // If user is authenticated, fetch their progress for each lesson
+        if (user?.id) {
+            const lessonProgress = await prisma.lessonProgress.findMany({
+                where: {
+                    userId: user.id,
+                    lessonId: { in: course.lessons.map(l => l.id) }
+                }
+            });
+
+            // Create a map of lessonId -> completed status
+            const progressMap = new Map(
+                lessonProgress.map(lp => [lp.lessonId, lp.completed])
+            );
+
+            // Merge progress into lessons
+            const lessonsWithProgress = course.lessons.map(lesson => ({
+                ...lesson,
+                completed: progressMap.get(lesson.id) || false
+            }));
+
+            // Get enrollment for overall progress
+            const enrollment = await prisma.enrollment.findUnique({
+                where: {
+                    userId_courseId: { userId: user.id, courseId: id }
+                }
+            });
+
+            return res.json({
+                ...course,
+                lessons: lessonsWithProgress,
+                progress: enrollment?.progress || 0
+            });
+        }
+
         res.json(course);
     } catch (error) {
+        console.error('Get course error:', error);
         res.status(500).json({ message: 'Error fetching course' });
     }
 };

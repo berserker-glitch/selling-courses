@@ -37,7 +37,7 @@ export default function TeacherCourseDetail() {
     const [isEditingLesson, setIsEditingLesson] = useState(false);
     const [editedTitle, setEditedTitle] = useState('');
     const [editedDescription, setEditedDescription] = useState('');
-    const [editedVideoUrl, setEditedVideoUrl] = useState('');
+    const [editedVideoId, setEditedVideoId] = useState('');
     const [isAddLessonOpen, setIsAddLessonOpen] = useState(false);
 
     // Temp state for new lesson form
@@ -53,7 +53,7 @@ export default function TeacherCourseDetail() {
                     setActiveLesson(data.lessons[0]);
                     setEditedTitle(data.lessons[0].title);
                     setEditedDescription(data.lessons[0].description || '');
-                    setEditedVideoUrl(data.lessons[0].videoUrl);
+                    setEditedVideoId(data.lessons[0].videoId || '');
                 }
             } catch (error) {
                 console.error('Failed to fetch course', error);
@@ -67,7 +67,7 @@ export default function TeacherCourseDetail() {
         if (activeLesson) {
             setEditedTitle(activeLesson.title);
             setEditedDescription(activeLesson.description || '');
-            setEditedVideoUrl(activeLesson.videoUrl);
+            setEditedVideoId(activeLesson.videoId || '');
         }
     }, [activeLesson]);
 
@@ -82,7 +82,7 @@ export default function TeacherCourseDetail() {
             const { data } = await api.put(`/courses/${course.id}/lessons/${activeLesson.id}`, {
                 title: editedTitle,
                 description: editedDescription,
-                videoUrl: editedVideoUrl
+                videoId: editedVideoId || undefined
             });
 
             const updatedLessons = course.lessons.map(l => l.id === activeLesson.id ? data : l);
@@ -106,7 +106,7 @@ export default function TeacherCourseDetail() {
             const { data } = await api.post(`/courses/${course.id}/lessons`, {
                 title: newLessonTitle,
                 duration: '00:00',
-                videoUrl: 'https://example.com/placeholder.mp4', // Placeholder or required?
+                videoId: '', // Will be set after creation in edit mode
                 description: ''
             });
 
@@ -257,9 +257,9 @@ export default function TeacherCourseDetail() {
                                 <div className="space-y-2">
                                     <Label>Video URL</Label>
                                     <Input
-                                        value={editedVideoUrl}
-                                        onChange={(e) => setEditedVideoUrl(e.target.value)}
-                                        placeholder="https://..."
+                                        value={editedVideoId}
+                                        onChange={(e) => setEditedVideoId(e.target.value)}
+                                        placeholder="Enter VDCipher video ID"
                                     />
                                 </div>
                             )}
@@ -271,7 +271,7 @@ export default function TeacherCourseDetail() {
                                             <PlayCircle className="h-10 w-10 fill-current" />
                                         </div>
                                         <p className="text-sm font-medium text-slate-400">
-                                            {activeLesson.videoUrl ? 'Video Loaded' : 'No Video URL Provided'}
+                                            {activeLesson.videoId ? 'Video Ready' : 'No Video ID'}
                                         </p>
                                     </div>
                                 </div>

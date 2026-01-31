@@ -19,7 +19,7 @@ import {
     User
 } from 'lucide-react';
 import { Course, Lesson } from '@/types';
-import { VideoPlayer } from '@/components/VideoPlayer';
+import { VDCipherPlayer } from '@/components/VDCipherPlayer';
 import api from '@/lib/api';
 import { cn } from '@/lib/utils';
 
@@ -329,11 +329,9 @@ export default function CourseDetail() {
 
                     {/* Video Player Container */}
                     <div className="relative aspect-video w-full overflow-hidden rounded-xl shadow-course bg-slate-900">
-                        {activeLesson.videoUrl ? (
-                            <VideoPlayer
-                                lesson={activeLesson}
-                                userEmail={user?.email}
-                                userId={user?.id}
+                        {activeLesson.videoId ? (
+                            <VDCipherPlayer
+                                videoId={activeLesson.videoId}
                                 onComplete={handleComplete}
                             />
                         ) : (
