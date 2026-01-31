@@ -299,9 +299,6 @@ export default function CourseDetail() {
                         <h1 className="text-2xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
                             {activeLesson.title}
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
-                            {activeLesson.description || "Master this topic with our comprehensive video lesson."}
-                        </p>
                     </div>
 
                     {/* Video Player Container */}
@@ -326,6 +323,13 @@ export default function CourseDetail() {
                             )}
                         </div>
                     </div>
+
+                    {/* Lesson Description - Rendered HTML */}
+                    {activeLesson.description && (
+                        <div className="prose prose-slate dark:prose-invert max-w-none">
+                            <div dangerouslySetInnerHTML={{ __html: activeLesson.description }} />
+                        </div>
+                    )}
 
                     {/* Controls & Navigation */}
                     <div className="flex items-center justify-between py-6 border-b border-slate-200 dark:border-slate-800">
