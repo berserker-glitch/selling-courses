@@ -99,6 +99,13 @@ export function VDCipherPlayer({ videoId, onComplete, className = '' }: VDCipher
                 // Log any errors from the player
                 if (data.event === 'error') {
                     console.error('[VDCipher Player Error]:', data);
+
+                    // Handle License Error (6007) specifically
+                    if (data.data && data.data.code === 6007) {
+                        setError('License Error: Domain not allowed. Please whitelist "localhost" in your VDCipher Dashboard.');
+                    } else if (data.data && data.data.message) {
+                        setError(`Player Error: ${data.data.message}`);
+                    }
                 }
 
                 // Video ended event
