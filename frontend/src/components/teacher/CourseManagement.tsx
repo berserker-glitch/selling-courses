@@ -110,7 +110,7 @@ export function CourseManagement({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground mb-1">Courses</h1>
-          <p className="text-foreground/60">Manage your courses and curriculum.</p>
+
         </div>
         <Dialog open={isAddCourseOpen} onOpenChange={setIsAddCourseOpen}>
           <DialogTrigger asChild>
