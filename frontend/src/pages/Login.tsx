@@ -57,36 +57,69 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md shadow-sm">
-        <CardContent className="space-y-8 p-10">
-          <div className="space-y-3 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <BookOpen className="h-6 w-6" />
+    <div className="flex min-h-screen w-full bg-slate-50 dark:bg-slate-950">
+      {/* Left Panel - Visual/Brand */}
+      <div className="hidden lg:flex w-1/2 bg-slate-900 relative overflow-hidden flex-col justify-between p-12 text-white">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1519681393784-d120267933ba')] bg-cover bg-center opacity-20 hover:scale-105 transition-transform duration-[20s]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+
+        {/* Decorative Circles */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-500/20 rounded-full blur-[100px] translate-x-1/2 translate-y-1/2" />
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 text-xl font-bold tracking-tight">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 shadow-sm">
+              <BookOpen className="h-6 w-6 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-foreground">Sign In</h2>
-            <p className="text-xs font-medium text-muted-foreground uppercase">Access your command center</p>
+            <span>Academy</span>
+          </div>
+        </div>
+
+        <div className="relative z-10 max-w-lg space-y-6">
+          <blockquote className="text-3xl font-medium leading-normal">
+            "Education is the most powerful weapon which you can use to change the world."
+          </blockquote>
+          <footer className="text-sm font-medium text-slate-300 uppercase tracking-widest">
+            Nelson Mandela
+          </footer>
+        </div>
+      </div>
+
+      {/* Right Panel - Login Form */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-white dark:bg-slate-950">
+        <div className="w-full max-w-[400px] space-y-8">
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+              Welcome back
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400">
+              Enter your credentials to access your account
+            </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs font-medium uppercase">
-                Email
-              </Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="sarah@teacher.com"
+                placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="h-11 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-blue-600 transition-all font-medium"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-xs font-medium uppercase">
-                Password
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-500">
+                  Forgot password?
+                </a>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -94,30 +127,23 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="h-11 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-blue-600 transition-all font-medium"
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Signing in…' : 'Sign In'}
+            <Button
+              type="submit"
+              className="w-full h-11 text-base font-medium shadow-md hover:shadow-lg transition-all bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
 
-          {/* Demo Accounts */}
-          <div className="rounded-lg bg-muted/50 p-4 text-center">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Demo Access</p>
-            <div className="mt-3 space-y-2 text-xs font-bold text-foreground">
-              <div className="flex items-center justify-between">
-                <span>Teacher</span>
-                <span>sarah@teacher.com</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Student</span>
-                <span>alex@student.com</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
+
+        </div>
+      </div>
     </div>
   );
 }
