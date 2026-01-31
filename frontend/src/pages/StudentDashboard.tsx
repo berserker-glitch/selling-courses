@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Course } from '@/types';
 import api from '@/lib/api';
+import { cn } from "@/lib/utils";
 
 /**
  * User data interface for authenticated students
@@ -125,6 +126,8 @@ export default function StudentDashboard() {
   const navigate = useNavigate();
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const themeColor = '#3b82f6'; // Blue-500 theme
 
   // Authentication check
   useEffect(() => {
@@ -177,219 +180,224 @@ export default function StudentDashboard() {
   const overallProgress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-slate-900 dark:text-slate-50">
-
-      {/* Decorative Background */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        {/* Top gradient orb */}
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-emerald-200/30 dark:bg-emerald-900/20 rounded-full blur-3xl" />
-        {/* Bottom gradient orb */}
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-sky-200/30 dark:bg-sky-900/20 rounded-full blur-3xl" />
-        {/* Grid pattern */}
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-30 [mask-image:linear-gradient(180deg,white,transparent)]" />
-      </div>
-
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-slate-200/50 bg-white/70 backdrop-blur-xl dark:border-slate-800/50 dark:bg-slate-950/70">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          {/* Brand Logo */}
-          <div className="flex items-center gap-3 font-bold text-xl tracking-tight">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25">
+    <div className="flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50">
+      {/* Sidebar - Consistent with CourseDetail */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 w-80 transform border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-950 lg:relative lg:translate-x-0 flex flex-col shadow-xl shadow-slate-200/50 dark:shadow-none",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+        style={{ backgroundColor: themeColor }}
+      >
+        {/* Sidebar Header */}
+        <div className="p-6 border-b border-white/10">
+          <div className="flex items-center gap-3 font-bold text-xl tracking-tight text-white mb-6">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 shadow-sm">
               <GraduationCap className="h-5 w-5" />
             </div>
-            <span className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent dark:from-white dark:to-slate-300">
-              Academy
-            </span>
+            <span>Academy</span>
           </div>
 
-          {/* Nav Links & User Actions */}
-          <div className="flex items-center gap-6">
-            <span className="hidden sm:block text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white cursor-pointer transition-colors">
-              My Courses
-            </span>
-            <span className="hidden sm:block text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white cursor-pointer transition-colors">
-              Browse
-            </span>
-            <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
+          <p className="text-white/80 text-sm leading-relaxed">
+            Welcome back, <br />
+            <span className="font-bold text-lg text-white">{user.name}</span>
+          </p>
+        </div>
 
-            {/* User Avatar */}
+        {/* Navigation Links */}
+        <div className="flex-1 py-6 px-4 space-y-1">
+          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white/20 text-white font-medium shadow-sm transition-all border border-white/10">
+            <BookOpen className="h-5 w-5" />
+            My Courses
+          </button>
+
+          <button
+            onClick={() => navigate('/profile')}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:bg-white/10 hover:text-white font-medium transition-all"
+          >
+            <User className="h-5 w-5" />
+            Profile
+          </button>
+        </div>
+
+        {/* Sidebar Footer */}
+        <div className="p-4 border-t border-white/10 bg-black/5">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="hidden md:block text-right">
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{user.name}</p>
-                <p className="text-xs text-slate-500">{user.email}</p>
+              <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold text-white">
+                {(user?.name || '?')[0]}
               </div>
-              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white text-sm font-medium">
-                {user.name?.charAt(0)?.toUpperCase() || 'S'}
+              <div className="text-xs">
+                <p className="font-semibold text-white">Logged in as</p>
+                <p className="text-white/70 truncate max-w-[120px]">{user?.email}</p>
               </div>
             </div>
-
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
+              className="text-white/70 hover:text-white hover:bg-white/10"
               onClick={handleLogout}
-              className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
-      </nav>
+      </aside>
 
-      <main className="mx-auto max-w-7xl px-6 py-12">
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-y-auto w-full bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 relative">
+        {/* Decorative Background - Same as CourseDetail */}
+        <div
+          className="absolute top-0 inset-x-0 h-64 opacity-5 pointer-events-none"
+          style={{
+            background: `linear-gradient(180deg, ${themeColor} 0%, transparent 100%)`
+          }}
+        />
 
-        {/* Hero Section */}
-        <div className="mb-12 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-          <div className="space-y-3">
-            <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 tracking-wide uppercase">
-              Welcome back, {user.name?.split(' ')[0]}
-            </p>
-            <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight">
-              Your Learning <span className="text-emerald-600 dark:text-emerald-400">Journey</span>
-            </h1>
-            <p className="max-w-xl text-slate-600 dark:text-slate-400">
-              Continue where you left off. Track your progress and achieve your goals.
-            </p>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="flex gap-4 flex-wrap">
-            <div className="flex items-center gap-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 px-4 py-3 shadow-sm">
-              <div className="h-10 w-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
-                <BookOpen className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalCourses}</p>
-                <p className="text-xs text-slate-500">Courses</p>
-              </div>
+        {/* Mobile Header */}
+        <div className="lg:hidden sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-md px-4 py-3 dark:border-slate-800 dark:bg-slate-950/80">
+          <span className="font-bold text-slate-800">Academy</span>
+          <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+            <div className="space-y-1">
+              <div className="w-5 h-0.5 bg-slate-600"></div>
+              <div className="w-5 h-0.5 bg-slate-600"></div>
+              <div className="w-5 h-0.5 bg-slate-600"></div>
             </div>
-
-            <div className="flex items-center gap-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 px-4 py-3 shadow-sm">
-              <div className="h-10 w-10 rounded-lg bg-sky-50 dark:bg-sky-900/30 flex items-center justify-center">
-                <CheckCircle className="h-5 w-5 text-sky-600 dark:text-sky-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{completedLessons}/{totalLessons}</p>
-                <p className="text-xs text-slate-500">Lessons Done</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 px-4 py-3 shadow-sm">
-              <ProgressRing progress={overallProgress} size={42} />
-              <div>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{overallProgress}%</p>
-                <p className="text-xs text-slate-500">Overall</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Courses Section Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Your Courses</h2>
-          <Button variant="outline" size="sm" className="text-sm">
-            View All <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full" />
-          </div>
-        )}
+        <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-10">
 
-        {/* Empty State */}
-        {!isLoading && enrolledCourses.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-              <BookOpen className="h-8 w-8 text-slate-400" />
+          {/* Header Section */}
+          <div className="relative z-10">
+            <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-3">
+              Dashboard
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400 max-w-2xl text-lg">
+              Track your progress and continue learning.
+            </p>
+          </div>
+
+          {/* Quick Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-emerald-50 dark:bg-white/5 flex items-center justify-center text-emerald-600">
+                <BookOpen className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-slate-900 dark:text-white">{totalCourses}</p>
+                <p className="text-sm font-medium text-slate-500">Enrolled Courses</p>
+              </div>
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No courses yet</h3>
-            <p className="text-slate-500 mb-6">Start learning by enrolling in your first course</p>
-            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
-              Browse Courses
-            </Button>
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-blue-50 dark:bg-white/5 flex items-center justify-center text-blue-600">
+                <CheckCircle className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-slate-900 dark:text-white">{completedLessons}</p>
+                <p className="text-sm font-medium text-slate-500">Lessons Completed</p>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm flex items-center gap-4">
+              <div className="h-14 w-14">
+                <ProgressRing progress={overallProgress} size={56} />
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-slate-900 dark:text-white">{overallProgress}%</p>
+                <p className="text-sm font-medium text-slate-500">Average Progress</p>
+              </div>
+            </div>
           </div>
-        )}
 
-        {/* Course Grid */}
-        {!isLoading && enrolledCourses.length > 0 && (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {enrolledCourses.map((course) => {
-              const completedCount = course.lessons?.filter((l: any) => l.completed)?.length || 0;
-              const totalCount = course.lessons?.length || 0;
-              const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-              const isStarted = completedCount > 0;
-              const isCompleted = progress === 100;
+          {/* Courses Section */}
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Your Courses</h2>
+              {/* Browse Library button removed as requested */}
+            </div>
 
-              return (
-                <SpotlightCard
-                  key={course.id}
-                  className="cursor-pointer group shadow-sm hover:shadow-lg transition-all duration-300"
-                  onClick={() => handleOpenCourse(course.id)}
-                >
-                  <div className="flex flex-col h-full p-6">
-                    {/* Course Header */}
-                    <div className="mb-4 flex items-start justify-between">
-                      {/* Course Icon */}
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-md shadow-emerald-500/20">
-                        <BookOpen className="h-5 w-5" />
-                      </div>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="animate-spin h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full" />
+              </div>
+            ) : enrolledCourses.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center rounded-3xl bg-slate-50 dark:bg-white/5 border border-dashed border-slate-200 dark:border-slate-800">
+                <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+                  <BookOpen className="h-8 w-8 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No active courses</h3>
+                <p className="text-slate-500 mb-6">Start your learning journey today.</p>
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                  Browse Catalog
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {enrolledCourses.map((course) => {
+                  const completedCount = course.lessons?.filter((l: any) => l.completed)?.length || 0;
+                  const totalCount = course.lessons?.length || 0;
+                  const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+                  const isStarted = completedCount > 0;
+                  const isCompleted = progress === 100;
+                  // Use course theme color if available, else default
+                  const cardTheme = course.themeColor || themeColor;
 
-                      {/* Progress Ring */}
-                      {isStarted && <ProgressRing progress={progress} size={44} />}
-                    </div>
-
-                    {/* Course Info */}
-                    <div className="flex-1">
-                      <h3 className="mb-2 text-lg font-bold tracking-tight text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                        {course.title}
-                      </h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-4">
-                        {course.description || "Master the fundamentals with hands-on lessons and expert guidance."}
-                      </p>
-                    </div>
-
-                    {/* Course Footer */}
-                    <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                      {/* Stats Row */}
-                      <div className="flex items-center gap-4 mb-3 text-xs text-slate-500">
-                        <span className="flex items-center gap-1">
-                          <Play className="h-3 w-3" />
-                          {totalCount} lessons
-                        </span>
-                        {isCompleted && (
-                          <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-                            <Trophy className="h-3 w-3" />
-                            Completed!
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Progress Bar */}
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+                  return (
+                    <SpotlightCard
+                      key={course.id}
+                      className="cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-300 border-slate-200/60"
+                      onClick={() => handleOpenCourse(course.id)}
+                    >
+                      <div className="flex flex-col h-full p-6 relative">
+                        {/* Top Color Accent */}
                         <div
-                          className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-500 ease-out rounded-full"
-                          style={{ width: `${progress}%` }}
+                          className="absolute top-0 left-0 right-0 h-1"
+                          style={{ backgroundColor: cardTheme }}
                         />
-                      </div>
 
-                      {/* Action Button */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                          {isCompleted ? 'Review' : isStarted ? 'Continue' : 'Start'} <ArrowRight className="h-4 w-4" />
-                        </span>
-                        <span className="text-xs text-slate-400">
-                          {completedCount}/{totalCount} done
-                        </span>
+                        <div className="mb-5 flex items-start justify-between">
+                          <div
+                            className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-lg"
+                            style={{ backgroundColor: cardTheme }}
+                          >
+                            <BookOpen className="h-6 w-6" />
+                          </div>
+                          {isStarted && <div className="text-xs font-bold px-2 py-1 rounded-md bg-slate-100 text-slate-600">
+                            {progress}%
+                          </div>}
+                        </div>
+
+                        <div className="flex-1 mb-6">
+                          <h3 className="mb-2 text-xl font-bold tracking-tight text-slate-900 dark:text-white group-hover:text-[var(--theme-color)] transition-colors"
+                            style={{ '--theme-color': cardTheme } as React.CSSProperties}
+                          >
+                            {course.title}
+                          </h3>
+                          <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                            {course.description || "Master the fundamentals with professional guidance."}
+                          </p>
+                        </div>
+
+                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                          <div className="flex items-center justify-between text-xs font-medium text-slate-500 mb-2">
+                            <span>Progress</span>
+                            <span>{completedCount}/{totalCount} Lessons</span>
+                          </div>
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                            <div
+                              className="h-full rounded-full transition-all duration-500 ease-out"
+                              style={{ width: `${progress}%`, backgroundColor: cardTheme }}
+                            />
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </SpotlightCard>
-              );
-            })}
+                    </SpotlightCard>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </main>
     </div>
   );

@@ -12,6 +12,8 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+import Profile from "./pages/Profile";
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -25,6 +27,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/teacher" element={<TeacherDashboardNew />} />
           <Route path="/student" element={<StudentDashboard />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/course/:courseId" element={<CourseDetail />} />
           <Route path="/teacher/course/:courseId" element={<TeacherCourseDetail />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
