@@ -249,3 +249,83 @@ export const enrollStudentInCategory = async (req: Request, res: Response) => {
         res.status(400).json({ message: error.message || 'Error enrolling student' });
     }
 };
+
+// --- Password Reset ---
+
+import crypto from 'crypto';
+import { sendPasswordResetEmail } from '../services/emailService';
+
+export const forgotPassword = async (req: Request, res: Response) => {
+    try {
+        const { email } = z.object({ email: z.string().email() }).parse(req.body);
+
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+            // For security, do not reveal if user exists. Just say email sent.
+            return res.status(200).json({ message: 'If account exists, reset email sent' });
+        }
+
+        // Generate Token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+        // Save to DB
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { resetToken, resetTokenExpiry }
+        });
+
+        // Send Email
+        const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+        const emailSent = await sendPasswordResetEmail(email, resetLink);
+
+        if (!emailSent) {
+            console.log(`Debug - Mock Reset Link for ${email}: ${resetLink}`);
+        }
+
+        res.status(200).json({ message: 'If account exists, reset email sent' });
+
+    } catch (error: any) {
+        res.status(400).json({ message: error.message || 'Error processing request' });
+    }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+    try {
+        const { token, password } = z.object({
+            token: z.string(),
+            password: z.string().min(6)
+        }).parse(req.body);
+
+        const user = await prisma.user.findFirst({
+            where: {
+                resetToken: token,
+                resetTokenExpiry: { gt: new Date() }
+            }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired token' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                password: hashedPassword,
+                resetToken: null,
+                resetTokenExpiry: null
+            }
+        });
+
+        // Optional: Invalidate all sessions on password change
+        await prisma.session.deleteMany({ where: { userId: user.id } });
+
+        res.status(200).json({ message: 'Password reset successfully. Please login.' });
+
+    } catch (error: any) {
+        res.status(400).json({ message: error.message || 'Error resetting password' });
+    }
+};
+
