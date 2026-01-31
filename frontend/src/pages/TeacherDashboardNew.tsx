@@ -48,6 +48,7 @@ export default function TeacherDashboardNew() {
           const studentsWithMeta = studentsRes.data.map((s: any) => ({
             ...s,
             enrolledCourses: [], // Placeholder
+            enrolledCategories: s.enrolledCategories?.map((c: any) => c.id) || [],
             progress: {}         // Placeholder
           }));
           setStudents(studentsWithMeta);

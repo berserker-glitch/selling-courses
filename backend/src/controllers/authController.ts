@@ -203,7 +203,10 @@ export const getUsers = async (req: Request, res: Response) => {
                 name: true,
                 email: true,
                 role: true,
-                createdAt: true
+                createdAt: true,
+                enrolledCategories: {
+                    select: { id: true }
+                }
             }
         });
 

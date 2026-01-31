@@ -243,52 +243,30 @@ export function StudentManagement({
                   </div>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-lg border bg-card p-5 text-center shadow-sm">
-                    <div className="text-3xl font-bold text-primary">
-                      {getStudentStats(selectedStudent).overallProgress}%
-                    </div>
-                    <div className="text-xs font-medium text-muted-foreground uppercase">Overall Progress</div>
-                  </div>
-                  <div className="rounded-lg border bg-card p-5 text-center shadow-sm">
-                    <div className="text-3xl font-bold text-foreground">
-                      {getStudentStats(selectedStudent).enrolledCourses}
-                    </div>
-                    <div className="text-xs font-medium text-muted-foreground uppercase">Courses Enrolled</div>
-                  </div>
-                </div>
 
-                {/* Enrolled Courses */}
+
+                {/* Enrolled Categories */}
                 <div className="space-y-4">
-                  <h4 className="text-lg font-black uppercase text-foreground">Enrolled Courses</h4>
-                  {selectedStudent.enrolledCourses.length === 0 ? (
+                  <h4 className="text-lg font-black uppercase text-foreground">Enrolled Categories</h4>
+                  {!selectedStudent.enrolledCategories || selectedStudent.enrolledCategories.length === 0 ? (
                     <div className="rounded-lg border bg-muted/50 py-8 text-center text-sm font-medium text-muted-foreground">
-                      Not enrolled in any courses yet.
+                      Not enrolled in any categories yet.
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {selectedStudent.enrolledCourses.map((courseId) => {
-                        const course = courses.find(c => c.id === courseId);
-                        const progress = selectedStudent.progress[courseId] || 0;
-
-                        return course ? (
-                          <div key={courseId} className="rounded-lg border bg-card p-5 shadow-sm">
-                            <div className="mb-3 flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <span className="flex h-12 w-12 items-center justify-center rounded-md bg-primary text-xl text-primary-foreground">
-                                  {course.thumbnail}
-                                </span>
-                                <div>
-                                  <h5 className="text-base font-bold text-foreground">{course.title}</h5>
-                                  <p className="text-xs font-medium text-muted-foreground uppercase">{course.category?.name || 'Uncategorized'}</p>
-                                </div>
+                      {selectedStudent.enrolledCategories.map((categoryId) => {
+                        const category = categories.find(c => c.id === categoryId);
+                        return category ? (
+                          <div key={categoryId} className="rounded-lg border bg-card p-5 shadow-sm">
+                            <div className="flex items-center gap-3">
+                              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-secondary text-lg text-secondary-foreground font-bold">
+                                {category.name.charAt(0).toUpperCase()}
+                              </span>
+                              <div>
+                                <h5 className="text-base font-bold text-foreground">{category.name}</h5>
+                                <p className="text-xs font-medium text-muted-foreground">{category.description || 'No description'}</p>
                               </div>
-                              <Badge variant={progress === 100 ? 'default' : 'secondary'} className="shadow-sm">
-                                {progress === 100 ? 'Completed' : `${progress}%`}
-                              </Badge>
                             </div>
-                            <Progress value={progress} className="h-3" />
                           </div>
                         ) : null;
                       })}
