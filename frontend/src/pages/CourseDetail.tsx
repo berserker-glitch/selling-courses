@@ -178,33 +178,33 @@ export default function CourseDetail() {
                     "fixed inset-y-0 left-0 z-40 w-80 transform border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-950 lg:relative lg:translate-x-0 flex flex-col shadow-xl shadow-slate-200/50 dark:shadow-none",
                     isSidebarOpen ? "translate-x-0" : "-translate-x-full"
                 )}
+                style={{ backgroundColor: themeColor }}
             >
                 {/* Sidebar Header */}
-                <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+                <div className="p-6 border-b border-white/10">
                     <button
-                        className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors text-sm font-medium mb-4"
+                        className="flex items-center gap-2 text-white/80 hover:text-white transition-colors text-sm font-medium mb-4"
                         onClick={() => navigate('/student')}
                     >
                         <ArrowLeft className="h-4 w-4" />
                         <span>Back to Dashboard</span>
                     </button>
 
-                    <h2 className="text-xl font-bold tracking-tight mb-2 text-slate-900 dark:text-white line-clamp-2">
+                    <h2 className="text-xl font-bold tracking-tight mb-2 text-white line-clamp-2">
                         {course.title}
                     </h2>
 
-                    {/* Progress Bar with Theme Color */}
+                    {/* Progress Bar (White on colored bg) */}
                     <div className="space-y-1.5">
-                        <div className="flex justify-between text-xs font-medium text-slate-500">
+                        <div className="flex justify-between text-xs font-medium text-white/90">
                             <span>Progress</span>
                             <span>{course.progress || 0}%</span>
                         </div>
-                        <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <div className="h-2 w-full rounded-full bg-black/20 overflow-hidden">
                             <div
-                                className="h-full rounded-full transition-all duration-500"
+                                className="h-full rounded-full bg-white transition-all duration-500"
                                 style={{
-                                    width: `${course.progress || 0}%`,
-                                    backgroundColor: themeColor
+                                    width: `${course.progress || 0}%`
                                 }}
                             />
                         </div>
@@ -228,21 +228,18 @@ export default function CourseDetail() {
                                     className={cn(
                                         "group flex items-start gap-3 px-3 py-3 rounded-xl cursor-pointer transition-all duration-200 border border-transparent",
                                         isActive
-                                            ? "bg-[var(--theme-bg-alpha)] dark:bg-white/5 border-[var(--theme-color)]/20 shadow-sm"
-                                            : "hover:bg-slate-50 dark:hover:bg-slate-900 hover:border-slate-200/50 dark:hover:border-slate-800"
+                                            ? "bg-white shadow-sm"
+                                            : "hover:bg-white/10 border-transparent"
                                     )}
-                                    style={isActive ? {
-                                        '--theme-bg-alpha': `${themeColor}15` // 15 is approx 8% opacity hex
-                                    } as React.CSSProperties : {}}
                                 >
                                     {/* Icon Indicator */}
                                     <div
                                         className={cn(
                                             "flex h-6 w-6 shrink-0 items-center justify-center rounded-full mt-0.5 transition-colors",
-                                            isActive ? "text-white shadow-md shadow-current/20" :
-                                                isCompleted ? "bg-emerald-500 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                                            isActive ? "text-white" :
+                                                isCompleted ? "bg-white/20 text-white" : "bg-black/10 text-white/70"
                                         )}
-                                        style={isActive ? { backgroundColor: themeColor, color: '#fff' } : {}}
+                                        style={isActive ? { backgroundColor: themeColor } : {}}
                                     >
                                         {isCompleted ? <CheckCircle className="h-3.5 w-3.5" /> :
                                             isActive ? <PlayCircle className="h-3.5 w-3.5" /> :
@@ -252,13 +249,13 @@ export default function CourseDetail() {
                                     <div className="flex-1 min-w-0">
                                         <h4 className={cn(
                                             "text-sm font-semibold leading-snug mb-0.5",
-                                            isActive ? "text-slate-900 dark:text-white" : "text-slate-600 dark:text-slate-400"
+                                            isActive ? "text-slate-900" : "text-white"
                                         )}>
                                             {lesson.title}
                                         </h4>
                                         <div className="flex items-center gap-2">
-                                            <Clock className="h-3 w-3 text-slate-400" />
-                                            <span className="text-[11px] text-slate-400 font-medium">{lesson.duration || '5:00'}</span>
+                                            <Clock className={cn("h-3 w-3", isActive ? "text-slate-400" : "text-white/60")} />
+                                            <span className={cn("text-[11px] font-medium", isActive ? "text-slate-400" : "text-white/60")}>{lesson.duration || '5:00'}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -268,14 +265,14 @@ export default function CourseDetail() {
                 </ScrollArea>
 
                 {/* Sidebar Footer */}
-                <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                <div className="p-4 border-t border-white/10 bg-black/5">
                     <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold">
+                        <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold text-white">
                             {(user?.name || '?')[0]}
                         </div>
                         <div className="text-xs">
-                            <p className="font-semibold text-slate-700 dark:text-slate-300">Logged in as</p>
-                            <p className="text-slate-500 truncate max-w-[150px]">{user?.email}</p>
+                            <p className="font-semibold text-white">Logged in as</p>
+                            <p className="text-white/70 truncate max-w-[150px]">{user?.email}</p>
                         </div>
                     </div>
                 </div>
