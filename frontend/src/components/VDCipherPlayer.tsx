@@ -28,7 +28,12 @@ interface VDCipherPlayerProps {
     /** Additional CSS classes */
     className?: string;
     /** User email for watermarking */
+    /** User email for watermarking */
     userEmail?: string;
+    /** Resume position in seconds */
+    lastPosition?: number;
+    /** Callback to save progress */
+    onProgress?: (seconds: number) => void;
 }
 
 /**
@@ -37,7 +42,7 @@ interface VDCipherPlayerProps {
  * @param props - Component props
  * @returns Video player iframe or loading/error state
  */
-export function VDCipherPlayer({ videoId, onComplete, className = '', userEmail }: VDCipherPlayerProps) {
+export function VDCipherPlayer({ videoId, onComplete, className = '', userEmail, lastPosition, onProgress }: VDCipherPlayerProps) {
     // OTP and playback info from VDCipher API
     const [otp, setOtp] = useState<string | null>(null);
     const [playbackInfo, setPlaybackInfo] = useState<string | null>(null);
@@ -142,6 +147,45 @@ export function VDCipherPlayer({ videoId, onComplete, className = '', userEmail 
         return () => window.removeEventListener('message', handleMessage);
     }, [onComplete]);
 
+    // Handle resume and progress tracking
+    useEffect(() => {
+        const handleTimeUpdate = (event: MessageEvent) => {
+            if (event.origin !== 'https://player.vdocipher.com') return;
+
+            try {
+                const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+
+                // On player ready, seek if needed
+                // VDCipher doesn't have a simple "ready" event that guarantees seek works immediately 
+                // but usually 'playerReady' is sent.
+
+                // Track time
+                if (data.event === 'timeupdate' && data.data) {
+                    const currentTime = data.data.currentTime;
+                    // Throttle updates? Or just let parent handle it? 
+                    // Let's call parent every time, parent can debounce if needed, 
+                    // but for now, raw updates are fine if debounced there.
+                    // Actually, safer to debounce here or just run on interval.
+                    // VDCipher sends timeupdates frequently.
+
+                    if (onProgress) {
+                        onProgress(currentTime);
+                    }
+                }
+            } catch (e) {
+                // Ignore
+            }
+        };
+
+        window.addEventListener('message', handleTimeUpdate);
+        return () => window.removeEventListener('message', handleTimeUpdate);
+    }, [onProgress]);
+
+    // Seek to lastPosition when player is ready is tricky with VDCipher iframe API without the SDK wrapper.
+    // The iframe `src` supports `start` parameter!
+    // Ref: VDCipher docs says `start` in seconds.
+    // Let's update the iframe src generation.
+
     /**
      * Handle fullscreen change events
      */
@@ -218,7 +262,7 @@ export function VDCipherPlayer({ videoId, onComplete, className = '', userEmail 
             </button>
 
             <iframe
-                src={`https://player.vdocipher.com/v2/?otp=${otp}&playbackInfo=${playbackInfo}`}
+                src={`https://player.vdocipher.com/v2/?otp=${otp}&playbackInfo=${playbackInfo}&start=${Math.floor(lastPosition || 0)}`}
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                 title="Course Video"

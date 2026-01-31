@@ -67,6 +67,10 @@ app.use('/api', progressRoutes); // Mounts at /api/lessons/... and /api/courses/
 import vdcipherRoutes from './routes/vdcipherRoutes';
 app.use('/api/video', vdcipherRoutes);
 
+// Comment routes
+import commentRoutes from './routes/commentRoutes';
+app.use('/api/comments', commentRoutes);
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
