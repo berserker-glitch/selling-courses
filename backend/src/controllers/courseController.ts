@@ -90,16 +90,20 @@ export const getCourseById = async (req: Request, res: Response) => {
                 }
             });
 
-            // Create a map of lessonId -> completed status
+            // Create a map of lessonId -> progress stats
             const progressMap = new Map(
-                lessonProgress.map(lp => [lp.lessonId, lp.completed])
+                lessonProgress.map(lp => [lp.lessonId, { completed: lp.completed, lastPosition: lp.lastPosition }])
             );
 
             // Merge progress into lessons
-            const lessonsWithProgress = course.lessons.map(lesson => ({
-                ...lesson,
-                completed: progressMap.get(lesson.id) || false
-            }));
+            const lessonsWithProgress = course.lessons.map(lesson => {
+                const prog = progressMap.get(lesson.id);
+                return {
+                    ...lesson,
+                    completed: prog?.completed || false,
+                    lastPosition: prog?.lastPosition || 0
+                };
+            });
 
             // Get enrollment for overall progress
             const enrollment = await prisma.enrollment.findUnique({
