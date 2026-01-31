@@ -33,51 +33,61 @@ export const getVideoOTP = async (req: Request, res: Response) => {
         const { videoId } = req.params as { videoId: string };
         const user = (req as any).user;
 
+        // Get API secret at runtime (not at module load time)
+        const apiSecret = process.env.VDCIPHER_API;
+
+        if (!apiSecret) {
+            console.error('VDCipher API secret not configured');
+            return res.status(500).json({ message: 'Video service not configured' });
+        }
+
         // Validate videoId format (basic validation)
         if (!videoId || videoId.length < 10) {
             return res.status(400).json({ message: 'Invalid video ID' });
         }
 
+        console.log(`[VDCipher] Generating OTP for video: ${videoId}`);
+
         // Log video access attempt for audit trail
         await logAudit(user.id, 'VIDEO_ACCESS', { videoId }, req);
 
         // Call VDCipher API to generate OTP
+        // Using simple request without annotations first to verify basic functionality
         const response = await fetch(`${VDCIPHER_API_URL}/videos/${videoId}/otp`, {
             method: 'POST',
             headers: {
-                'Authorization': `Apisecret ${VDCIPHER_API_SECRET}`,
+                'Authorization': `Apisecret ${apiSecret}`,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                // Optional: Add watermark with user info for anti-piracy
-                annotate: JSON.stringify([{
-                    type: 'rtext',
-                    text: user.email,
-                    alpha: '0.3',
-                    color: 'ffffff',
-                    size: '12',
-                    interval: '5000'
-                }])
+                // Minimal request - no annotations to avoid potential issues
+                ttl: 300 // OTP valid for 5 minutes
             })
         });
 
+        console.log(`[VDCipher] API Response status: ${response.status}`);
+
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error('VDCipher API Error:', response.status, errorData);
+            console.error('[VDCipher] API Error:', response.status, JSON.stringify(errorData));
 
             // Handle specific error cases
             if (response.status === 404) {
                 return res.status(404).json({ message: 'Video not found in VDCipher' });
             }
-            if (response.status === 401) {
-                return res.status(500).json({ message: 'VDCipher API authentication failed' });
+            if (response.status === 401 || response.status === 403) {
+                return res.status(500).json({ message: 'VDCipher API authentication failed. Check API key.' });
             }
 
-            return res.status(500).json({ message: 'Failed to generate video playback token' });
+            return res.status(500).json({
+                message: 'Failed to generate video playback token',
+                error: errorData.message || 'Unknown error'
+            });
         }
 
         const data = await response.json();
+        console.log('[VDCipher] OTP generated successfully');
 
         // VDCipher returns { otp, playbackInfo }
         res.json({
@@ -86,7 +96,7 @@ export const getVideoOTP = async (req: Request, res: Response) => {
         });
 
     } catch (error: any) {
-        console.error('VDCipher OTP Error:', error);
+        console.error('[VDCipher] OTP Error:', error.message);
         res.status(500).json({ message: 'Error generating video access token' });
     }
 };

@@ -96,6 +96,11 @@ export function VDCipherPlayer({ videoId, onComplete, className = '' }: VDCipher
             try {
                 const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
 
+                // Log any errors from the player
+                if (data.event === 'error') {
+                    console.error('[VDCipher Player Error]:', data);
+                }
+
                 // Video ended event
                 if (data.name === 'video' && data.status === 'ended') {
                     onComplete?.();
@@ -148,12 +153,12 @@ export function VDCipherPlayer({ videoId, onComplete, className = '' }: VDCipher
         );
     }
 
-    // Render VDCipher player iframe
+    // Render VDCipher player iframe with full permissions
     return (
         <iframe
             src={`https://player.vdocipher.com/v2/?otp=${otp}&playbackInfo=${playbackInfo}`}
             className={`w-full h-full border-0 ${className}`}
-            allow="encrypted-media"
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
             title="Course Video"
         />
