@@ -9,7 +9,6 @@ import StudentDashboard from "./pages/StudentDashboard";
 import CourseDetail from "./pages/CourseDetail";
 import TeacherCourseDetail from "./pages/TeacherCourseDetail";
 import NotFound from "./pages/NotFound";
-import { SecurityOverlay } from "./components/SecurityOverlay";
 
 const queryClient = new QueryClient();
 
@@ -17,8 +16,9 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
+      <Toaster />
       <Sonner />
-      <SecurityOverlay />
+      {/* SecurityOverlay removed - relying on VDCipher DRM */}
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
