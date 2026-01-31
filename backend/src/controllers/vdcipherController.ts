@@ -67,9 +67,9 @@ export const getVideoOTP = async (req: Request, res: Response) => {
                 annotate: JSON.stringify([{
                     type: 'rtext',
                     text: user.email || 'Watermark',
-                    alpha: '0.30',
+                    alpha: '0.70',
                     color: '0xFFFFFF',
-                    size: '15',
+                    size: '24',
                     interval: '5000'
                 }])
             })
