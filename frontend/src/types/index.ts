@@ -2,7 +2,7 @@ export interface User {
     id: string;
     name: string;
     email: string;
-    role: 'teacher' | 'student' | 'admin' | string;
+    role: 'STUDENT' | 'TEACHER' | 'ADMIN';
     avatar?: string;
 }
 
@@ -18,6 +18,7 @@ export interface Lesson {
     duration: string;
     videoId?: string; // VDCipher video ID
     completed?: boolean;
+    lastPosition?: number;
     description?: string;
     order?: number;
 }

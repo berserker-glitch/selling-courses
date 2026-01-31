@@ -11,7 +11,7 @@ const createCommentSchema = z.object({
 
 export const getComments = async (req: Request, res: Response) => {
     try {
-        const { lessonId } = req.params;
+        const { lessonId } = req.params as { lessonId: string };
 
         const comments = await prisma.comment.findMany({
             where: { lessonId },
@@ -64,7 +64,8 @@ export const createComment = async (req: Request, res: Response) => {
         res.status(201).json(comment);
     } catch (error: any) {
         if (error instanceof z.ZodError) {
-            return res.status(400).json({ message: error.errors[0].message });
+            const zodError = error as any;
+            return res.status(400).json({ message: zodError.errors?.[0]?.message || 'Validation error' });
         }
         console.error('Create Comment Error:', error);
         res.status(500).json({ message: 'Error creating comment' });
