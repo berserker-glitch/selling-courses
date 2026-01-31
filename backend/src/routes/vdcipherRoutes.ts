@@ -9,7 +9,7 @@
 
 import { Router } from 'express';
 import { getVideoOTP, listVideos } from '../controllers/vdcipherController';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { protect } from '../middleware/authMiddleware';
 
 const router = Router();
 
@@ -18,13 +18,13 @@ const router = Router();
  * @description Generate OTP for video playback
  * @access Private (authenticated users)
  */
-router.post('/otp/:videoId', authMiddleware, getVideoOTP);
+router.post('/otp/:videoId', protect, getVideoOTP);
 
 /**
  * @route GET /api/video/list
  * @description List all available videos from VDCipher
  * @access Private (teachers and admins only)
  */
-router.get('/list', authMiddleware, listVideos);
+router.get('/list', protect, listVideos);
 
 export default router;

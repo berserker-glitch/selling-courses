@@ -16,7 +16,7 @@ export interface Lesson {
     id: string;
     title: string;
     duration: string;
-    videoUrl: string;
+    videoId?: string; // VDCipher video ID
     completed?: boolean;
     description?: string;
     order?: number;
