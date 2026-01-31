@@ -6,17 +6,23 @@ import { logAudit } from '../services/auditService';
 const prisma = new PrismaClient();
 
 const progressSchema = z.object({
-    completed: z.boolean(),
-    watchedDuration: z.string().optional() // 'mm:ss' or seconds
+    completed: z.boolean().optional(),
+    lastPosition: z.number().optional()
 });
 
-export const updateLessonProgress = async (req: Request, res: Response) => {
+export const updateProgress = async (req: Request, res: Response) => {
     try {
         const { lessonId } = req.params as { lessonId: string };
         const user = (req as any).user;
-        const { completed, watchedDuration } = progressSchema.parse(req.body);
+        const { completed, lastPosition } = progressSchema.parse(req.body);
 
-        // Upsert lesson progress
+        // Update or create lesson progress
+        // Only update 'completed' if it's true (don't un-complete)
+        // Always update lastPosition if provided
+        const data: any = {};
+        if (completed !== undefined) data.completed = completed;
+        if (lastPosition !== undefined) data.lastPosition = lastPosition;
+
         const progress = await prisma.lessonProgress.upsert({
             where: {
                 userId_lessonId: {
@@ -24,15 +30,12 @@ export const updateLessonProgress = async (req: Request, res: Response) => {
                     lessonId
                 }
             },
-            update: {
-                completed,
-                watchedDuration: watchedDuration || '0'
-            },
+            update: data,
             create: {
                 userId: user.id,
                 lessonId,
-                completed,
-                watchedDuration: watchedDuration || '0'
+                completed: completed || false,
+                lastPosition: lastPosition || 0
             },
             include: {
                 lesson: true  // Include lesson to get courseId

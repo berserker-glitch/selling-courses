@@ -13,8 +13,8 @@
  * @module components/VDCipherPlayer
  */
 
-import { useState, useEffect } from 'react';
-import { Loader2, AlertCircle, PlayCircle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Loader2, AlertCircle, PlayCircle, Maximize, Minimize } from 'lucide-react';
 import api from '@/lib/api';
 
 /**
@@ -42,9 +42,28 @@ export function VDCipherPlayer({ videoId, onComplete, className = '', userEmail 
     const [otp, setOtp] = useState<string | null>(null);
     const [playbackInfo, setPlaybackInfo] = useState<string | null>(null);
 
+    // Fullscreen state
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
     // Loading and error states
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    /**
+     * Toggle fullscreen for the container (keeps overlay visible)
+     */
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            if (containerRef.current) {
+                containerRef.current.requestFullscreen().catch(err => {
+                    console.error('Error attempting to enable fullscreen:', err);
+                });
+            }
+        } else {
+            document.exitFullscreen();
+        }
+    };
 
     /**
      * Fetch OTP from backend on component mount or when videoId changes
@@ -123,6 +142,17 @@ export function VDCipherPlayer({ videoId, onComplete, className = '', userEmail 
         return () => window.removeEventListener('message', handleMessage);
     }, [onComplete]);
 
+    /**
+     * Handle fullscreen change events
+     */
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
+
     // Loading state
     if (isLoading) {
         return (
@@ -164,23 +194,28 @@ export function VDCipherPlayer({ videoId, onComplete, className = '', userEmail 
 
     // Render VDCipher player iframe with full permissions
     return (
-        <div className={`relative w-full h-full group ${className}`}>
-            {/* Client-side Watermark Overlay (Backup/Extra Visibility) */}
+        <div
+            ref={containerRef}
+            className={`relative w-full h-full group bg-black ${className}`}
+        >
+            {/* Client-side Watermark Overlay */}
             {userEmail && (
                 <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden select-none">
                     {/* Floating watermark top-left */}
                     <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm px-2 py-1 rounded text-white/50 text-[10px] font-mono">
                         {userEmail}
                     </div>
-                    {/* Bouncing/Moving watermark (simulated with static positions for now, or CSS animation) */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 text-white text-xl font-bold -rotate-12 whitespace-nowrap">
-                        {userEmail}
-                    </div>
-                    <div className="absolute bottom-16 right-8 opacity-20 text-white/30 text-xs">
-                        ID: {userEmail.split('@')[0]}
-                    </div>
                 </div>
             )}
+
+            {/* Custom Fullscreen Button (Top-Right) */}
+            <button
+                onClick={toggleFullscreen}
+                className="absolute top-4 right-4 z-20 p-2 bg-black/50 hover:bg-black/70 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 backdrop-blur-sm"
+                title={isFullscreen ? "Exit Fullscreen" : "Fullscreen (keeps watermark)"}
+            >
+                {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+            </button>
 
             <iframe
                 src={`https://player.vdocipher.com/v2/?otp=${otp}&playbackInfo=${playbackInfo}`}

@@ -73,6 +73,27 @@ export default function CourseDetail() {
     /**
      * Effect: Load user data and fetch course on mount
      */
+    /**
+     * loadCourse: Fetches course data and user progress
+     */
+    const loadCourse = async () => {
+        try {
+            const { data } = await api.get(`/courses/${courseId}`);
+            setCourse(data);
+
+            // If no active lesson, default to first (only on initial load)
+            if (!activeLesson && data.lessons && data.lessons.length > 0) {
+                setActiveLesson(data.lessons[0]);
+            }
+        } catch (error) {
+            console.error('Failed to fetch course', error);
+            navigate('/student');
+        }
+    };
+
+    /**
+     * Effect: Load user data and fetch course on mount
+     */
     useEffect(() => {
         const userData = localStorage.getItem('currentUser');
         if (userData) {
@@ -81,22 +102,7 @@ export default function CourseDetail() {
             navigate('/login');
         }
 
-        const fetchCourse = async () => {
-            try {
-                const { data } = await api.get(`/courses/${courseId}`);
-                setCourse(data);
-
-                // Default to first lesson
-                if (data.lessons && data.lessons.length > 0) {
-                    setActiveLesson(data.lessons[0]);
-                }
-            } catch (error) {
-                console.error('Failed to fetch course', error);
-                navigate('/student');
-            }
-        };
-
-        if (courseId) fetchCourse();
+        if (courseId) loadCourse();
     }, [courseId, navigate]);
 
     if (!course || !activeLesson) return null;
@@ -145,9 +151,20 @@ export default function CourseDetail() {
 
     /**
      * Marks current lesson as complete via API
+     * Then reloads course data to unlock next lesson
      */
-    const handleComplete = () => {
-        api.put(`/lessons/${activeLesson.id}/progress`, { completed: true });
+    const handleComplete = async () => {
+        try {
+            await api.put(`/lessons/${activeLesson.id}/progress`, { completed: true });
+
+            // Reload course to update progress/unlocks
+            await loadCourse();
+
+            // Optional: Auto-advance could go here
+            // if (hasNext) goToNext(); 
+        } catch (error) {
+            console.error('Failed to update progress', error);
+        }
     };
 
     return (
@@ -232,7 +249,8 @@ export default function CourseDetail() {
                                                 const isActive = activeLesson.id === lesson.id;
                                                 const isCompleted = lesson.completed;
                                                 const globalIndex = course.lessons.findIndex(l => l.id === lesson.id);
-                                                const isLocked = globalIndex > 0 && !course.lessons[globalIndex - 1].completed && !isCompleted;
+                                                // Unified Unlocking: User requested all chapters be open
+                                                const isLocked = false;
 
                                                 return (
                                                     <div
