@@ -58,7 +58,8 @@ export function CourseManagement({
     title: '',
     description: '',
     categoryId: '',
-    thumbnail: '📚'
+    thumbnail: '📚',
+    themeColor: '#10b981' // Default Emerald
   });
 
   const [newLesson, setNewLesson] = useState({
@@ -76,7 +77,7 @@ export function CourseManagement({
   const handleAddCourse = (e: React.FormEvent) => {
     e.preventDefault();
     onAddCourse({ ...newCourse, lessons: [] });
-    setNewCourse({ title: '', description: '', categoryId: '', thumbnail: '📚' });
+    setNewCourse({ title: '', description: '', categoryId: '', thumbnail: '📚', themeColor: '#10b981' });
     setIsAddCourseOpen(false);
   };
 
@@ -173,6 +174,25 @@ export function CourseManagement({
                     onChange={(e) => setNewCourse({ ...newCourse, thumbnail: e.target.value })}
                     placeholder="Emoji or URL"
                     maxLength={2}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="themeColor">Theme Color</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    id="themeColor"
+                    value={newCourse.themeColor}
+                    onChange={(e) => setNewCourse({ ...newCourse, themeColor: e.target.value })}
+                    className="w-12 h-10 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={newCourse.themeColor}
+                    onChange={(e) => setNewCourse({ ...newCourse, themeColor: e.target.value })}
+                    placeholder="#10b981"
+                    className="flex-1"
                   />
                 </div>
               </div>

@@ -63,7 +63,7 @@ export default function CourseDetail() {
             setCourse(data);
 
             if (!activeLesson && data.lessons && data.lessons.length > 0) {
-                // If we have a 'last played' logic we could use it, but start with first for now
+                // Should ideally check for last played, but defaulting to first
                 setActiveLesson(data.lessons[0]);
             }
         } catch (error) {
@@ -79,6 +79,7 @@ export default function CourseDetail() {
             setComments(data);
         } catch (error) {
             console.error('Failed to load comments');
+            setComments([]);
         }
     };
 
@@ -107,6 +108,10 @@ export default function CourseDetail() {
     const hasPrevious = currentLessonIndex > 0;
     const hasNext = currentLessonIndex < course.lessons.length - 1;
 
+    // Theme Color Handling
+    // Default to Emerald Green if not set, or use the course's custom theme
+    const themeColor = course.themeColor || '#10b981';
+
     const goToPrevious = () => {
         if (hasPrevious) {
             setActiveLesson(course.lessons[currentLessonIndex - 1]);
@@ -129,32 +134,11 @@ export default function CourseDetail() {
     };
 
     const handleProgress = async (time: number) => {
-        // Debounce can be handled here or simpler: just save every 15s or on pause/exit?
-        // For simplicity API call on every update is too much.
-        // Let's implement a throttle or just save when leaving?
-        // For this task, let's just save frequently enough (e.g. throttle 10s) 
-        // OR rely on the fact that VDCipherPlayer updates prop.
-
-        // Actually, let's save every 10 seconds.
-        const now = Date.now();
-        // Uses a ref to throttle? React state is async.
-        // Using a timestamp check:
-        // (Simplified implementation: Just fire update. The backend can handle it, but better to be safe)
-
-        // Let's use a smarter approach: save progress on 'pause' (not available here easily without player events)
-        // or just fire API. To avoid spam, let's assume VDCipherPlayer throttles or we do:
-
-        // Implementation: Save every 15s
-        // (This would require extra state logic. For "Start" task, let's trust the user usage isn't huge volume yet
-        // and just fire API with a throttle check if I had lodash, but raw axios is okay for prototype)
-
         api.put(`/lessons/${activeLesson.id}/progress`, { lastPosition: Math.floor(time) }).catch(() => { });
     };
 
-    // Throttled progress handler
     const onProgressUpdate = (time: number) => {
-        // Only save integer seconds changes? 
-        if (Math.floor(time) % 5 === 0) { // Save every 5 seconds of playtime roughly
+        if (Math.floor(time) % 5 === 0) {
             handleProgress(time);
         }
     };
@@ -174,7 +158,11 @@ export default function CourseDetail() {
     };
 
     return (
-        <div className="relative flex h-screen w-full overflow-hidden bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-50">
+        <div
+            className="flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50"
+            // Inject theme color as CSS variable for dynamic styling
+            style={{ '--theme-color': themeColor } as React.CSSProperties}
+        >
 
             {/* Mobile Overlay */}
             {isSidebarOpen && (
@@ -184,37 +172,51 @@ export default function CourseDetail() {
                 />
             )}
 
-            {/* Sidebar - Lesson List (Simplified) */}
+            {/* Sidebar - Enhanced Design */}
             <aside
                 className={cn(
-                    "fixed inset-y-0 left-0 z-40 w-80 transform border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-950 lg:relative lg:translate-x-0 flex flex-col",
+                    "fixed inset-y-0 left-0 z-40 w-80 transform border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-950 lg:relative lg:translate-x-0 flex flex-col shadow-xl shadow-slate-200/50 dark:shadow-none",
                     isSidebarOpen ? "translate-x-0" : "-translate-x-full"
                 )}
             >
                 {/* Sidebar Header */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800">
                     <button
-                        className="flex items-center gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors text-sm font-medium"
+                        className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors text-sm font-medium mb-4"
                         onClick={() => navigate('/student')}
                     >
                         <ArrowLeft className="h-4 w-4" />
                         <span>Back to Dashboard</span>
                     </button>
+
+                    <h2 className="text-xl font-bold tracking-tight mb-2 text-slate-900 dark:text-white line-clamp-2">
+                        {course.title}
+                    </h2>
+
+                    {/* Progress Bar with Theme Color */}
+                    <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs font-medium text-slate-500">
+                            <span>Progress</span>
+                            <span>{course.progress || 0}%</span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                            <div
+                                className="h-full rounded-full transition-all duration-500"
+                                style={{
+                                    width: `${course.progress || 0}%`,
+                                    backgroundColor: themeColor
+                                }}
+                            />
+                        </div>
+                    </div>
                 </div>
 
-                {/* Course Title */}
-                <div className="p-4 border-b border-slate-100 dark:border-slate-800/50">
-                    <h2 className="text-lg font-bold tracking-tight mb-1">{course.title}</h2>
-                    <Progress value={course.progress || 0} className="h-1.5 bg-slate-100 dark:bg-slate-800" />
-                </div>
-
-                {/* Flat Lesson List */}
+                {/* Lesson List */}
                 <ScrollArea className="flex-1 scrollbar-thin">
-                    <div className="py-2">
+                    <div className="py-2 px-3 space-y-1">
                         {course.lessons.map((lesson, index) => {
                             const isActive = activeLesson.id === lesson.id;
                             const isCompleted = lesson.completed;
-                            const isLocked = false; // Unlocked all as per previous request
 
                             return (
                                 <div
@@ -224,33 +226,39 @@ export default function CourseDetail() {
                                         if (matchIsMobile()) setIsSidebarOpen(false);
                                     }}
                                     className={cn(
-                                        "group flex items-start gap-3 px-4 py-3 cursor-pointer transition-all duration-200 border-l-[3px]",
+                                        "group flex items-start gap-3 px-3 py-3 rounded-xl cursor-pointer transition-all duration-200 border border-transparent",
                                         isActive
-                                            ? "bg-sky-50 border-sky-500 dark:bg-sky-900/10"
-                                            : "hover:bg-slate-50 dark:hover:bg-slate-900/30 border-transparent",
+                                            ? "bg-[var(--theme-bg-alpha)] dark:bg-white/5 border-[var(--theme-color)]/20 shadow-sm"
+                                            : "hover:bg-slate-50 dark:hover:bg-slate-900 hover:border-slate-200/50 dark:hover:border-slate-800"
                                     )}
+                                    style={isActive ? {
+                                        '--theme-bg-alpha': `${themeColor}15` // 15 is approx 8% opacity hex
+                                    } as React.CSSProperties : {}}
                                 >
-                                    <div className={cn(
-                                        "flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5",
-                                        isActive ? "bg-sky-500 text-white" :
-                                            isCompleted ? "bg-teal-500 text-white" :
-                                                "bg-transparent border border-slate-300 dark:border-slate-600"
-                                    )}>
-                                        {isCompleted ? <CheckCircle className="h-3 w-3" /> :
-                                            isActive ? <PlayCircle className="h-3 w-3" /> :
-                                                <span className="text-[10px] font-medium text-slate-500">{index + 1}</span>}
+                                    {/* Icon Indicator */}
+                                    <div
+                                        className={cn(
+                                            "flex h-6 w-6 shrink-0 items-center justify-center rounded-full mt-0.5 transition-colors",
+                                            isActive ? "text-white shadow-md shadow-current/20" :
+                                                isCompleted ? "bg-emerald-500 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                                        )}
+                                        style={isActive ? { backgroundColor: themeColor, color: '#fff' } : {}}
+                                    >
+                                        {isCompleted ? <CheckCircle className="h-3.5 w-3.5" /> :
+                                            isActive ? <PlayCircle className="h-3.5 w-3.5" /> :
+                                                <span className="text-[10px] font-bold">{index + 1}</span>}
                                     </div>
 
                                     <div className="flex-1 min-w-0">
                                         <h4 className={cn(
-                                            "text-sm font-medium truncate",
-                                            isActive ? "text-sky-700 dark:text-sky-300" : "text-slate-700 dark:text-slate-300"
+                                            "text-sm font-semibold leading-snug mb-0.5",
+                                            isActive ? "text-slate-900 dark:text-white" : "text-slate-600 dark:text-slate-400"
                                         )}>
                                             {lesson.title}
                                         </h4>
-                                        <div className="flex items-center gap-2 mt-0.5">
+                                        <div className="flex items-center gap-2">
                                             <Clock className="h-3 w-3 text-slate-400" />
-                                            <span className="text-[11px] text-slate-400">{lesson.duration || '5:00'}</span>
+                                            <span className="text-[11px] text-slate-400 font-medium">{lesson.duration || '5:00'}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -258,107 +266,169 @@ export default function CourseDetail() {
                         })}
                     </div>
                 </ScrollArea>
+
+                {/* Sidebar Footer */}
+                <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                    <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold">
+                            {(user?.name || '?')[0]}
+                        </div>
+                        <div className="text-xs">
+                            <p className="font-semibold text-slate-700 dark:text-slate-300">Logged in as</p>
+                            <p className="text-slate-500 truncate max-w-[150px]">{user?.email}</p>
+                        </div>
+                    </div>
+                </div>
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto w-full">
+            <main className="flex-1 overflow-y-auto w-full bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
                 {/* Mobile Header */}
-                <div className="lg:hidden sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
-                    <span className="font-semibold truncate max-w-[200px]">{course.title}</span>
+                <div className="lg:hidden sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-md px-4 py-3 dark:border-slate-800 dark:bg-slate-950/80">
+                    <span className="font-semibold truncate max-w-[200px] text-sm">{course.title}</span>
                     <Button variant="ghost" size="icon" onClick={toggleSidebar}>
                         {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                     </Button>
                 </div>
 
-                <div className="mx-auto max-w-4xl p-6 lg:p-10 space-y-8">
-                    {/* Lesson Title */}
-                    <div>
-                        <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                <div className="mx-auto max-w-5xl p-6 lg:p-10 space-y-10">
+
+                    {/* Lesson Header */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-sm font-medium" style={{ color: themeColor }}>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Current Lesson</span>
+                        </div>
+                        <h1 className="text-2xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
                             {activeLesson.title}
                         </h1>
+                        <p className="text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
+                            {activeLesson.description || "Master this topic with our comprehensive video lesson."}
+                        </p>
                     </div>
 
-                    {/* Video Player */}
-                    <div className="relative aspect-video w-full overflow-hidden rounded-xl shadow-course bg-slate-900">
-                        {activeLesson.videoId ? (
-                            <VDCipherPlayer
-                                videoId={activeLesson.videoId}
-                                onComplete={handleComplete}
-                                userEmail={user?.email}
-                                lastPosition={(activeLesson as any).lastPosition} // Cast as any because default Lesson type might not have lastPosition if not updated in types/index.ts yet, but it comes from API
-                                onProgress={onProgressUpdate}
-                            />
-                        ) : (
-                            <div className="flex h-full items-center justify-center text-slate-500">
-                                <p>No video available</p>
-                            </div>
-                        )}
+                    {/* Video Player Container */}
+                    <div
+                        className="relative rounded-2xl overflow-hidden shadow-2xl bg-black ring-1 ring-slate-900/5 dark:ring-white/10"
+                        style={{ boxShadow: `0 20px 40px -10px ${themeColor}20` }} // Dynamic colored shadow
+                    >
+                        <div className="aspect-video w-full">
+                            {activeLesson.videoId ? (
+                                <VDCipherPlayer
+                                    videoId={activeLesson.videoId}
+                                    onComplete={handleComplete}
+                                    userEmail={user?.email}
+                                    lastPosition={(activeLesson as any).lastPosition}
+                                    onProgress={onProgressUpdate}
+                                />
+                            ) : (
+                                <div className="flex h-full flex-col items-center justify-center text-slate-500 bg-slate-900/50">
+                                    <PlayCircle className="h-16 w-16 mb-4 opacity-50" />
+                                    <p className="font-medium">No video content</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Navigation */}
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
-                        <Button variant="ghost" onClick={goToPrevious} disabled={!hasPrevious}>
+                    {/* Controls & Navigation */}
+                    <div className="flex items-center justify-between py-6 border-b border-slate-200 dark:border-slate-800">
+                        <Button
+                            variant="outline"
+                            onClick={goToPrevious}
+                            disabled={!hasPrevious}
+                            className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                        >
                             <ArrowLeft className="h-4 w-4 mr-2" /> Previous
                         </Button>
-                        <Button onClick={goToNext} disabled={!hasNext} className="bg-sky-600 hover:bg-sky-700 text-white">
+
+                        <Button
+                            onClick={goToNext}
+                            disabled={!hasNext}
+                            className="text-white shadow-lg shadow-current/20 hover:shadow-current/40 transition-all font-semibold px-8"
+                            style={{ backgroundColor: themeColor }}
+                        >
                             Next Lesson <ArrowRight className="h-4 w-4 ml-2" />
                         </Button>
                     </div>
 
                     {/* Discussion Section */}
-                    <div className="pt-8 border-t border-slate-200 dark:border-slate-800">
-                        <div className="flex items-center gap-2 mb-6">
-                            <MessageCircle className="h-5 w-5 text-slate-500" />
-                            <h2 className="text-lg font-semibold">Discussion</h2>
-                            <span className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full text-slate-500">
-                                {comments.length} comments
-                            </span>
+                    <div className="max-w-3xl">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
+                                <MessageCircle className="h-5 w-5 text-slate-500" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Discussion</h2>
+                                <p className="text-sm text-slate-500">Join the conversation with {comments.length} comments</p>
+                            </div>
                         </div>
 
                         {/* Comment Input */}
-                        <div className="flex items-start gap-3 mb-6">
-                            <div className="h-9 w-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0">
-                                <User className="h-4 w-4 text-slate-500" />
+                        <div className="flex gap-4 mb-10">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center shrink-0 shadow-sm border border-white dark:border-slate-600">
+                                <User className="h-5 w-5 text-slate-500" />
                             </div>
-                            <div className="flex-1">
-                                <textarea
-                                    placeholder="Ask a question or share your thoughts..."
-                                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-sky-500/20"
-                                    rows={3}
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                />
-                                <div className="flex justify-end mt-2">
-                                    <Button size="sm" className="bg-sky-600 text-white" onClick={postComment} disabled={isPostingComment || !newComment.trim()}>
-                                        {isPostingComment ? 'Posting...' : 'Publish'}
+                            <div className="flex-1 space-y-3">
+                                <div className="relative">
+                                    <textarea
+                                        placeholder="Ask a question or share your thoughts..."
+                                        className="w-full min-h-[100px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all shadow-sm"
+                                        style={{ '--tw-ring-color': themeColor } as React.CSSProperties}
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                    />
+                                </div>
+                                <div className="flex justify-end">
+                                    <Button
+                                        size="sm"
+                                        className="text-white font-medium"
+                                        style={{ backgroundColor: themeColor }}
+                                        onClick={postComment}
+                                        disabled={isPostingComment || !newComment.trim()}
+                                    >
+                                        {isPostingComment ? 'Posting...' : 'Post Comment'}
                                     </Button>
                                 </div>
                             </div>
                         </div>
 
                         {/* Comments List */}
-                        <div className="space-y-6">
+                        <div className="space-y-8">
                             {comments.length > 0 ? (
                                 comments.map((comment) => (
-                                    <div key={comment.id} className="flex gap-3">
-                                        <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs uppercase">
+                                    <div key={comment.id} className="flex gap-4 group">
+                                        <div
+                                            className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm uppercase shadow-sm shrink-0"
+                                            style={{ backgroundColor: themeColor }}
+                                        >
                                             {comment.user.name?.substring(0, 2)}
                                         </div>
-                                        <div>
-                                            <div className="flex items-baseline gap-2">
-                                                <span className="font-semibold text-sm">{comment.user.name}</span>
-                                                <span className="text-xs text-slate-400">{new Date(comment.createdAt).toLocaleDateString()}</span>
+                                        <div className="flex-1">
+                                            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-800 shadow-sm">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="font-semibold text-sm text-slate-900 dark:text-white">
+                                                        {comment.user.name}
+                                                    </span>
+                                                    <span className="text-xs text-slate-400">
+                                                        {new Date(comment.createdAt).toLocaleDateString()}
+                                                    </span>
+                                                </div>
+                                                <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                                                    {comment.content}
+                                                </p>
                                             </div>
-                                            <p className="text-sm text-slate-600 mt-0.5">{comment.content}</p>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <p className="text-center text-slate-500 text-sm">No comments yet.</p>
+                                <div className="text-center py-12 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                                    <MessageCircle className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+                                    <p className="text-slate-500 font-medium">No comments yet</p>
+                                    <p className="text-sm text-slate-400">Be the first to start the discussion!</p>
+                                </div>
                             )}
                         </div>
                     </div>
-
                 </div>
             </main>
         </div>

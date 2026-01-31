@@ -41,6 +41,7 @@ model Course {
   title       String
   description String   @db.Text
   thumbnail   String?
+  themeColor  String?  @default("#10b981") // Default to Emerald Green
   
   // Changed from string to relation
   categoryId  String?

@@ -28,6 +28,7 @@ export interface Course {
     title: string;
     description: string;
     thumbnail: string;
+    themeColor?: string; // Hex color for course theme
     lessons: Lesson[];
     progress?: number;
     enrolledStudents?: number;
