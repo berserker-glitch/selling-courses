@@ -283,6 +283,34 @@ export default function TeacherDashboardNew() {
     }
   };
 
+  /**
+   * Handler to update a student's device limit.
+   * Calls the backend API to set the maxDevices field.
+   * @param studentId - The ID of the student to update
+   * @param maxDevices - The new maximum devices allowed (1-10)
+   */
+  const handleUpdateDeviceLimit = async (studentId: string, maxDevices: number) => {
+    try {
+      await api.put(`/auth/users/${studentId}/device-limit`, { maxDevices });
+
+      // Update local state for immediate UI feedback
+      setStudents(students.map(s =>
+        s.id === studentId ? { ...s, maxDevices } : s
+      ));
+
+      toast({
+        title: "Device Limit Updated",
+        description: `Student can now use up to ${maxDevices} device(s) simultaneously.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update device limit",
+        variant: "destructive"
+      });
+    }
+  };
+
 
   const renderContent = () => {
     switch (activeSection) {
@@ -309,6 +337,7 @@ export default function TeacherDashboardNew() {
             onAddStudent={handleAddStudent}
             onDeleteStudent={handleDeleteStudent}
             onEnrollCategory={handleEnrollCategory}
+            onUpdateDeviceLimit={handleUpdateDeviceLimit}
           />
         );
       case 'categories':
