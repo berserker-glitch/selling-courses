@@ -1,13 +1,19 @@
 import express from 'express';
+import http from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import { initializeSocketIO } from './services/socketService';
 
 dotenv.config();
 
 const app = express();
+const httpServer = http.createServer(app); // Wrap Express app for Socket.io
 const PORT = process.env.PORT || 3000;
+
+// Initialize Socket.io for real-time session management
+initializeSocketIO(httpServer);
 
 // Middleware
 app.use((req, res, next) => {
@@ -71,6 +77,8 @@ app.use('/api/video', vdcipherRoutes);
 import commentRoutes from './routes/commentRoutes';
 app.use('/api/comments', commentRoutes);
 
-app.listen(PORT, () => {
+// Start HTTP server (with Socket.io attached)
+httpServer.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`Socket.io enabled for real-time session management`);
 });
