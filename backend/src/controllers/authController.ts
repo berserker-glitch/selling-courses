@@ -43,8 +43,8 @@ export const register = async (req: Request, res: Response) => {
             data: {
                 userId: user.id,
                 action: 'REGISTER',
-                ip: req.ip,
-                userAgent: req.headers['user-agent']
+                ip: req.ip || undefined,
+                userAgent: req.headers['user-agent'] as string | undefined
             }
         });
 
@@ -131,8 +131,8 @@ export const login = async (req: Request, res: Response) => {
             data: {
                 userId: user.id,
                 action: 'LOGIN',
-                ip: req.ip,
-                userAgent: req.headers['user-agent']
+                ip: req.ip || undefined,
+                userAgent: req.headers['user-agent'] as string | undefined
             }
         });
 
@@ -252,7 +252,7 @@ export const getUsers = async (req: Request, res: Response) => {
  */
 export const updateDeviceLimit = async (req: Request, res: Response) => {
     try {
-        const { userId } = req.params;
+        const userId = req.params.userId as string;
         const { maxDevices } = req.body;
 
         // Validate input - maxDevices must be between 1 and 10
@@ -260,6 +260,11 @@ export const updateDeviceLimit = async (req: Request, res: Response) => {
             return res.status(400).json({
                 message: 'maxDevices must be between 1 and 10'
             });
+        }
+
+        // Validate userId
+        if (!userId || typeof userId !== 'string') {
+            return res.status(400).json({ message: 'Invalid user ID' });
         }
 
         // Check if requesting user is TEACHER/ADMIN
@@ -272,38 +277,34 @@ export const updateDeviceLimit = async (req: Request, res: Response) => {
 
         // Verify target user exists and is a student
         const targetUser = await prisma.user.findUnique({ where: { id: userId } });
-        if (!targetUser) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        if (targetUser.role !== 'STUDENT') {
-            return res.status(400).json({ message: 'Device limits can only be set for students' });
-        }
+        return res.status(400).json({ message: 'Device limits can only be set for students' });
+    }
 
         // Update user's maxDevices
         const updatedUser = await prisma.user.update({
-            where: { id: userId },
-            data: { maxDevices },
-            select: { id: true, name: true, email: true, maxDevices: true }
-        });
+        where: { id: userId },
+        data: { maxDevices },
+        select: { id: true, name: true, email: true, maxDevices: true }
+    });
 
-        console.log(`[Auth] Device limit updated for ${updatedUser.email}: ${maxDevices} devices`);
+    console.log(`[Auth] Device limit updated for ${updatedUser.email}: ${maxDevices} devices`);
 
-        // Audit log
-        await prisma.auditLog.create({
-            data: {
-                userId: requestingUser.id,
-                action: 'UPDATE_DEVICE_LIMIT',
-                metadata: { targetUserId: userId, newLimit: maxDevices },
-                ip: req.ip || undefined,
-                userAgent: req.headers['user-agent'] as string | undefined
-            }
-        });
+    // Audit log
+    await prisma.auditLog.create({
+        data: {
+            userId: requestingUser.id,
+            action: 'UPDATE_DEVICE_LIMIT',
+            metadata: { targetUserId: userId, newLimit: maxDevices },
+            ip: req.ip || undefined,
+            userAgent: req.headers['user-agent'] as string | undefined
+        }
+    });
 
-        res.json(updatedUser);
-    } catch (error: any) {
-        console.error('[Auth] Error updating device limit:', error);
-        res.status(500).json({ message: error.message || 'Server error' });
-    }
+    res.json(updatedUser);
+} catch (error: any) {
+    console.error('[Auth] Error updating device limit:', error);
+    res.status(500).json({ message: error.message || 'Server error' });
+}
 };
 // --- Category Enrollment ---
 
