@@ -277,34 +277,38 @@ export const updateDeviceLimit = async (req: Request, res: Response) => {
 
         // Verify target user exists and is a student
         const targetUser = await prisma.user.findUnique({ where: { id: userId } });
-        return res.status(400).json({ message: 'Device limits can only be set for students' });
-    }
+        if (!targetUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (targetUser.role !== 'STUDENT') {
+            return res.status(400).json({ message: 'Device limits can only be set for students' });
+        }
 
         // Update user's maxDevices
         const updatedUser = await prisma.user.update({
-        where: { id: userId },
-        data: { maxDevices },
-        select: { id: true, name: true, email: true, maxDevices: true }
-    });
+            where: { id: userId },
+            data: { maxDevices },
+            select: { id: true, name: true, email: true, maxDevices: true }
+        });
 
-    console.log(`[Auth] Device limit updated for ${updatedUser.email}: ${maxDevices} devices`);
+        console.log(`[Auth] Device limit updated for ${updatedUser.email}: ${maxDevices} devices`);
 
-    // Audit log
-    await prisma.auditLog.create({
-        data: {
-            userId: requestingUser.id,
-            action: 'UPDATE_DEVICE_LIMIT',
-            metadata: { targetUserId: userId, newLimit: maxDevices },
-            ip: req.ip || undefined,
-            userAgent: req.headers['user-agent'] as string | undefined
-        }
-    });
+        // Audit log
+        await prisma.auditLog.create({
+            data: {
+                userId: requestingUser.id,
+                action: 'UPDATE_DEVICE_LIMIT',
+                metadata: { targetUserId: userId, newLimit: maxDevices },
+                ip: req.ip || undefined,
+                userAgent: req.headers['user-agent'] as string | undefined
+            }
+        });
 
-    res.json(updatedUser);
-} catch (error: any) {
-    console.error('[Auth] Error updating device limit:', error);
-    res.status(500).json({ message: error.message || 'Server error' });
-}
+        res.json(updatedUser);
+    } catch (error: any) {
+        console.error('[Auth] Error updating device limit:', error);
+        res.status(500).json({ message: error.message || 'Server error' });
+    }
 };
 // --- Category Enrollment ---
 
