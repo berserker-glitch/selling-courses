@@ -13,7 +13,8 @@ import {
   Plus,
   Mail,
   Calendar,
-  Trash2
+  Trash2,
+  Smartphone
 } from 'lucide-react';
 
 
@@ -26,7 +27,8 @@ interface StudentManagementProps {
   categories: Category[]; // New prop
   onAddStudent: (student: Omit<Student, 'id' | 'enrolledCourses' | 'progress'>) => void;
   onDeleteStudent: (studentId: string) => void;
-  onEnrollCategory: (studentId: string, categoryId: string) => void; // New prop
+  onEnrollCategory: (studentId: string, categoryId: string) => void;
+  onUpdateDeviceLimit: (studentId: string, maxDevices: number) => void; // New prop for device limit
 }
 
 export function StudentManagement({
@@ -35,7 +37,8 @@ export function StudentManagement({
   categories,
   onAddStudent,
   onDeleteStudent,
-  onEnrollCategory
+  onEnrollCategory,
+  onUpdateDeviceLimit
 }: StudentManagementProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -272,6 +275,44 @@ export function StudentManagement({
                       })}
                     </div>
                   )}
+                </div>
+
+                {/* Device Limit Setting */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-black uppercase text-foreground flex items-center gap-2">
+                    <Smartphone className="h-5 w-5" />
+                    Device Limit
+                  </h4>
+                  <div className="rounded-lg border bg-card p-5 shadow-sm">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1">
+                        <Label className="mb-2 block text-sm">Max Devices Allowed</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Limit how many devices this student can use simultaneously.
+                          If exceeded, all devices will be logged out.
+                        </p>
+                      </div>
+                      <Select
+                        value={String(selectedStudent.maxDevices || 1)}
+                        onValueChange={(val) => {
+                          onUpdateDeviceLimit(selectedStudent.id, Number(val));
+                          // Update local state for immediate UI feedback
+                          setSelectedStudent(prev => prev ? { ...prev, maxDevices: Number(val) } : null);
+                        }}
+                      >
+                        <SelectTrigger className="w-24">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <SelectItem key={n} value={String(n)}>
+                              {n} {n === 1 ? 'device' : 'devices'}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Category Enrollment */}

@@ -9,38 +9,40 @@ import StudentDashboard from "./pages/StudentDashboard";
 import CourseDetail from "./pages/CourseDetail";
 import TeacherCourseDetail from "./pages/TeacherCourseDetail";
 import NotFound from "./pages/NotFound";
-
-const queryClient = new QueryClient();
-
 import Profile from "./pages/Profile";
-
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import { SessionProvider } from "./context/SessionContext";
+
+const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <Toaster />
       <Sonner />
       {/* SecurityOverlay removed - relying on VDCipher DRM */}
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/teacher" element={<TeacherDashboardNew />} />
-          <Route path="/student" element={<StudentDashboard />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/course/:courseId" element={<CourseDetail />} />
-          <Route path="/teacher/course/:courseId" element={<TeacherCourseDetail />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        {/* SessionProvider handles Socket.io connection for real-time session management */}
+        <SessionProvider>
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/teacher" element={<TeacherDashboardNew />} />
+            <Route path="/student" element={<StudentDashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/course/:courseId" element={<CourseDetail />} />
+            <Route path="/teacher/course/:courseId" element={<TeacherCourseDetail />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </SessionProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
 
 export default App;
+

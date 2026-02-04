@@ -45,4 +45,6 @@ export interface Student {
     enrolledCategories?: string[]; // New
     progress: Record<string, number>;
     joinDate: string;
+    maxDevices?: number; // Maximum concurrent devices allowed (for device limit feature)
 }
+
