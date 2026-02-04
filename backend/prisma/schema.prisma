@@ -13,6 +13,7 @@ model User {
   password  String
   name      String
   role      Role     @default(STUDENT)
+  maxDevices Int     @default(1)  // Maximum concurrent sessions allowed for this user
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
