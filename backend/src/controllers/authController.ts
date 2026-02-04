@@ -424,3 +424,18 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 };
 
+// --- Session Heartbeat Validation ---
+
+/**
+ * Lightweight session validation endpoint for heartbeat checks.
+ * Returns 200 if session is valid, 401 if session has been invalidated.
+ * Used by frontend to detect force-logouts within seconds.
+ * 
+ * @route GET /api/auth/validate-session
+ */
+export const validateSession = async (req: Request, res: Response) => {
+    // The protect middleware already validates the session
+    // If we reach here, the session is valid
+    res.status(200).json({ valid: true });
+};
+

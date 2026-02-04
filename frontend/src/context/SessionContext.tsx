@@ -1,17 +1,22 @@
 /**
  * Session Context for real-time session management.
  * 
- * Connects to the Socket.io server and listens for force-logout events.
- * When device limit is exceeded, the server emits a 'force-logout' event
- * which triggers immediate logout on all connected devices.
+ * Provides two-layer session validation:
+ * 1. Socket.io - Listens for immediate 'force-logout' events when device limit exceeded
+ * 2. Heartbeat - Polls /api/auth/validate-session every 10 seconds as fallback
+ * 
+ * This ensures users are logged out within ~10 seconds even if WebSocket events are missed.
  * 
  * @module SessionContext
  */
 
-import { createContext, useContext, useEffect, useRef, ReactNode, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, ReactNode, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+
+/** Heartbeat interval in milliseconds (10 seconds) */
+const HEARTBEAT_INTERVAL_MS = 10000;
 
 /**
  * Shape of the session context value
@@ -42,6 +47,7 @@ interface SessionProviderProps {
  * Features:
  * - Automatically connects when user is authenticated (token exists)
  * - Listens for 'force-logout' events to handle device limit violations
+ * - Polls session validity every 10 seconds as fallback for missed WebSocket events
  * - Cleans up connection on unmount
  * 
  * @param {SessionProviderProps} props - Component props
@@ -49,9 +55,74 @@ interface SessionProviderProps {
  */
 export function SessionProvider({ children }: SessionProviderProps) {
     const socketRef = useRef<Socket | null>(null);
+    const heartbeatIntervalRef = useRef<number | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const navigate = useNavigate();
     const { toast } = useToast();
+
+    /**
+     * Handle logout - clears auth data and redirects to login.
+     * Called by both Socket.io force-logout and heartbeat validation failure.
+     */
+    const handleForceLogout = useCallback((reason: string) => {
+        console.log('[SessionContext] Processing force logout:', reason);
+
+        // Clear authentication data
+        localStorage.removeItem('token');
+        localStorage.removeItem('currentUser');
+
+        // Clear heartbeat interval
+        if (heartbeatIntervalRef.current) {
+            clearInterval(heartbeatIntervalRef.current);
+            heartbeatIntervalRef.current = null;
+        }
+
+        // Disconnect socket if connected
+        if (socketRef.current) {
+            socketRef.current.disconnect();
+            socketRef.current = null;
+        }
+
+        // Show notification to user
+        toast({
+            variant: 'destructive',
+            title: 'Session Ended',
+            description: reason || 'You have been logged out due to a security event.'
+        });
+
+        // Redirect to login page
+        navigate('/login');
+    }, [navigate, toast]);
+
+    /**
+     * Validate session via API call.
+     * Acts as fallback when Socket.io events are missed.
+     */
+    const validateSession = useCallback(async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.log('[SessionContext] Heartbeat: No token, skipping validation');
+            return;
+        }
+
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+            const response = await fetch(`${apiUrl}/auth/validate-session`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            // If session is invalid (401), force logout
+            if (response.status === 401) {
+                console.log('[SessionContext] Heartbeat: Session invalid, forcing logout');
+                handleForceLogout('Your session has expired or been invalidated. Please log in again.');
+            }
+        } catch (error) {
+            // Network error - don't logout, let the user retry
+            console.warn('[SessionContext] Heartbeat: Network error during validation', error);
+        }
+    }, [handleForceLogout]);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -95,37 +166,33 @@ export function SessionProvider({ children }: SessionProviderProps) {
         });
 
         /**
-         * Handle force-logout event from server.
+         * Handle force-logout event from server (immediate via WebSocket).
          * This is triggered when device limit is exceeded.
          */
         socket.on('force-logout', (data: { reason: string }) => {
-            console.log('[SessionContext] Force logout received:', data.reason);
-
-            // Clear authentication data
-            localStorage.removeItem('token');
-            localStorage.removeItem('currentUser');
-
-            // Show notification to user
-            toast({
-                variant: 'destructive',
-                title: 'Session Ended',
-                description: data.reason || 'You have been logged out due to a security event.'
-            });
-
-            // Disconnect socket
-            socket.disconnect();
-
-            // Redirect to login page
-            navigate('/login');
+            console.log('[SessionContext] Force logout received via Socket:', data.reason);
+            handleForceLogout(data.reason);
         });
+
+        /**
+         * Start heartbeat interval to periodically validate session.
+         * This catches cases where Socket.io events are missed (inactive tabs, connection drops).
+         */
+        console.log(`[SessionContext] Starting session heartbeat (every ${HEARTBEAT_INTERVAL_MS / 1000}s)`);
+        heartbeatIntervalRef.current = window.setInterval(validateSession, HEARTBEAT_INTERVAL_MS);
 
         // Cleanup on unmount
         return () => {
-            console.log('[SessionContext] Cleaning up socket connection');
+            console.log('[SessionContext] Cleaning up socket and heartbeat');
             socket.disconnect();
             socketRef.current = null;
+
+            if (heartbeatIntervalRef.current) {
+                clearInterval(heartbeatIntervalRef.current);
+                heartbeatIntervalRef.current = null;
+            }
         };
-    }, [navigate, toast]);
+    }, [navigate, toast, handleForceLogout, validateSession]);
 
     return (
         <SessionContext.Provider value={{ socket: socketRef.current, isConnected }}>
