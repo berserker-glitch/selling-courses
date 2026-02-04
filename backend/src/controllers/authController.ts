@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
+import { forceLogoutUser } from '../services/socketService';
 
 const prisma = new PrismaClient();
 
@@ -82,12 +83,34 @@ export const login = async (req: Request, res: Response) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        // Single Session Enforcement: Invalidating old sessions?
-        // User requested "1 session per device" -> "no student can have two devices on one acc"
-        // This implies STRICT single session per user account, regardless of device.
-        // So we delete ALL existing sessions for this user.
+        // Device Limit Enforcement for Students
+        // Check if new login would exceed the user's maxDevices limit
         if (user.role === 'STUDENT') {
-            await prisma.session.deleteMany({ where: { userId: user.id } });
+            const activeSessions = await prisma.session.count({ where: { userId: user.id } });
+
+            console.log(`[Auth] User ${email} has ${activeSessions} active session(s), maxDevices: ${user.maxDevices}`);
+
+            // If login would exceed limit, invalidate ALL sessions and force-logout connected devices
+            if (activeSessions >= user.maxDevices) {
+                console.log(`[Auth] Device limit exceeded for ${email} - force logging out all devices`);
+
+                // Force logout all connected devices via Socket.io (immediate client-side logout)
+                forceLogoutUser(user.id, 'Device limit exceeded. You have been logged out on all devices.');
+
+                // Delete all existing sessions from database
+                await prisma.session.deleteMany({ where: { userId: user.id } });
+
+                // Log the security event
+                await prisma.auditLog.create({
+                    data: {
+                        userId: user.id,
+                        action: 'DEVICE_LIMIT_EXCEEDED',
+                        metadata: { activeSessions, maxDevices: user.maxDevices },
+                        ip: req.ip || undefined,
+                        userAgent: req.headers['user-agent'] as string | undefined
+                    }
+                });
+            }
         }
 
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, { expiresIn: '7d' });
@@ -203,6 +226,7 @@ export const getUsers = async (req: Request, res: Response) => {
                 name: true,
                 email: true,
                 role: true,
+                maxDevices: true, // Include device limit in user list
                 createdAt: true,
                 enrolledCategories: {
                     select: { id: true }
@@ -213,6 +237,72 @@ export const getUsers = async (req: Request, res: Response) => {
         res.json(users);
     } catch (error: any) {
         res.status(500).json({ message: 'Error fetching users' });
+    }
+};
+
+// --- Device Limit Management ---
+
+/**
+ * Update the maximum devices allowed for a student.
+ * Only accessible by TEACHER or ADMIN roles.
+ * 
+ * @route PUT /api/auth/users/:userId/device-limit
+ * @param {string} userId - The ID of the user to update
+ * @param {number} maxDevices - The new device limit (1-10)
+ */
+export const updateDeviceLimit = async (req: Request, res: Response) => {
+    try {
+        const { userId } = req.params;
+        const { maxDevices } = req.body;
+
+        // Validate input - maxDevices must be between 1 and 10
+        if (!maxDevices || maxDevices < 1 || maxDevices > 10) {
+            return res.status(400).json({
+                message: 'maxDevices must be between 1 and 10'
+            });
+        }
+
+        // Check if requesting user is TEACHER/ADMIN
+        const requestingUser = (req as any).user;
+        if (!['TEACHER', 'ADMIN'].includes(requestingUser.role)) {
+            return res.status(403).json({
+                message: 'Only teachers can update device limits'
+            });
+        }
+
+        // Verify target user exists and is a student
+        const targetUser = await prisma.user.findUnique({ where: { id: userId } });
+        if (!targetUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (targetUser.role !== 'STUDENT') {
+            return res.status(400).json({ message: 'Device limits can only be set for students' });
+        }
+
+        // Update user's maxDevices
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: { maxDevices },
+            select: { id: true, name: true, email: true, maxDevices: true }
+        });
+
+        console.log(`[Auth] Device limit updated for ${updatedUser.email}: ${maxDevices} devices`);
+
+        // Audit log
+        await prisma.auditLog.create({
+            data: {
+                userId: requestingUser.id,
+                action: 'UPDATE_DEVICE_LIMIT',
+                metadata: { targetUserId: userId, newLimit: maxDevices },
+                ip: req.ip || undefined,
+                userAgent: req.headers['user-agent'] as string | undefined
+            }
+        });
+
+        res.json(updatedUser);
+    } catch (error: any) {
+        console.error('[Auth] Error updating device limit:', error);
+        res.status(500).json({ message: error.message || 'Server error' });
     }
 };
 // --- Category Enrollment ---
