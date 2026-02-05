@@ -437,3 +437,38 @@ export const validateSession = async (req: Request, res: Response) => {
     res.status(200).json({ valid: true });
 };
 
+/**
+ * Logout - Invalidate current session
+ * 
+ * Deletes the session from the database so the token can no longer be used.
+ * Should be called when user intentionally logs out.
+ * 
+ * @route POST /api/auth/logout
+ */
+export const logout = async (req: Request, res: Response) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(401).json({ message: 'No token provided' });
+        }
+
+        const token = authHeader.split(' ')[1];
+
+        // Delete the session from database
+        const deleted = await prisma.session.deleteMany({
+            where: { token }
+        });
+
+        if (deleted.count === 0) {
+            // Session already invalidated or never existed
+            return res.status(200).json({ message: 'Session already invalid' });
+        }
+
+        console.log(`[Auth] User logged out successfully`);
+        res.status(200).json({ message: 'Logged out successfully' });
+    } catch (error) {
+        console.error('[Auth] Logout error:', error);
+        res.status(500).json({ message: 'Logout failed' });
+    }
+};
+
