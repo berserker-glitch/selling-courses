@@ -37,13 +37,9 @@ app.use(cors({
         if (!origin) return callback(null, true);
 
         if (allowedOrigins.indexOf(origin) === -1) {
-            // Optional: Allow all for dev for now to unblock? 
-            // callback(null, true); 
-            // Let's stick to safe list but log it
-            console.log('Blocked by CORS:', origin);
-            // return callback(new Error('Not allowed by CORS'));
-            // Actually, let's effectively allow it for debugging if it fails
-            return callback(null, true);
+            // SECURITY: Reject unauthorized origins to prevent CSRF
+            console.warn('[CORS] Blocked request from unauthorized origin:', origin);
+            return callback(new Error('Not allowed by CORS'), false);
         }
         return callback(null, true);
     },

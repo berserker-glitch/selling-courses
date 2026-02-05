@@ -25,9 +25,19 @@ let io: SocketIOServer | null = null;
 export function initializeSocketIO(httpServer: HTTPServer): SocketIOServer {
     console.log('[SocketService] Initializing Socket.io server...');
 
+    // SECURITY: Restrict CORS to same origins allowed by REST API
+    const allowedOrigins = [
+        process.env.FRONTEND_URL || 'http://localhost:5173',
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:8080',
+        'http://192.168.1.102:8080',
+        'http://192.168.1.102:5173'
+    ];
+
     io = new SocketIOServer(httpServer, {
         cors: {
-            origin: '*',
+            origin: allowedOrigins,
             credentials: true
         }
     });
