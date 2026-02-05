@@ -22,6 +22,7 @@ import { Course, Lesson } from '@/types';
 import { VDCipherPlayer } from '@/components/VDCipherPlayer';
 import api from '@/lib/api';
 import { cn } from '@/lib/utils';
+import DOMPurify from 'dompurify';
 
 /**
  * Part/Section interface for grouping lessons
