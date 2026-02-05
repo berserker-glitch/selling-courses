@@ -16,8 +16,11 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import api from '@/lib/api';
 
-/** Heartbeat interval in milliseconds (10 seconds) */
-const HEARTBEAT_INTERVAL_MS = 10000;
+/** 
+ * Heartbeat interval in milliseconds (30 seconds)
+ * Increased from 10s to reduce API load while still catching invalid sessions promptly
+ */
+const HEARTBEAT_INTERVAL_MS = 30000;
 
 /**
  * Shape of the session context value
