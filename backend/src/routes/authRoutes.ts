@@ -1,14 +1,32 @@
 import express from 'express';
-import { register, login, getMe, createStudent, getUsers, enrollStudentInCategory, forgotPassword, resetPassword, updateDeviceLimit, validateSession } from '../controllers/authController';
+import rateLimit from 'express-rate-limit';
+import { register, login, logout, getMe, createStudent, getUsers, enrollStudentInCategory, forgotPassword, resetPassword, updateDeviceLimit, validateSession } from '../controllers/authController';
 import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-router.post('/register', register);
-router.post('/login', login);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+/**
+ * Rate limiter for auth endpoints
+ * Prevents brute-force attacks on login/register/forgot-password
+ * Allows 10 requests per 15 minutes per IP
+ */
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Limit each IP to 10 requests per window
+    message: { message: 'Too many attempts, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// Public auth routes with rate limiting
+router.post('/register', authLimiter, register);
+router.post('/login', authLimiter, login);
+router.post('/forgot-password', authLimiter, forgotPassword);
+router.post('/reset-password', authLimiter, resetPassword);
+
+// Protected routes
 router.get('/me', protect, getMe);
+router.post('/logout', protect, logout);
 router.get('/validate-session', protect, validateSession); // Heartbeat endpoint for real-time session validation
 router.post('/create-student', protect, createStudent);
 router.get('/users', protect, getUsers);
