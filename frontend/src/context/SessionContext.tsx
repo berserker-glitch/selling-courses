@@ -14,6 +14,7 @@ import { createContext, useContext, useEffect, useRef, ReactNode, useState, useC
 import { io, Socket } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import api from '@/lib/api';
 
 /** Heartbeat interval in milliseconds (10 seconds) */
 const HEARTBEAT_INTERVAL_MS = 10000;
@@ -61,11 +62,24 @@ export function SessionProvider({ children }: SessionProviderProps) {
     const { toast } = useToast();
 
     /**
-     * Handle logout - clears auth data and redirects to login.
+     * Handle logout - calls backend logout API, clears auth data and redirects to login.
      * Called by both Socket.io force-logout and heartbeat validation failure.
+     * 
+     * @param reason - Reason for logout (displayed to user)
+     * @param callApi - Whether to call the logout API (false for force-logout from server)
      */
-    const handleForceLogout = useCallback((reason: string) => {
+    const handleForceLogout = useCallback(async (reason: string, callApi: boolean = false) => {
         console.log('[SessionContext] Processing force logout:', reason);
+
+        // Call logout API to invalidate session server-side (skip if already forced by server)
+        if (callApi) {
+            try {
+                await api.post('/auth/logout');
+            } catch (error) {
+                // Ignore errors - we're logging out anyway
+                console.log('[SessionContext] Logout API call failed, continuing with local cleanup');
+            }
+        }
 
         // Clear authentication data
         localStorage.removeItem('token');
