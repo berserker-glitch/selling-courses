@@ -1,9 +1,7 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { logAudit } from '../services/auditService';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
 
 const progressSchema = z.object({
     completed: z.boolean().optional(),

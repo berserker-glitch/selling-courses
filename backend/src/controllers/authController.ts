@@ -1,11 +1,9 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { forceLogoutUser } from '../services/socketService';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
 
 const registerSchema = z.object({
     name: z.string().min(2),

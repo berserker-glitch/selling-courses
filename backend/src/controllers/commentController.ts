@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
 
 const createCommentSchema = z.object({
     content: z.string().min(1, "Comment cannot be empty"),
