@@ -170,7 +170,7 @@ export const createStudent = async (req: Request, res: Response) => {
 
         // Generate Random Password
         const password = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
-        console.log(`Debug - Generated Password for ${email}: ${password}`);
+        // NOTE: Password intentionally not logged for security reasons
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -188,11 +188,11 @@ export const createStudent = async (req: Request, res: Response) => {
         const emailSent = await sendStudentCredentials(email, name, password);
 
         if (!emailSent) {
-            // Optional: Rollback user creation or just warn?
-            // For now, warn but return success with message
+            // Email failed - instruct teacher to trigger password reset instead
+            // SECURITY: Never return passwords in API responses
             return res.status(201).json({
-                message: 'Student created but email failed to send. Please send credentials manually.',
-                student: { id: student.id, email: student.email, password }
+                message: 'Student created but email failed to send. Please ask the student to use the "Forgot Password" feature.',
+                student: { id: student.id, email: student.email }
             });
         }
 

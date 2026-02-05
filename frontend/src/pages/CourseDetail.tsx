@@ -325,10 +325,10 @@ export default function CourseDetail() {
                         </div>
                     </div>
 
-                    {/* Lesson Description - Rendered HTML */}
+                    {/* Lesson Description - Rendered HTML (sanitized for XSS protection) */}
                     {activeLesson.description && (
                         <div className="prose prose-slate dark:prose-invert max-w-none">
-                            <div dangerouslySetInnerHTML={{ __html: activeLesson.description }} />
+                            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(activeLesson.description) }} />
                         </div>
                     )}
 
