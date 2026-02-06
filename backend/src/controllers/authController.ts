@@ -356,6 +356,64 @@ export const updateDeviceLimit = async (req: Request, res: Response) => {
         res.status(500).json({ message: error.message || 'Server error' });
     }
 };
+
+/**
+ * Unbind a student's device, allowing them to login from a new device.
+ * Only accessible by TEACHER or ADMIN roles.
+ * 
+ * @route POST /api/auth/users/:userId/unbind-device
+ */
+export const unbindDevice = async (req: Request, res: Response) => {
+    try {
+        const userId = req.params.userId as string;
+
+        // Check if requesting user is TEACHER/ADMIN
+        const requestingUser = (req as any).user;
+        if (!['TEACHER', 'ADMIN'].includes(requestingUser.role)) {
+            return res.status(403).json({
+                message: 'Only teachers can unbind devices'
+            });
+        }
+
+        // Verify target user exists and is a student
+        const targetUser = await prisma.user.findUnique({ where: { id: userId } });
+        if (!targetUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (targetUser.role !== 'STUDENT') {
+            return res.status(400).json({ message: 'Device binding only applies to students' });
+        }
+
+        // Clear boundDeviceId
+        await prisma.user.update({
+            where: { id: userId },
+            data: { boundDeviceId: null }
+        });
+
+        // Force logout user from all devices to ensure they re-bind on next login
+        await prisma.session.deleteMany({ where: { userId: userId } });
+        forceLogoutUser(userId, 'Your device binding has been reset by an administrator. Please log in again to bind your new device.');
+
+        console.log(`[Auth] Device unbound for ${targetUser.email} by ${requestingUser.email}`);
+
+        // Audit log
+        await prisma.auditLog.create({
+            data: {
+                userId: requestingUser.id,
+                action: 'UNBIND_DEVICE',
+                metadata: { targetUserId: userId },
+                ip: req.ip || undefined,
+                userAgent: req.headers['user-agent'] as string | undefined
+            }
+        });
+
+        res.json({ message: 'Device unbound successfully' });
+    } catch (error: any) {
+        console.error('[Auth] Error unbinding device:', error);
+        res.status(500).json({ message: error.message || 'Server error' });
+    }
+};
+
 // --- Category Enrollment ---
 
 export const enrollStudentInCategory = async (req: Request, res: Response) => {

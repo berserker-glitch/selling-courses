@@ -30,7 +30,8 @@ router.post('/logout', protect, logout);
 router.get('/validate-session', protect, validateSession); // Heartbeat endpoint for real-time session validation
 router.post('/create-student', protect, createStudent);
 router.get('/users', protect, getUsers);
-router.put('/users/:id', protect, updateStudent); // Update student details
+router.put('/users/:id', protect, updateStudent);
+router.post('/users/:userId/unbind-device', protect, unbindDevice); // New route // Update student details
 router.post('/enroll-category', protect, enrollStudentInCategory);
 router.put('/users/:userId/device-limit', protect, updateDeviceLimit); // Teacher sets student device limit
 
