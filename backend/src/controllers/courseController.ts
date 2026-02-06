@@ -247,16 +247,6 @@ export const updateCourse = async (req: Request, res: Response) => {
 
 // --- Lesson Handlers ---
 
-const lessonSchema = z.object({
-    title: z.string().min(3),
-    description: z.string().optional(),
-    videoId: z.string().optional(),
-    duration: z.string().optional(), // Make optional or string
-    chapterId: z.string().optional()
-});
-
-// ...
-
 export const addLesson = async (req: Request, res: Response) => {
     try {
         const { courseId } = req.params as { courseId: string };
