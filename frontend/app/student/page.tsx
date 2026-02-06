@@ -4,23 +4,23 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
     IconBook,
     IconLoader2,
-    IconLogout,
-    IconPlayerPlay,
-    IconUser
+    IconUser,
+    IconSearch,
+    IconPlayerPlay
 } from "@tabler/icons-react";
+import { Input } from "@/components/ui/input";
 
 interface Course {
     id: string;
@@ -34,30 +34,30 @@ interface Course {
         lessons: number;
         enrollments: number;
     };
-    progress?: number; // Backend might return this if enrolled, need to check
+    progress?: number;
 }
 
 interface User {
     name: string;
-    email: string;
 }
 
 export default function StudentDashboard() {
     const router = useRouter();
     const [courses, setCourses] = useState<Course[]>([]);
+    const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch User
                 const userData = await api.get("/auth/me");
                 setUser(userData);
 
-                // Fetch Courses (filtered by category on backend)
                 const coursesData = await api.get("/courses");
                 setCourses(coursesData);
+                setFilteredCourses(coursesData);
             } catch (error) {
                 console.error("Failed to load dashboard", error);
             } finally {
@@ -68,126 +68,103 @@ export default function StudentDashboard() {
         fetchData();
     }, []);
 
-    const handleLogout = async () => {
-        try {
-            await api.post("/auth/logout", {});
-        } catch (e) {
-            console.error(e);
-        } finally {
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            router.push("/login");
-        }
+    useEffect(() => {
+        const lowerQuery = searchQuery.toLowerCase();
+        const filtered = courses.filter(course =>
+            course.title.toLowerCase().includes(lowerQuery) ||
+            course.category.name.toLowerCase().includes(lowerQuery)
+        );
+        setFilteredCourses(filtered);
+    }, [searchQuery, courses]);
+
+    // Simple robust strip HTML for descriptions
+    const stripHtml = (html: string) => {
+        if (!html) return "";
+        return html.replace(/<[^>]*>?/gm, ''); // Basic strip
     };
 
     if (loading) {
         return (
-            <div className="h-screen w-full flex items-center justify-center">
-                <IconLoader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="h-full flex flex-col items-center justify-center p-20">
+                <IconLoader2 className="w-8 h-8 animate-spin text-primary mb-2" />
+                <p className="text-muted-foreground">Loading courses...</p>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-muted/20">
-            {/* Header */}
-            <header className="bg-background border-b px-6 py-4 sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-2 font-bold text-xl">
-                        <div className="bg-primary/10 p-2 rounded-lg text-primary">
-                            <IconBook className="w-6 h-6" />
-                        </div>
-                        <span>Student Portal</span>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full">
-                            <IconUser className="w-4 h-4" />
-                            <span>{user?.name}</span>
-                        </div>
-                        <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-destructive">
-                            <IconLogout className="w-4 h-4 mr-2" />
-                            Sign Out
-                        </Button>
-                    </div>
-                </div>
-            </header>
-
-            {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-6 py-8">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold tracking-tight mb-2">My Courses</h1>
-                    <p className="text-muted-foreground">
-                        Access your enrolled learning materials and track your progress.
+        <div className="p-8 space-y-8">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">My Courses</h1>
+                    <p className="text-muted-foreground mt-1 max-w-lg">
+                        Welcome back, {user?.name}. Track your progress and continue learning.
                     </p>
                 </div>
 
-                {courses.length === 0 ? (
-                    <div className="text-center py-20 bg-background border rounded-xl shadow-sm">
-                        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                            <IconBook className="w-8 h-8 text-muted-foreground" />
-                        </div>
-                        <h3 className="text-lg font-semibold">No courses available</h3>
-                        <p className="text-muted-foreground max-w-sm mx-auto mt-2">
-                            You don't have access to any courses yet. Please contact your instructor.
-                        </p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {courses.map((course) => (
-                            <Card key={course.id} className="group hover:shadow-lg transition-all duration-300 overflow-hidden border-muted">
-                                <div className="aspect-video w-full bg-muted relative overflow-hidden">
-                                    {/* Thumbnail or Placeholder */}
-                                    {course.thumbnail ? (
-                                        <img
-                                            src={course.thumbnail}
-                                            alt={course.title}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-primary/5 text-primary/40">
-                                            <IconBook className="w-12 h-12" />
-                                        </div>
-                                    )}
+                {/* Search */}
+                <div className="relative w-full md:w-72">
+                    <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search courses..."
+                        className="pl-9 bg-background focus:ring-primary/20"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+            </div>
 
-                                    {/* Overlay Badge */}
-                                    <div className="absolute top-3 right-3">
-                                        <Badge variant="secondary" className="bg-background/90 backdrop-blur shadow-sm">
+            {/* Courses Table */}
+            <div className="border rounded-xl bg-card shadow-sm overflow-hidden">
+                <Table>
+                    <TableHeader className="bg-muted/30">
+                        <TableRow className="hover:bg-transparent border-b-primary/10">
+                            <TableHead className="w-[60%] pl-6 py-4 font-semibold text-foreground">Course Details</TableHead>
+                            <TableHead className="py-4 font-semibold text-foreground">Category</TableHead>
+                            <TableHead className="text-center py-4 font-semibold text-foreground">Lessons</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {filteredCourses.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={3} className="h-32 text-center text-muted-foreground">
+                                    No courses found matching your search.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            filteredCourses.map((course) => (
+                                <TableRow
+                                    key={course.id}
+                                    className="group cursor-pointer hover:bg-muted/30 transition-colors border-b-muted/50 last:border-0"
+                                    onClick={() => router.push(`/courses/${course.id}`)}
+                                >
+                                    <TableCell className="pl-6 py-4">
+                                        <div>
+                                            <div className="font-semibold text-foreground group-hover:text-primary transition-colors text-base">
+                                                {course.title}
+                                            </div>
+                                            <div className="text-sm text-muted-foreground line-clamp-1 max-w-2xl text-ellipsis mt-0.5">
+                                                {stripHtml(course.description).substring(0, 100)}...
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant="secondary" className="font-normal text-muted-foreground bg-muted/50 border-0 group-hover:bg-background transition-colors">
                                             {course.category?.name}
                                         </Badge>
-                                    </div>
-                                </div>
-
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors">
-                                        {course.title}
-                                    </CardTitle>
-                                    <CardDescription className="line-clamp-2">
-                                        {course.description}
-                                    </CardDescription>
-                                </CardHeader>
-
-                                <CardContent className="pb-3">
-                                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                                        <div className="flex items-center gap-1">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                                            <span>{course._count.lessons} Lessons</span>
-                                        </div>
-                                        <span>{course.teacher?.name}</span>
-                                    </div>
-                                </CardContent>
-
-                                <CardFooter>
-                                    <Button className="w-full gap-2 group-hover:bg-primary group-hover:text-primary-foreground" variant="secondary" onClick={() => router.push(`/courses/${course.id}`)}>
-                                        <IconPlayerPlay className="w-4 h-4" />
-                                        Continue Learning
-                                    </Button>
-                                </CardFooter>
-                            </Card>
-                        ))}
-                    </div>
-                )}
-            </main>
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                        <Badge variant="outline" className="font-mono font-normal border-muted-foreground/20">
+                                            {course._count.lessons}
+                                        </Badge>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
         </div>
     );
 }
