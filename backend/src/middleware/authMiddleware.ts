@@ -23,7 +23,13 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
         // Check if session exists and is valid
         const session = await prisma.session.findUnique({
             where: { token },
-            include: { user: true }
+            include: {
+                user: {
+                    include: {
+                        enrolledCategories: true
+                    }
+                }
+            }
         });
 
         if (!session) {
