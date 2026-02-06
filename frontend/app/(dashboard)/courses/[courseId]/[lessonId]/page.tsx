@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { Header } from "@/components/dashboard/Header";
 import { CourseBreadcrumb } from "@/components/dashboard/CourseBreadcrumb";
-import { CourseBreadcrumb } from "@/components/dashboard/CourseBreadcrumb";
 import {
     DndContext,
     closestCenter,
