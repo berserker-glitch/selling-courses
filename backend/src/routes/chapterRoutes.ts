@@ -9,9 +9,9 @@ import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-router.post('/:courseId/chapters', protect, createChapter);
+router.post('/courses/:courseId/chapters', protect, createChapter);
 router.put('/chapters/:chapterId', protect, updateChapter);
 router.delete('/chapters/:chapterId', protect, deleteChapter);
-router.put('/:courseId/chapters/reorder', protect, reorderChapters);
+router.put('/courses/:courseId/chapters/reorder', protect, reorderChapters);
 
 export default router;

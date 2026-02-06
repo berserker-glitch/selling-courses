@@ -1,5 +1,6 @@
 import { Header } from "@/components/dashboard/Header";
 import { CourseCreationModal } from "@/components/dashboard/CourseCreationModal";
+import { CourseList } from "@/components/dashboard/CourseList";
 
 export default function CoursesPage() {
     return (
@@ -14,10 +15,7 @@ export default function CoursesPage() {
                     <CourseCreationModal />
                 </div>
 
-                {/* Course list will go here later, or fetched via client component */}
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {/* Placeholder for list */}
-                </div>
+                <CourseList />
             </div>
         </>
     );
