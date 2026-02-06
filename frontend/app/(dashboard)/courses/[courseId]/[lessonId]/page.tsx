@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { Header } from "@/components/dashboard/Header";
 import { CourseBreadcrumb } from "@/components/dashboard/CourseBreadcrumb";
+import { CurriculumSidebar } from "@/components/dashboard/CurriculumSidebar";
 import {
     DndContext,
     closestCenter,
@@ -46,40 +47,22 @@ interface ContentBlock {
 export default function LessonEditorPage() {
     const { courseId, lessonId } = useParams();
     const router = useRouter();
-    const [lesson, setLesson] = useState<any>(null);
-    const [blocks, setBlocks] = useState<ContentBlock[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [course, setCourse] = useState<any>(null);
 
-    const sensors = useSensors(
-        useSensor(PointerSensor),
-        useSensor(KeyboardSensor, {
-            coordinateGetter: sortableKeyboardCoordinates,
-        })
-    );
+    // ... (keep sensors)
 
     useEffect(() => {
-        if (lessonId) {
-            fetchLesson();
+        if (courseId) {
+            fetchData();
         }
-    }, [lessonId]);
+    }, [courseId, lessonId]);
 
-    const fetchLesson = async () => {
+    const fetchData = async () => {
         try {
-            // Need endpoint to get lesson with blocks. Assuming /api/lessons/:id or similar
-            // Wait, we didn't update getLesson to include blocks in controller? 
-            // Actually existing getCourse includes lessons but not blocks details? 
-            // We need to fetch lesson details.
-            // I should have created `lessonController.ts` or `getLesson` endpoint?
-            // The plan said "Create/Update Lesson Routes". I might have missed creating `getLessonById`.
-            // Existing `courseController` doesn't strictly export `getLesson`.
-            // I'll assume I can add it or fetch via course? Fetching full course is heavy.
-            // I'll fetch course for now and find the lesson, assuming blocks are included if I updated controller.
-            // But I only updated `getCourse` to include blocks? No, I updated `getCourse` to include chapters->lessons->blocks? 
-            // In step 46, I updated `getCourseById` to include `contentBlocks`.
-            // So I can get it from there. Ideally specific endpoint is better.
-
             const courseData = await api.get(`/courses/${courseId}`);
-            // Find lesson in chapters or direct
+            setCourse(courseData);
+
+            // Find lesson
             let foundLesson = null;
             if (courseData.chapters) {
                 for (const ch of courseData.chapters) {
@@ -102,115 +85,85 @@ export default function LessonEditorPage() {
         }
     };
 
-    const handleDragEnd = async (event: DragEndEvent) => {
-        const { active, over } = event;
-
-        if (over && active.id !== over.id) {
-            setBlocks((items) => {
-                const oldIndex = items.findIndex((i) => i.id === active.id);
-                const newIndex = items.findIndex((i) => i.id === over.id);
-                const newItems = arrayMove(items, oldIndex, newIndex);
-
-                // Save order
-                const updates = newItems.map((item, index) => ({ id: item.id, order: index }));
-                api.put(`/lessons/${lessonId}/blocks/reorder`, { blocks: updates }).catch(console.error);
-
-                return newItems;
-            });
-        }
-    };
-
-    const addBlock = async (type: ContentBlock['type']) => {
-        try {
-            const newBlock = await api.post(`/lessons/${lessonId}/blocks`, {
-                type,
-                title: type === 'TEXT' ? 'Text Content' : `New ${type}`,
-                content: {}
-            });
-            setBlocks([...blocks, newBlock]);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const updateBlock = async (id: string, data: Partial<ContentBlock>) => {
-        // Optimistic update
-        setBlocks(blocks.map(b => b.id === id ? { ...b, ...data } : b));
-        try {
-            await api.put(`/blocks/${id}`, data);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const deleteBlock = async (id: string) => {
-        if (!confirm("Are you sure?")) return;
-        try {
-            await api.delete(`/blocks/${id}`);
-            setBlocks(blocks.filter(b => b.id !== id));
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    // ... (keep handlers: handleDragEnd, addBlock, etc.)
 
     if (loading) return <div>Loading...</div>;
-    if (!lesson) return <div>Lesson not found</div>;
+    // if (!lesson) return <div>Lesson not found</div>; // Allow render if course loads but lesson is switching
 
     return (
-        <div className="min-h-screen flex flex-col bg-background">
+        <div className="flex h-screen flex-col">
             <Header />
-            <div className="container mx-auto p-8 max-w-4xl">
-                <CourseBreadcrumb
-                    items={[
-                        { label: lesson?.course?.title || "Course", href: `/courses/${courseId}` },
-                        { label: lesson?.title || "Loading..." }
-                    ]}
+            <div className="flex flex-1 overflow-hidden">
+                {/* Main Content - Lesson Editor */}
+                <main className="flex-1 overflow-y-auto p-8 border-r bg-background">
+                    <div className="max-w-4xl mx-auto">
+                        <CourseBreadcrumb
+                            items={[
+                                { label: course?.title || "Course", href: `/courses/${courseId}` },
+                                { label: lesson?.title || "Loading..." }
+                            ]}
+                        />
+
+                        {lesson ? (
+                            <>
+                                <div className="flex justify-between items-center mb-8">
+                                    <div>
+                                        <h1 className="text-3xl font-bold">{lesson.title}</h1>
+                                    </div>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button><Plus className="mr-2 h-4 w-4" /> Add Content</Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuItem onClick={() => addBlock('TEXT')}><Type className="mr-2 h-4 w-4" /> Text</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => addBlock('VIDEO')}><Video className="mr-2 h-4 w-4" /> Video</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => addBlock('QUIZ')}><HelpCircle className="mr-2 h-4 w-4" /> Quiz</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => addBlock('DOCUMENT')}><FileText className="mr-2 h-4 w-4" /> Document</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+
+                                <DndContext
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={handleDragEnd}
+                                >
+                                    <SortableContext
+                                        items={blocks.map(b => b.id)}
+                                        strategy={verticalListSortingStrategy}
+                                    >
+                                        <div className="space-y-4">
+                                            {blocks.map((block) => (
+                                                <SortableBlock
+                                                    key={block.id}
+                                                    block={block}
+                                                    onUpdate={updateBlock}
+                                                    onDelete={deleteBlock}
+                                                />
+                                            ))}
+                                        </div>
+                                    </SortableContext>
+                                </DndContext>
+
+                                {blocks.length === 0 && (
+                                    <div className="text-center py-12 border-2 border-dashed rounded-lg text-muted-foreground">
+                                        No content yet. Click "Add Content" to start.
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div>Lesson not found</div>
+                        )}
+                    </div>
+                </main>
+
+                {/* Sidebar */}
+                <CurriculumSidebar
+                    courseId={courseId as string}
+                    course={course}
+                    onRefresh={fetchData}
+                    currentLessonId={lessonId as string}
                 />
-
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold">{lesson.title}</h1>
-                    </div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button><Plus className="mr-2 h-4 w-4" /> Add Content</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => addBlock('TEXT')}><Type className="mr-2 h-4 w-4" /> Text</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => addBlock('VIDEO')}><Video className="mr-2 h-4 w-4" /> Video</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => addBlock('QUIZ')}><HelpCircle className="mr-2 h-4 w-4" /> Quiz</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => addBlock('DOCUMENT')}><FileText className="mr-2 h-4 w-4" /> Document</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-
-                <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                >
-                    <SortableContext
-                        items={blocks.map(b => b.id)}
-                        strategy={verticalListSortingStrategy}
-                    >
-                        <div className="space-y-4">
-                            {blocks.map((block) => (
-                                <SortableBlock
-                                    key={block.id}
-                                    block={block}
-                                    onUpdate={updateBlock}
-                                    onDelete={deleteBlock}
-                                />
-                            ))}
-                        </div>
-                    </SortableContext>
-                </DndContext>
-
-                {blocks.length === 0 && (
-                    <div className="text-center py-12 border-2 border-dashed rounded-lg text-muted-foreground">
-                        No content yet. Click "Add Content" to start.
-                    </div>
-                )}
             </div>
         </div>
     );
