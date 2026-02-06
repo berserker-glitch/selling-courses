@@ -6,7 +6,6 @@ import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area"; // Wait, scroll-area might not exist, checked list_dir earlier
 import { Send, Loader2 } from "lucide-react";
 
 // Check if ScrollArea exist in components/ui, from list_dir it wasn't there
@@ -16,6 +15,7 @@ interface Message {
     id: string;
     text: string;
     senderId: string;
+    conversationId: string;
     createdAt: string;
     sender: {
         id: string;
@@ -62,7 +62,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId, currentUserId, 
 
             // Listen for new messages
             socket.on("new-message", (message: Message) => {
+                console.log("[ChatWindow] Received new-message:", message);
                 setMessages((prev) => [...prev, message]);
+
+                // Custom event to notify the parent list that a message arrived
+                // (This is simple way to communicate between siblings in this context)
+                window.dispatchEvent(new CustomEvent('update-last-message', {
+                    detail: { conversationId: message.conversationId, text: message.text }
+                }));
             });
 
             // Listen for typing status
@@ -92,6 +99,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId, currentUserId, 
         if (!newMessage.trim() || isSending) return;
 
         // Send via socket
+        console.log("[ChatWindow] Emitting send-message:", { conversationId, text: newMessage });
         socket.emit("send-message", {
             conversationId,
             text: newMessage,
@@ -136,8 +144,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId, currentUserId, 
                         >
                             <div
                                 className={`max-w-[70%] p-3 rounded-2xl ${isMe
-                                        ? "bg-emerald-600 text-white rounded-br-none"
-                                        : "bg-muted text-foreground rounded-bl-none"
+                                    ? "bg-emerald-600 text-white rounded-br-none"
+                                    : "bg-muted text-foreground rounded-bl-none"
                                     }`}
                             >
                                 {!isMe && (

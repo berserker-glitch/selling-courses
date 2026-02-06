@@ -94,7 +94,14 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketIOServer {
                             }
                         });
 
+                        // Update conversation timestamp
+                        await prisma.conversation.update({
+                            where: { id: conversationId },
+                            data: { updatedAt: new Date() }
+                        });
+
                         // Broadcast to everyone in the room (including sender)
+                        console.log(`[SocketService] Broadcasting new message in room ${conversationId} from user ${userId}`);
                         io?.to(conversationId).emit('new-message', message);
                     } catch (error) {
                         console.error('[SocketService] Error sending message via socket:', error);
@@ -104,6 +111,7 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketIOServer {
 
                 // Messaging: Handle typing status
                 socket.on('typing', (data: { conversationId: string; typing: boolean }) => {
+                    console.log(`[SocketService] User ${userId} typing status in room ${data.conversationId}: ${data.typing}`);
                     socket.to(data.conversationId).emit('user-typing', {
                         userId,
                         typing: data.typing

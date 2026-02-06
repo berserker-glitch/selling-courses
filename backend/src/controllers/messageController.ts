@@ -8,34 +8,70 @@ import { getIO } from '../services/socketService';
 export const getConversations = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user.id;
+        const userRole = (req as any).user.role;
 
-        const participants = await prisma.participant.findMany({
-            where: { userId },
-            include: {
-                conversation: {
-                    include: {
-                        participants: {
-                            include: {
-                                user: {
-                                    select: {
-                                        id: true,
-                                        name: true,
-                                        email: true,
-                                        role: true
-                                    }
+        let conversations;
+
+        if (userRole === 'ADMIN' || userRole === 'TEACHER') {
+            // Staff see all conversations that involve at least one student
+            conversations = await prisma.conversation.findMany({
+                where: {
+                    participants: {
+                        some: {
+                            user: { role: 'STUDENT' }
+                        }
+                    }
+                },
+                include: {
+                    participants: {
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                    role: true
                                 }
                             }
-                        },
-                        messages: {
-                            orderBy: { createdAt: 'desc' },
-                            take: 1
+                        }
+                    },
+                    messages: {
+                        orderBy: { createdAt: 'desc' },
+                        take: 1
+                    }
+                },
+                orderBy: { updatedAt: 'desc' }
+            });
+        } else {
+            // Students only see conversations they are part of
+            const participants = await prisma.participant.findMany({
+                where: { userId },
+                include: {
+                    conversation: {
+                        include: {
+                            participants: {
+                                include: {
+                                    user: {
+                                        select: {
+                                            id: true,
+                                            name: true,
+                                            email: true,
+                                            role: true
+                                        }
+                                    }
+                                }
+                            },
+                            messages: {
+                                orderBy: { createdAt: 'desc' },
+                                take: 1
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+            conversations = participants.map(p => p.conversation);
+        }
 
-        const conversations = participants.map(p => p.conversation);
         res.json(conversations);
     } catch (error: any) {
         console.error('[MessageController] getConversations error:', error);
@@ -97,6 +133,8 @@ export const startConversationWithAdmin = async (req: Request, res: Response) =>
         if (!staff) {
             return res.status(404).json({ message: 'No support staff available at the moment' });
         }
+
+        console.log(`[MessageController] Student ${studentId} initiated contact with Staff ${staff.email} (${staff.role})`);
 
         // Check for existing 1:1 conversation between these specific users
         // This is a simplified check

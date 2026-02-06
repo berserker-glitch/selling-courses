@@ -34,18 +34,43 @@ const ConversationList: React.FC<ConversationListProps> = ({
     onSelectConversation,
     currentUserId,
 }) => {
+    const [localConversations, setLocalConversations] = React.useState(conversations);
+
+    React.useEffect(() => {
+        setLocalConversations(conversations);
+    }, [conversations]);
+
+    React.useEffect(() => {
+        const handleUpdate = (e: any) => {
+            const { conversationId, text } = e.detail;
+            setLocalConversations(prev => prev.map(conv => {
+                if (conv.id === conversationId) {
+                    return {
+                        ...conv,
+                        messages: [{ text, createdAt: new Date().toISOString() }],
+                        updatedAt: new Date().toISOString()
+                    };
+                }
+                return conv;
+            }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()));
+        };
+
+        window.addEventListener('update-last-message', handleUpdate);
+        return () => window.removeEventListener('update-last-message', handleUpdate);
+    }, []);
+
     return (
         <div className="flex flex-col h-full bg-card/30 backdrop-blur-md border-r">
             <div className="p-6 border-b">
                 <h2 className="text-xl font-bold text-emerald-500">Messages</h2>
             </div>
             <div className="flex-grow overflow-y-auto">
-                {conversations.length === 0 ? (
+                {localConversations.length === 0 ? (
                     <div className="p-8 text-center text-muted-foreground">
                         No conversations yet.
                     </div>
                 ) : (
-                    conversations.map((conv) => {
+                    localConversations.map((conv) => {
                         // Find the other participant
                         const otherParticipant = conv.participants.find(
                             (p) => p.user.id !== currentUserId

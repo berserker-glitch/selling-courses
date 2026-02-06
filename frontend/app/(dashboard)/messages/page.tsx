@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { api } from "@/lib/api";
+import { getSocket } from "@/lib/socket";
 import ConversationList from "@/components/messaging/ConversationList";
 import ChatWindow from "@/components/messaging/ChatWindow";
 import { Loader2 } from "lucide-react";
@@ -34,16 +35,38 @@ export default function AdminMessagesPage() {
         const fetchConversations = async () => {
             try {
                 const userStr = localStorage.getItem("user");
+                let user: any = null;
                 if (userStr) {
-                    const user = JSON.parse(userStr);
+                    user = JSON.parse(userStr);
                     setCurrentUser(user);
                 }
 
                 const data = await api.get("/messages/conversations");
                 setConversations(data);
-                if (data.length > 0) {
+                if (data.length > 0 && !activeConversationId) { // Modified condition
                     setActiveConversationId(data[0].id);
                 }
+
+                const socket = getSocket();
+                socket.on("new-conversation", (newConv: Conversation) => {
+                    // If I am staff, I should see all new student conversations
+                    // Even if I'm not the specific one contacted (as I might want to jump in)
+                    const myRole = user?.role;
+                    const isStaff = myRole === 'ADMIN' || myRole === 'TEACHER';
+
+                    const isParticipant = newConv.participants.some((p: any) => p.user.id === user?.id);
+
+                    if (isStaff || isParticipant) {
+                        setConversations(prev => {
+                            if (prev.find(c => c.id === newConv.id)) return prev;
+                            return [newConv, ...prev];
+                        });
+                    }
+                });
+
+                return () => {
+                    socket.off("new-conversation");
+                };
             } catch (error) {
                 console.error("Failed to fetch conversations:", error);
             } finally {
@@ -62,8 +85,8 @@ export default function AdminMessagesPage() {
         );
     }
 
-    const activeConversation = conversations.find(c => c.id === activeConversationId);
-    const otherParticipant = activeConversation?.participants.find(p => p.user.id !== currentUser?.id)?.user;
+    const activeConversation = conversations.find((c: Conversation) => c.id === activeConversationId);
+    const otherParticipant = activeConversation?.participants.find((p: any) => p.user.id !== currentUser?.id)?.user;
 
     return (
         <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden">
