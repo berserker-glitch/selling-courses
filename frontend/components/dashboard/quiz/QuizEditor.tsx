@@ -9,7 +9,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
-import { Loader2, Plus, Trash, ArrowLeft } from "lucide-react";
+import { Loader2, Plus, ArrowLeft } from "lucide-react";
+import { QuestionItem } from "./QuestionItem";
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface QuizEditorProps {
     quizId?: string; // If undefined, new quiz
@@ -25,6 +43,24 @@ export default function QuizEditor({ quizId }: QuizEditorProps) {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [questions, setQuestions] = useState<Question[]>([]);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (over && active.id !== over.id) {
+            setQuestions((items) => {
+                const oldIndex = items.findIndex((i) => (i.id || `temp-${items.indexOf(i)}`) === active.id);
+                const newIndex = items.findIndex((i) => (i.id || `temp-${items.indexOf(i)}`) === over.id);
+                return arrayMove(items, oldIndex, newIndex);
+            });
+        }
+    };
 
     useEffect(() => {
         if (quizId) {
@@ -60,49 +96,6 @@ export default function QuizEditor({ quizId }: QuizEditorProps) {
         ]);
     };
 
-    const handleRemoveQuestion = (index: number) => {
-        const newQuestions = [...questions];
-        newQuestions.splice(index, 1);
-        setQuestions(newQuestions);
-    };
-
-    const updateQuestion = (index: number, field: keyof Question, value: any) => {
-        const newQuestions = [...questions];
-        newQuestions[index] = { ...newQuestions[index], [field]: value };
-        setQuestions(newQuestions);
-    };
-
-    const handleAddOption = (questionIndex: number) => {
-        const newQuestions = [...questions];
-        const currentOptions = newQuestions[questionIndex].options || [];
-        newQuestions[questionIndex].options = [
-            ...currentOptions,
-            { text: `Option ${currentOptions.length + 1}`, isCorrect: false }
-        ];
-        setQuestions(newQuestions);
-    };
-
-    const updateOption = (qIndex: number, oIndex: number, field: keyof QuestionOption, value: any) => {
-        const newQuestions = [...questions];
-        if (!newQuestions[qIndex].options) return;
-
-        // If setting isCorrect to true, verify single choice logic (optional, currently allowing multiple correct implies checkbox style, but UI below uses Radio for single choice visual - let's assume single correct answer for now OR handle logic)
-        // For simplicity, if user sets one option correct, we can unset others if we want single-choice. 
-        // Let's stick to simple flexible boolean for now.
-
-        newQuestions[qIndex].options![oIndex] = {
-            ...newQuestions[qIndex].options![oIndex],
-            [field]: value
-        };
-        setQuestions(newQuestions);
-    };
-
-    const removeOption = (qIndex: number, oIndex: number) => {
-        const newQuestions = [...questions];
-        if (!newQuestions[qIndex].options) return;
-        newQuestions[qIndex].options!.splice(oIndex, 1);
-        setQuestions(newQuestions);
-    };
 
     const handleSave = async () => {
         if (!title.trim()) {
@@ -183,72 +176,37 @@ export default function QuizEditor({ quizId }: QuizEditorProps) {
                     </Button>
                 </div>
 
-                {questions.map((question, qIndex) => (
-                    <Card key={qIndex} className="relative">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-4 right-4 text-destructive hover:text-destructive/90"
-                            onClick={() => handleRemoveQuestion(qIndex)}
-                        >
-                            <Trash className="w-4 h-4" />
-                        </Button>
-
-                        <CardContent className="pt-6 space-y-4">
-                            <div className="space-y-2">
-                                <Label>Question Text</Label>
-                                <Input
-                                    value={question.text}
-                                    onChange={(e) => updateQuestion(qIndex, "text", e.target.value)}
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                >
+                    <SortableContext
+                        items={questions.map((q, i) => q.id || `temp-${i}`)}
+                        strategy={verticalListSortingStrategy}
+                    >
+                        <div className="space-y-4">
+                            {questions.map((question, qIndex) => (
+                                <SortableQuestionItem
+                                    key={question.id || `temp-${qIndex}`}
+                                    id={question.id || `temp-${qIndex}`}
+                                    question={question}
+                                    index={qIndex}
+                                    onUpdate={(field: keyof Question, value: any) => {
+                                        const newQuestions = [...questions];
+                                        newQuestions[qIndex] = { ...newQuestions[qIndex], [field]: value };
+                                        setQuestions(newQuestions);
+                                    }}
+                                    onRemove={() => {
+                                        const newQuestions = [...questions];
+                                        newQuestions.splice(qIndex, 1);
+                                        setQuestions(newQuestions);
+                                    }}
                                 />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Answer Type</Label>
-                                <div className="flex gap-4">
-                                    <div className="flex items-center space-x-2">
-                                        <input
-                                            type="checkbox"
-                                            id={`q-type-${qIndex}`}
-                                            checked={question.type === 'MULTIPLE_CHOICE'}
-                                            onChange={(e) => updateQuestion(qIndex, 'type', e.target.checked ? 'MULTIPLE_CHOICE' : 'TEXT')}
-                                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                        />
-                                        <label htmlFor={`q-type-${qIndex}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Multiple Choice</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {question.type === 'MULTIPLE_CHOICE' && (
-                                <div className="space-y-3 pl-4 border-l-2 border-muted">
-                                    <Label>Options</Label>
-                                    {question.options?.map((option, oIndex) => (
-                                        <div key={oIndex} className="flex items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                checked={option.isCorrect}
-                                                onChange={(e) => updateOption(qIndex, oIndex, "isCorrect", e.target.checked)}
-                                                className="w-4 h-4 accent-primary"
-                                            />
-                                            <Input
-                                                value={option.text}
-                                                onChange={(e) => updateOption(qIndex, oIndex, "text", e.target.value)}
-                                                className="flex-1"
-                                                placeholder={`Option ${oIndex + 1}`}
-                                            />
-                                            <Button variant="ghost" size="icon" onClick={() => removeOption(qIndex, oIndex)}>
-                                                <Trash className="w-4 h-4 text-muted-foreground" />
-                                            </Button>
-                                        </div>
-                                    ))}
-                                    <Button variant="ghost" size="sm" onClick={() => handleAddOption(qIndex)} className="mt-2">
-                                        <Plus className="w-3 h-3 mr-2" /> Add Option
-                                    </Button>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                ))}
+                            ))}
+                        </div>
+                    </SortableContext>
+                </DndContext>
             </div>
 
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t flex justify-end gap-4 container max-w-4xl mx-auto z-10">
@@ -260,6 +218,27 @@ export default function QuizEditor({ quizId }: QuizEditorProps) {
                     Save Quiz
                 </Button>
             </div>
+        </div>
+    );
+}
+
+function SortableQuestionItem(props: any) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+    } = useSortable({ id: props.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+            <QuestionItem {...props} />
         </div>
     );
 }
