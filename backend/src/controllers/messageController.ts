@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { getIO } from '../services/socketService';
-
-const prisma = new PrismaClient();
 
 /**
  * Get all conversations for the current user

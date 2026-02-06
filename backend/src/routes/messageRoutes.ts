@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import * as messageController from '../controllers/messageController';
-import { authenticateToken } from '../middleware/authMiddleware';
+import { protect } from '../middleware/authMiddleware';
 
 const router = Router();
 
 // All routes require authentication
-router.use(authenticateToken);
+router.use(protect);
 
 router.get('/conversations', messageController.getConversations);
 router.get('/messages/:conversationId', messageController.getMessages);

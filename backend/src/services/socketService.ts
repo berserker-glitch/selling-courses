@@ -9,6 +9,7 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import jwt from 'jsonwebtoken';
+import prisma from '../lib/prisma';
 
 // Map userId to their connected socket IDs for targeted force-logout
 const userSockets: Map<string, Set<string>> = new Map();
@@ -63,6 +64,51 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketIOServer {
                 userSockets.get(userId)!.add(socket.id);
 
                 console.log(`[SocketService] User ${userId} now has ${userSockets.get(userId)!.size} active socket(s)`);
+
+                // Messaging: Join conversation rooms
+                socket.on('join-conversation', (conversationId: string) => {
+                    socket.join(conversationId);
+                    console.log(`[SocketService] Socket ${socket.id} joined conversation: ${conversationId}`);
+                });
+
+                // Messaging: Leave conversation rooms
+                socket.on('leave-conversation', (conversationId: string) => {
+                    socket.leave(conversationId);
+                    console.log(`[SocketService] Socket ${socket.id} left conversation: ${conversationId}`);
+                });
+
+                // Messaging: Handle outgoing messages from client
+                socket.on('send-message', async (data: { conversationId: string; text: string }) => {
+                    const { conversationId, text } = data;
+                    try {
+                        const message = await prisma.message.create({
+                            data: {
+                                conversationId,
+                                senderId: userId,
+                                text
+                            },
+                            include: {
+                                sender: {
+                                    select: { id: true, name: true, role: true }
+                                }
+                            }
+                        });
+
+                        // Broadcast to everyone in the room (including sender)
+                        io?.to(conversationId).emit('new-message', message);
+                    } catch (error) {
+                        console.error('[SocketService] Error sending message via socket:', error);
+                        socket.emit('error', { message: 'Failed to send message' });
+                    }
+                });
+
+                // Messaging: Handle typing status
+                socket.on('typing', (data: { conversationId: string; typing: boolean }) => {
+                    socket.to(data.conversationId).emit('user-typing', {
+                        userId,
+                        typing: data.typing
+                    });
+                });
 
                 // Handle disconnection - remove socket from user's set
                 socket.on('disconnect', () => {
