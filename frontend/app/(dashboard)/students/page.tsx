@@ -286,7 +286,7 @@ export default function StudentsPage() {
 
             {/* Sidebar Section */}
             {selectedStudent && (
-                <div className="w-1/3 min-w-[320px] h-[calc(100vh-64px)] overflow-hidden border-l bg-background animate-in slide-in-from-right-10 duration-300">
+                <div className="w-80 h-[calc(100vh-64px)] overflow-hidden border-l bg-background animate-in slide-in-from-right-10 duration-300">
                     <StudentDetailsSidebar
                         student={selectedStudent}
                         onClose={() => setSelectedStudent(null)}
