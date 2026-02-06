@@ -47,8 +47,10 @@ export default function StudentsPage() {
         const fetchCategories = async () => {
             try {
                 const res = await api.get('/categories');
-                // Ensure we safe-guard against undefined data
-                setCategories(Array.isArray(res.data) ? res.data : []);
+                // api.get returns the parsed JSON directly.
+                // If backend returns array, res is the array.
+                const data = Array.isArray(res) ? res : (res.data || []);
+                setCategories(data);
             } catch (error) {
                 console.error("Failed to fetch categories", error);
                 setCategories([]);
