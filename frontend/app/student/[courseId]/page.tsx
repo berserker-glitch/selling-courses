@@ -1,0 +1,357 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import {
+    IconArrowLeft,
+    IconCheck,
+    IconCircle,
+    IconLoader2,
+    IconPlayerPlay,
+    IconMenu2,
+    IconX,
+    IconLock
+} from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import VideoPlayer from "@/components/course/VideoPlayer";
+
+interface Lesson {
+    id: string;
+    title: string;
+    description: string;
+    videoId: string;
+    duration: string;
+    isCompleted?: boolean;
+    isFree?: boolean;
+}
+
+interface Chapter {
+    id: string;
+    title: string;
+    lessons: Lesson[];
+}
+
+interface Course {
+    id: string;
+    title: string;
+    chapters: Chapter[];
+    lessons?: Lesson[]; // Fallback for headless lessons
+}
+
+export default function CoursePlayerPage() {
+    const params = useParams();
+    const router = useRouter();
+    const courseId = params.courseId as string;
+
+    const [course, setCourse] = useState<Course | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [completing, setCompleting] = useState(false);
+    const [progressMap, setProgressMap] = useState<Record<string, boolean>>({});
+
+    useEffect(() => {
+        const fetchCourse = async () => {
+            try {
+                const data = await api.get(`/courses/${courseId}`);
+                setCourse(data);
+
+                // Initialize progress map if available from backend (needs endpoint adjustment or separate fetch)
+                // For now, assuming basic structure. 
+                // We typically fetch progress separately or it's included in lesson.isCompleted if customized backend
+
+                // Find first lesson to play
+                let firstLesson = null;
+                if (data.chapters?.[0]?.lessons?.[0]) {
+                    firstLesson = data.chapters[0].lessons[0];
+                } else if (data.lessons?.[0]) {
+                    firstLesson = data.lessons[0];
+                }
+
+                setActiveLesson(firstLesson);
+
+                // Fetch progress specifically
+                try {
+                    const progressData = await api.get(`/courses/${courseId}/progress`); // Hypothetical endpoint
+                    if (progressData && typeof progressData === 'object') {
+                        setProgressMap(progressData); // Map of lessonId -> boolean
+                    }
+                } catch (e) {
+                    console.warn("Could not fetch progress", e);
+                }
+
+            } catch (error) {
+                console.error("Failed to load course", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (courseId) {
+            fetchCourse();
+        }
+    }, [courseId]);
+
+    const handleLessonSelect = (lesson: Lesson) => {
+        setActiveLesson(lesson);
+        if (window.innerWidth < 768) setSidebarOpen(false);
+    };
+
+    const handleFinishAndContinue = async () => {
+        if (!activeLesson || !course) return;
+
+        setCompleting(true);
+        try {
+            // Mark complete in backend
+            await api.post(`/courses/${courseId}/lessons/${activeLesson.id}/complete`, { completed: true });
+
+            // Update local state
+            setProgressMap(prev => ({ ...prev, [activeLesson.id]: true }));
+
+            // Find next lesson
+            let nextLesson = null;
+            let foundCurrent = false;
+
+            // Flatten lessons to find next easily
+            const allLessons: Lesson[] = [];
+            if (course.chapters?.length > 0) {
+                course.chapters.forEach(c => allLessons.push(...c.lessons));
+            } else if (course.lessons) {
+                allLessons.push(...course.lessons);
+            }
+
+            for (const lesson of allLessons) {
+                if (foundCurrent) {
+                    nextLesson = lesson;
+                    break;
+                }
+                if (lesson.id === activeLesson.id) {
+                    foundCurrent = true;
+                }
+            }
+
+            if (nextLesson) {
+                setActiveLesson(nextLesson);
+            } else {
+                // Course finished?
+                // Show congestion?
+            }
+
+        } catch (error) {
+            console.error("Failed to mark complete", error);
+        } finally {
+            setCompleting(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="h-screen w-full flex items-center justify-center bg-background">
+                <IconLoader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
+    if (!course) {
+        return (
+            <div className="h-screen w-full flex flex-col items-center justify-center gap-4">
+                <p className="text-muted-foreground">Course not found.</p>
+                <Button onClick={() => router.push("/student")}>Back to Dashboard</Button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-col h-screen bg-background overflow-hidden relative">
+            {/* Header */}
+            <header className="h-16 bg-primary text-primary-foreground flex items-center justify-between px-4 sm:px-6 flex-shrink-0 z-30 shadow-md">
+                <div className="flex items-center gap-4">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => router.push("/student")}
+                        className="text-primary-foreground/80 hover:text-white hover:bg-white/10"
+                    >
+                        <IconArrowLeft className="w-5 h-5" />
+                    </Button>
+                    <h1 className="font-semibold text-lg line-clamp-1">{course.title}</h1>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="md:hidden text-primary-foreground"
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                    >
+                        {sidebarOpen ? <IconX className="w-5 h-5" /> : <IconMenu2 className="w-5 h-5" />}
+                    </Button>
+                    <Button
+                        className="bg-white text-primary hover:bg-white/90 hidden sm:flex font-semibold shadow-sm"
+                        onClick={handleFinishAndContinue}
+                        disabled={completing}
+                    >
+                        {completing ? <IconLoader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                        Finish and continue &gt;
+                    </Button>
+                </div>
+            </header>
+
+            <div className="flex flex-1 overflow-hidden relative">
+                {/* Sidebar */}
+                <aside
+                    className={cn(
+                        "w-80 bg-background border-r flex flex-col absolute md:relative z-20 h-full transition-all duration-300 ease-in-out transform shadow-xl md:shadow-none",
+                        sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-0 md:border-none overflow-hidden"
+                    )}
+                >
+                    <div className="p-4 border-b font-semibold flex justify-between items-center bg-muted/30">
+                        <span>Course Content</span>
+                        <div className="text-xs text-muted-foreground">
+                            {/* Simple completion stat */}
+                            {Object.keys(progressMap).length} Completed
+                        </div>
+                    </div>
+
+                    <ScrollArea className="flex-1">
+                        <div className="pb-10">
+                            {course.chapters?.length > 0 ? (
+                                course.chapters.map((chapter, index) => (
+                                    <div key={chapter.id}>
+                                        <div className="px-4 py-3 bg-muted/50 text-sm font-semibold text-muted-foreground sticky top-0 backdrop-blur-sm z-10 border-y border-border/50">
+                                            Part #{index + 1} - {chapter.title}
+                                        </div>
+                                        <div>
+                                            {chapter.lessons?.map((lesson) => {
+                                                const isCompleted = progressMap[lesson.id];
+                                                const isActive = activeLesson?.id === lesson.id;
+                                                return (
+                                                    <button
+                                                        key={lesson.id}
+                                                        onClick={() => handleLessonSelect(lesson)}
+                                                        className={cn(
+                                                            "w-full text-left px-4 py-3 text-sm flex gap-3 items-start transition-colors border-l-4 border-transparent hover:bg-muted/50",
+                                                            isActive
+                                                                ? "bg-primary/5 border-l-primary text-primary font-medium"
+                                                                : "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        <div className="mt-0.5 flex-shrink-0">
+                                                            {isCompleted ? (
+                                                                <IconCheck className="w-4 h-4 text-emerald-500" />
+                                                            ) : isActive ? (
+                                                                <IconPlayerPlay className="w-4 h-4 fill-current" />
+                                                            ) : (
+                                                                <IconCircle className="w-4 h-4 opacity-50" />
+                                                            )}
+                                                        </div>
+                                                        <span className="line-clamp-2">{lesson.title}</span>
+                                                        <span className="ml-auto text-xs opacity-70 whitespace-nowrap">{lesson.duration || "5:00"}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="p-2">
+                                    {course.lessons?.map((lesson) => {
+                                        const isCompleted = progressMap[lesson.id];
+                                        const isActive = activeLesson?.id === lesson.id;
+                                        return (
+                                            <button
+                                                key={lesson.id}
+                                                onClick={() => handleLessonSelect(lesson)}
+                                                className={cn(
+                                                    "w-full text-left px-4 py-3 text-sm flex gap-3 items-start transition-colors border-l-4 border-transparent hover:bg-muted/50 border-b",
+                                                    isActive
+                                                        ? "bg-primary/5 border-l-primary text-primary font-medium"
+                                                        : "text-muted-foreground"
+                                                )}
+                                            >
+                                                <div className="mt-0.5 flex-shrink-0">
+                                                    {isCompleted ? (
+                                                        <IconCheck className="w-4 h-4 text-emerald-500" />
+                                                    ) : isActive ? (
+                                                        <IconPlayerPlay className="w-4 h-4 fill-current" />
+                                                    ) : (
+                                                        <IconCircle className="w-4 h-4 opacity-50" />
+                                                    )}
+                                                </div>
+                                                <span className="line-clamp-2">{lesson.title}</span>
+                                            </button>
+                                        );
+                                    })}
+                                    {!course.lessons?.length && <p className="text-center text-sm text-muted-foreground py-4">No content available.</p>}
+                                </div>
+                            )}
+                        </div>
+                    </ScrollArea>
+                </aside>
+
+                {/* Main Content */}
+                <main className="flex-1 overflow-y-auto bg-muted/10 p-4 md:p-8 w-full scroll-smooth">
+                    {activeLesson ? (
+                        <div className="max-w-4xl mx-auto space-y-6">
+                            {/* Title */}
+                            <div className="flex items-start gap-4">
+                                <h2 className="text-2xl font-bold text-foreground">
+                                    {activeLesson.title}
+                                </h2>
+                            </div>
+
+                            {/* Custom Video Player */}
+                            <div className="w-full bg-black rounded-xl overflow-hidden shadow-lg relative z-0">
+                                <VideoPlayer
+                                    videoId={activeLesson.videoId}
+                                    courseId={courseId}
+                                    chapterId={undefined} // Pass if needed
+                                    lessonId={activeLesson.id}
+                                />
+                            </div>
+
+                            {/* Description/Content */}
+                            <div className="prose prose-slate dark:prose-invert max-w-none bg-background p-6 rounded-xl border shadow-sm">
+                                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                                    <span className="w-1 h-6 bg-primary rounded-full"></span>
+                                    About this lesson
+                                </h3>
+                                {activeLesson.description ? (
+                                    <div dangerouslySetInnerHTML={{ __html: activeLesson.description }} />
+                                ) : (
+                                    <p className="text-muted-foreground italic">No description provided.</p>
+                                )}
+                            </div>
+
+                            {/* Navigation Footer */}
+                            <div className="flex justify-between items-center py-8">
+                                <div className="text-sm text-muted-foreground">
+                                    {/* Prev button logic if needed */}
+                                </div>
+                                <Button
+                                    size="lg"
+                                    onClick={handleFinishAndContinue}
+                                    disabled={completing}
+                                    className="gap-2"
+                                >
+                                    Finish & Continue
+                                    <IconArrowLeft className="w-4 h-4 rotate-180" />
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="h-full flex items-center justify-center text-muted-foreground">
+                            <div className="text-center">
+                                <IconPlayerPlay className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                                <p>Select a lesson to start watching</p>
+                            </div>
+                        </div>
+                    )}
+                </main>
+            </div>
+        </div>
+    );
+}
