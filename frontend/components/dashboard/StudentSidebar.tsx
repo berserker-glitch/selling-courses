@@ -78,7 +78,7 @@ export function StudentDetailsSidebar({ student, onClose, onUpdate }: StudentSid
     };
 
     return (
-        <div className="h-full border-r bg-background p-6 w-full max-w-md overflow-y-auto">
+        <div className="h-full bg-background p-6 w-full overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold">Student Details</h2>
                 <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
