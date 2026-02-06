@@ -237,7 +237,7 @@ export default function StudentsPage() {
 
             <div className="border rounded-md">
                 <Table>
-                    <TableHeader>
+                    <TableHeader className="bg-muted/50">
                         <TableRow>
                             <TableHead>Name</TableHead>
                             <TableHead>Email</TableHead>
