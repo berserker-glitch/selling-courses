@@ -83,6 +83,10 @@ app.use('/api/video', vdcipherRoutes);
 import commentRoutes from './routes/commentRoutes';
 app.use('/api/comments', commentRoutes);
 
+// Message routes
+import messageRoutes from './routes/messageRoutes';
+app.use('/api/messages', messageRoutes);
+
 // Upload routes
 import uploadRoutes from './routes/uploadRoutes';
 app.use('/api/upload', uploadRoutes);
