@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import DOMPurify from "isomorphic-dompurify";
 import {
     IconArrowLeft,
     IconCheck,
@@ -317,9 +318,9 @@ export default function CoursePlayerPage() {
                                             return (
                                                 <div key={block.id} className="prose prose-slate dark:prose-invert max-w-none bg-background p-6 rounded-xl border shadow-sm">
                                                     <div dangerouslySetInnerHTML={{
-                                                        __html: typeof block.content === 'string'
+                                                        __html: DOMPurify.sanitize(typeof block.content === 'string'
                                                             ? block.content
-                                                            : block.content?.html || ""
+                                                            : block.content?.html || "")
                                                     }} />
                                                 </div>
                                             );
@@ -431,7 +432,7 @@ export default function CoursePlayerPage() {
                                                 About this lesson
                                             </h3>
                                             {activeLesson.description ? (
-                                                <div dangerouslySetInnerHTML={{ __html: activeLesson.description }} />
+                                                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(activeLesson.description) }} />
                                             ) : (
                                                 <p className="text-muted-foreground italic">No description provided.</p>
                                             )}
