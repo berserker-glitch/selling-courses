@@ -243,6 +243,23 @@ export default function LessonEditorPage() {
                                                     onUpdate={updateBlock}
                                                     onDelete={deleteBlock}
                                                     quizzes={quizzes}
+                                                    onUpload={async (file) => {
+                                                        const formData = new FormData();
+                                                        formData.append('file', file);
+                                                        try {
+                                                            const res = await api.post('/upload', formData);
+                                                            updateBlock(block.id, {
+                                                                content: {
+                                                                    ...block.content,
+                                                                    fileUrl: res.url,
+                                                                    fileName: res.originalName,
+                                                                    mimetype: res.mimetype
+                                                                }
+                                                            });
+                                                        } catch (error) {
+                                                            alert("Upload failed");
+                                                        }
+                                                    }}
                                                 />
                                             ))}
                                         </div>
@@ -273,7 +290,7 @@ export default function LessonEditorPage() {
     );
 }
 
-function SortableBlock({ block, onUpdate, onDelete, quizzes }: { block: ContentBlock, onUpdate: any, onDelete: any, quizzes?: Quiz[] }) {
+function SortableBlock({ block, onUpdate, onDelete, quizzes, onUpload }: { block: ContentBlock, onUpdate: any, onDelete: any, quizzes?: Quiz[], onUpload?: (file: File) => void }) {
     const {
         attributes,
         listeners,
@@ -347,7 +364,56 @@ function SortableBlock({ block, onUpdate, onDelete, quizzes }: { block: ContentB
                             </div>
                         </div>
                     )}
-                    {(block.type === 'DOCUMENT') && <div className="p-4 bg-muted rounded text-center">Document Upload Placeholder</div>}
+                    {(block.type === 'DOCUMENT') && (
+                        <div className="space-y-4 border p-4 rounded-md bg-muted/20">
+                            <Label>Attachment (PDF or Image)</Label>
+
+                            {block.content?.fileUrl ? (
+                                <div className="flex items-center justify-between p-3 bg-background border rounded-md">
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                        {block.content.mimetype?.startsWith('image/') ? (
+                                            <div className="w-12 h-12 rounded border overflow-hidden flex-shrink-0">
+                                                <img
+                                                    src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000'}${block.content.fileUrl}`}
+                                                    alt="Preview"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <FileText className="w-8 h-8 text-primary flex-shrink-0" />
+                                        )}
+                                        <div className="truncate text-sm font-medium">
+                                            {block.content.fileName || "Uploaded File"}
+                                        </div>
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onUpdate(block.id, { content: { ...block.content, fileUrl: null, fileName: null } })}
+                                    >
+                                        Remove
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-4">
+                                    <Input
+                                        type="file"
+                                        accept=".pdf,image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file && onUpload) {
+                                                onUpload(file);
+                                            }
+                                        }}
+                                        className="cursor-pointer"
+                                    />
+                                    <div className="text-xs text-muted-foreground whitespace-nowrap">
+                                        PDF or Images (WebP optimized)
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </CardContent>
         </Card>

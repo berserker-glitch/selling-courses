@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import { initializeSocketIO } from './services/socketService';
 
 dotenv.config();
@@ -47,6 +48,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health Check
 app.get('/health', (req, res) => {
@@ -78,6 +80,10 @@ app.use('/api/video', vdcipherRoutes);
 // Comment routes
 import commentRoutes from './routes/commentRoutes';
 app.use('/api/comments', commentRoutes);
+
+// Upload routes
+import uploadRoutes from './routes/uploadRoutes';
+app.use('/api/upload', uploadRoutes);
 
 // Start HTTP server (with Socket.io attached)
 httpServer.listen(PORT, () => {
