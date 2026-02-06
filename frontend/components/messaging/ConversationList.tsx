@@ -2,6 +2,7 @@
 
 import React from "react";
 import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 interface Conversation {
     id: string;
@@ -60,18 +61,17 @@ const ConversationList: React.FC<ConversationListProps> = ({
     }, []);
 
     return (
-        <div className="flex flex-col h-full bg-card/30 backdrop-blur-md border-r">
-            <div className="p-6 border-b">
-                <h2 className="text-xl font-bold text-emerald-500">Messages</h2>
-            </div>
-            <div className="flex-grow overflow-y-auto">
+        <div className="flex flex-col h-full overflow-hidden">
+            <div className="flex-grow overflow-y-auto custom-scrollbar">
                 {localConversations.length === 0 ? (
-                    <div className="p-8 text-center text-muted-foreground">
-                        No conversations yet.
+                    <div className="flex flex-col items-center justify-center h-full p-8 text-center space-y-3">
+                        <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground">
+                            ?
+                        </div>
+                        <p className="text-sm text-muted-foreground">No conversations yet.</p>
                     </div>
                 ) : (
                     localConversations.map((conv) => {
-                        // Find the other participant
                         const otherParticipant = conv.participants.find(
                             (p) => p.user.id !== currentUserId
                         )?.user;
@@ -83,24 +83,48 @@ const ConversationList: React.FC<ConversationListProps> = ({
                             <div
                                 key={conv.id}
                                 onClick={() => onSelectConversation(conv.id)}
-                                className={`p-4 cursor-pointer transition-all border-b border-white/5 hover:bg-emerald-500/10 ${isActive ? "bg-emerald-500/20 border-r-4 border-r-emerald-500" : ""
-                                    }`}
+                                className={cn(
+                                    "p-4 cursor-pointer transition-all border-b border-border/50 group relative overflow-hidden",
+                                    isActive
+                                        ? "bg-primary/10"
+                                        : "hover:bg-muted/50"
+                                )}
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold shrink-0">
-                                        {otherParticipant?.name?.[0] || "?"}
+                                {isActive && (
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
+                                )}
+
+                                <div className="flex items-center gap-4">
+                                    <div className="relative shrink-0">
+                                        <div className={cn(
+                                            "w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold shadow-inner transition-transform duration-300 group-hover:scale-105",
+                                            isActive ? "bg-primary shadow-primary/20" : "bg-muted-foreground/40"
+                                        )}>
+                                            {otherParticipant?.name?.[0].toUpperCase() || "?"}
+                                        </div>
+                                        {/* Status Dot - can be functional later */}
+                                        <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-background rounded-full flex items-center justify-center shadow-sm">
+                                            <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                                        </div>
                                     </div>
+
                                     <div className="flex-grow min-w-0">
-                                        <div className="flex justify-between items-baseline gap-2">
-                                            <h3 className={`font-semibold truncate ${isActive ? "text-emerald-400" : "text-foreground"}`}>
-                                                {otherParticipant?.name || "Unknown User"}
+                                        <div className="flex justify-between items-baseline mb-0.5">
+                                            <h3 className={cn(
+                                                "font-semibold text-sm truncate uppercase tracking-wide",
+                                                isActive ? "text-primary" : "text-foreground"
+                                            )}>
+                                                {otherParticipant?.name || "Support"}
                                             </h3>
-                                            <span className="text-[10px] text-muted-foreground shrink-0">
-                                                {conv.updatedAt ? new Date(conv.updatedAt).toLocaleDateString() : ""}
+                                            <span className="text-[10px] font-medium text-muted-foreground opacity-70">
+                                                {conv.updatedAt ? new Date(conv.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
                                             </span>
                                         </div>
-                                        <p className="text-sm text-muted-foreground truncate italic">
-                                            {lastMessage ? lastMessage.text : "No messages yet"}
+                                        <p className={cn(
+                                            "text-xs truncate transition-colors",
+                                            isActive ? "text-foreground/80 font-medium" : "text-muted-foreground"
+                                        )}>
+                                            {lastMessage ? lastMessage.text : "Start a conversation..."}
                                         </p>
                                     </div>
                                 </div>

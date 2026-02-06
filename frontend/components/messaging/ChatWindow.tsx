@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getSocket } from "@/lib/socket";
 import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Send, Loader2 } from "lucide-react";
 
 // Check if ScrollArea exist in components/ui, from list_dir it wasn't there
@@ -148,71 +148,119 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId, currentUserId, 
     }
 
     return (
-        <Card className="flex flex-col h-[calc(100vh-12rem)] border-none bg-transparent shadow-none">
-            <CardHeader className="border-b bg-card/50 backdrop-blur-sm px-6 py-4 rounded-t-xl">
-                <CardTitle className="text-xl font-semibold flex items-center gap-2">
-                    {title || "Conversation"}
-                    {typingUser && <span className="text-sm font-normal text-muted-foreground animate-pulse ml-2 italic">{typingUser}</span>}
-                </CardTitle>
-            </CardHeader>
+        <div className="flex flex-col h-full overflow-hidden">
+            {/* Chat Header */}
+            <div className="px-6 py-4 border-b bg-card/40 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary font-bold shadow-sm">
+                        {title?.[0].toUpperCase() || "C"}
+                    </div>
+                    <div>
+                        <h2 className="font-bold text-lg tracking-tight">{title || "Conversation"}</h2>
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+                                {typingUser ? typingUser : "Active now"}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    {/* Placeholder for actions like search, info, etc. */}
+                </div>
+            </div>
 
-            <CardContent
-                className="flex-grow overflow-y-auto p-6 space-y-4 custom-scrollbar"
+            {/* Messages Area */}
+            <div
+                className="flex-grow overflow-y-auto p-6 space-y-6 custom-scrollbar bg-card/5"
                 ref={scrollRef}
             >
-                {messages.map((msg) => {
+                {messages.map((msg, index) => {
                     const isMe = msg.senderId === currentUserId;
+                    const prevMsg = index > 0 ? messages[index - 1] : null;
+                    const isSameSender = prevMsg?.senderId === msg.senderId;
+
                     return (
                         <div
                             key={msg.id}
-                            className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+                            className={cn(
+                                "flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300",
+                                isMe ? "items-end" : "items-start",
+                                isSameSender ? "mt-1" : "mt-4"
+                            )}
                         >
-                            <div
-                                className={`max-w-[70%] p-3 rounded-2xl ${isMe
-                                    ? "bg-emerald-600 text-white rounded-br-none"
-                                    : "bg-muted text-foreground rounded-bl-none"
-                                    }`}
-                            >
-                                {!isMe && (
-                                    <div className="text-xs font-bold mb-1 text-emerald-400">
-                                        {msg.sender.name}
+                            <div className={cn(
+                                "max-w-[80%] flex items-end gap-2 group",
+                                isMe ? "flex-row-reverse" : "flex-row"
+                            )}>
+                                {/* Minimal Avatar for others */}
+                                {!isMe && !isSameSender && (
+                                    <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0 mb-1">
+                                        {msg.sender.name[0].toUpperCase()}
                                     </div>
                                 )}
-                                <div className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</div>
+                                {!isMe && isSameSender && <div className="w-6 shrink-0" />}
+
                                 <div
-                                    className={`text-[10px] mt-1 text-right ${isMe ? "text-emerald-100" : "text-muted-foreground"
-                                        }`}
+                                    className={cn(
+                                        "relative px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all hover:shadow-md",
+                                        isMe
+                                            ? "bg-primary text-primary-foreground rounded-br-none"
+                                            : "bg-muted/80 text-foreground rounded-bl-none border border-border/50 backdrop-blur-sm"
+                                    )}
                                 >
-                                    {new Date(msg.createdAt).toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                    })}
+                                    {!isMe && !isSameSender && (
+                                        <div className="text-[10px] font-bold mb-1 text-primary tracking-wider uppercase opacity-80">
+                                            {msg.sender.name}
+                                        </div>
+                                    )}
+                                    <div className="leading-relaxed whitespace-pre-wrap">{msg.text}</div>
+
+                                    <div className={cn(
+                                        "text-[9px] mt-1 opacity-0 group-hover:opacity-70 transition-opacity absolute bottom-[-14px]",
+                                        isMe ? "right-0" : "left-0"
+                                    )}>
+                                        {new Date(msg.createdAt).toLocaleTimeString([], {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                        })}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     );
                 })}
-            </CardContent>
+            </div>
 
-            <CardFooter className="p-4 bg-card/50 backdrop-blur-sm border-t rounded-b-xl">
-                <form onSubmit={handleSendMessage} className="flex w-full gap-2">
-                    <Input
-                        placeholder="Type your message..."
-                        value={newMessage}
-                        onChange={handleTyping}
-                        className="flex-grow bg-background/50 border-emerald-500/20 focus-visible:ring-emerald-500"
-                    />
+            {/* Input Area */}
+            <div className="p-4 bg-card/40 border-t shrink-0">
+                <form onSubmit={handleSendMessage} className="flex items-center gap-3 max-w-4xl mx-auto w-full">
+                    <div className="flex-grow relative">
+                        <Input
+                            placeholder="Type your message..."
+                            value={newMessage}
+                            onChange={handleTyping}
+                            className="w-full bg-background/50 border-border/50 focus-visible:ring-primary h-12 rounded-2xl pr-12 shadow-inner"
+                        />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                            {/* Placeholder for emoji/attach icons */}
+                        </div>
+                    </div>
                     <Button
                         type="submit"
                         disabled={!newMessage.trim() || isSending}
                         size="icon"
-                        className="bg-emerald-600 hover:bg-emerald-700 transition-colors"
+                        className="h-12 w-12 rounded-2xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95 shrink-0"
                     >
-                        <Send className="w-4 h-4" />
+                        {isSending ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <Send className="w-5 h-5" />
+                        )}
                     </Button>
                 </form>
-            </CardFooter>
-        </Card>
+            </div>
+        </div>
     );
 };
 

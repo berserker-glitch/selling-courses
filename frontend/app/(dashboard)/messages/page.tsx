@@ -89,27 +89,43 @@ export default function AdminMessagesPage() {
     const otherParticipant = activeConversation?.participants.find((p: any) => p.user.id !== currentUser?.id)?.user;
 
     return (
-        <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden">
-            <div className="w-80 border-r shrink-0">
-                <ConversationList
-                    conversations={conversations}
-                    activeConversationId={activeConversationId}
-                    onSelectConversation={setActiveConversationId}
-                    currentUserId={currentUser?.id}
-                />
+        <div className="flex flex-col h-screen overflow-hidden bg-background">
+            {/* Page Header */}
+            <div className="p-8 pb-4 shrink-0">
+                <h1 className="text-2xl font-bold tracking-tight">Messages</h1>
+                <p className="text-muted-foreground mt-1">Manage student support and conversations.</p>
             </div>
-            <div className="flex-grow bg-muted/5">
-                {activeConversationId ? (
-                    <ChatWindow
-                        conversationId={activeConversationId}
-                        currentUserId={currentUser?.id}
-                        title={otherParticipant?.name}
-                    />
-                ) : (
-                    <div className="flex items-center justify-center h-full text-muted-foreground italic">
-                        Select a conversation to start messaging
+
+            <div className="flex-grow flex p-8 pt-0 overflow-hidden">
+                <div className="flex w-full bg-card/10 backdrop-blur-sm border rounded-xl overflow-hidden shadow-sm">
+                    {/* Conversation List Sidebar */}
+                    <div className="w-80 border-r shrink-0 flex flex-col bg-muted/20">
+                        <ConversationList
+                            conversations={conversations}
+                            activeConversationId={activeConversationId}
+                            onSelectConversation={setActiveConversationId}
+                            currentUserId={currentUser?.id}
+                        />
                     </div>
-                )}
+
+                    {/* Chat Area */}
+                    <div className="flex-grow flex flex-col min-w-0 bg-background/50">
+                        {activeConversationId ? (
+                            <ChatWindow
+                                conversationId={activeConversationId}
+                                currentUserId={currentUser?.id}
+                                title={otherParticipant?.name}
+                            />
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground space-y-4">
+                                <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center">
+                                    <Loader2 className="w-8 h-8 opacity-20" />
+                                </div>
+                                <p className="italic">Select a conversation to start messaging</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );
