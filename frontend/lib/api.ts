@@ -21,10 +21,18 @@ async function fetchWithAuth(endpoint: string, options: RequestOptions = {}) {
         headers,
     });
 
-    const data = await response.json().catch(() => ({}));
+    let data;
+    try {
+        data = await response.json();
+    } catch (error) {
+        // If JSON parsing fails, try to get text
+        const text = await response.text().catch(() => null);
+        data = { message: text || "Unknown Error" };
+    }
 
     if (!response.ok) {
-        throw new Error(data.message || "An error occurred");
+        console.error(`API Error: ${response.status} ${response.statusText} at ${endpoint}`, data);
+        throw new Error(data.message || `Request failed with status ${response.status}`);
     }
 
     return data;
