@@ -41,10 +41,11 @@ export default function VideoPlayer({
                 }
 
                 // If VDCipher ID (typically 32 chars hex), we need OTP
-                // Attempt to fetch OTP from backend if endpoint exists
-                // Endpoint likely: /courses/:courseId/lessons/:lessonId/video-otp
+                // Endpoint: POST /api/video/otp/:videoId
                 try {
-                    const data = await api.get(`/courses/${courseId}/lessons/${lessonId}/video-otp`);
+                    // Pass empty object as body since calling POST
+                    const data = await api.post(`/video/otp/${videoId}`, {});
+
                     if (data.otp && data.playbackInfo) {
                         setVideoUrl(`https://player.vdocipher.com/v2/?otp=${data.otp}&playbackInfo=${data.playbackInfo}`);
                     } else if (data.url) {
@@ -52,11 +53,6 @@ export default function VideoPlayer({
                     } else {
                         // Fallback or specific error
                         console.warn("No video URL returned from OTP endpoint");
-                        // Construct naive URL or fail
-                        // For now, assume if backend fails, we might just show ID for debug
-                        // or treat as error
-                        // Let's try to simulate a successful load for now regarding UI
-                        // setVideoUrl(`https://player.vdocipher.com/v2/?otp=...&playbackInfo=...`); // Placeholder
                         setError("Video playback requires backend integration");
                     }
                 } catch (e) {

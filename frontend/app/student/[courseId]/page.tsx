@@ -60,18 +60,7 @@ export default function CoursePlayerPage() {
     const [completing, setCompleting] = useState(false);
     const [progressMap, setProgressMap] = useState<Record<string, boolean>>({});
 
-    // Helper to extract effective video ID for a lesson
-    const getLessonVideoId = (lesson: Lesson) => {
-        // 1. Check content blocks for VIDEO type
-        if (lesson.contentBlocks && lesson.contentBlocks.length > 0) {
-            const videoBlock = lesson.contentBlocks.find(b => b.type === 'VIDEO');
-            if (videoBlock?.content?.videoId) {
-                return videoBlock.content.videoId;
-            }
-        }
-        // 2. Fallback to lesson.videoId
-        return lesson.videoId;
-    };
+
 
     useEffect(() => {
         const fetchCourse = async () => {
@@ -175,7 +164,7 @@ export default function CoursePlayerPage() {
         );
     }
 
-    const currentVideoId = activeLesson ? getLessonVideoId(activeLesson) : null;
+
 
     return (
         <div className="flex flex-col h-screen bg-background overflow-hidden relative">
@@ -315,40 +304,68 @@ export default function CoursePlayerPage() {
                                 </h2>
                             </div>
 
-                            {/* Custom Video Player */}
-                            <div className="w-full bg-black rounded-xl overflow-hidden shadow-lg relative z-0">
-                                <VideoPlayer
-                                    videoId={currentVideoId}
-                                    courseId={courseId}
-                                    lessonId={activeLesson.id}
-                                />
-                            </div>
 
-                            {/* Content Blocks Rendering */}
-                            <div className="bg-background p-6 rounded-xl border shadow-sm space-y-6">
-                                {/* If we have blocks, render them */}
+
+                            {/* Content Rendering: Linear Order */}
+                            <div className="space-y-8">
                                 {activeLesson.contentBlocks && activeLesson.contentBlocks.length > 0 ? (
-                                    activeLesson.contentBlocks.map(block => (
-                                        <div key={block.id} className="prose prose-slate dark:prose-invert max-w-none">
-                                            {block.type === 'TEXT' && block.content?.html && (
-                                                <div dangerouslySetInnerHTML={{ __html: block.content.html }} />
-                                            )}
-                                            {/* We already rendered VIDEO type content above as default player, from getLessonVideoId */}
-                                        </div>
-                                    ))
+                                    activeLesson.contentBlocks.map(block => {
+                                        if (block.type === 'TEXT') {
+                                            return (
+                                                <div key={block.id} className="prose prose-slate dark:prose-invert max-w-none bg-background p-6 rounded-xl border shadow-sm">
+                                                    <div dangerouslySetInnerHTML={{
+                                                        __html: typeof block.content === 'string'
+                                                            ? block.content
+                                                            : block.content?.html || ""
+                                                    }} />
+                                                </div>
+                                            );
+                                        }
+
+                                        if (block.type === 'VIDEO') {
+                                            return (
+                                                <div key={block.id} className="w-full bg-black rounded-xl overflow-hidden shadow-lg relative z-0">
+                                                    <VideoPlayer
+                                                        videoId={block.content?.videoId}
+                                                        courseId={courseId}
+                                                        lessonId={activeLesson.id}
+                                                    />
+                                                </div>
+                                            );
+                                        }
+
+                                        // Fallback for other types
+                                        return (
+                                            <div key={block.id} className="p-4 border rounded bg-muted text-muted-foreground">
+                                                Unsupported block type: {block.type}
+                                            </div>
+                                        );
+                                    })
                                 ) : (
-                                    /* Fallback to legacy description */
-                                    <div className="prose prose-slate dark:prose-invert max-w-none">
-                                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                                            <span className="w-1 h-6 bg-primary rounded-full"></span>
-                                            About this lesson
-                                        </h3>
-                                        {activeLesson.description ? (
-                                            <div dangerouslySetInnerHTML={{ __html: activeLesson.description }} />
-                                        ) : (
-                                            <p className="text-muted-foreground italic">No description provided.</p>
+                                    /* Legacy Fallback: Main Video + Description */
+                                    <>
+                                        {activeLesson.videoId && (
+                                            <div className="w-full bg-black rounded-xl overflow-hidden shadow-lg relative z-0">
+                                                <VideoPlayer
+                                                    videoId={activeLesson.videoId}
+                                                    courseId={courseId}
+                                                    lessonId={activeLesson.id}
+                                                />
+                                            </div>
                                         )}
-                                    </div>
+
+                                        <div className="prose prose-slate dark:prose-invert max-w-none bg-background p-6 rounded-xl border shadow-sm">
+                                            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                                                <span className="w-1 h-6 bg-primary rounded-full"></span>
+                                                About this lesson
+                                            </h3>
+                                            {activeLesson.description ? (
+                                                <div dangerouslySetInnerHTML={{ __html: activeLesson.description }} />
+                                            ) : (
+                                                <p className="text-muted-foreground italic">No description provided.</p>
+                                            )}
+                                        </div>
+                                    </>
                                 )}
                             </div>
 

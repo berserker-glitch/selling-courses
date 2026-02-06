@@ -125,13 +125,32 @@ export default function LessonEditorPage() {
         }
     };
 
-    const updateBlock = async (id: string, data: Partial<ContentBlock>) => {
-        // Optimistic update
+    const [saving, setSaving] = useState(false);
+
+    const updateBlock = (id: string, data: Partial<ContentBlock>) => {
+        // Local update only - manual save required
         setBlocks(blocks.map(b => b.id === id ? { ...b, ...data } : b));
+    };
+
+    const handleSave = async () => {
+        setSaving(true);
         try {
-            await api.put(`/blocks/${id}`, data);
+            // Save all blocks - in a real app check for dirty state
+            await Promise.all(blocks.map(block =>
+                api.put(`/blocks/${block.id}`, {
+                    title: block.title,
+                    content: block.content,
+                    type: block.type
+                })
+            ));
+            // Maybe show a toast here? For now just log
+            console.log("Saved successfully");
+            // You might want to re-fetch or just assume success
         } catch (error) {
-            console.error(error);
+            console.error("Failed to save", error);
+            alert("Failed to save changes");
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -167,17 +186,27 @@ export default function LessonEditorPage() {
                                     <div>
                                         <h1 className="text-3xl font-bold">{lesson.title}</h1>
                                     </div>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button><Plus className="mr-2 h-4 w-4" /> Add Content</Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuItem onClick={() => addBlock('TEXT')}><Type className="mr-2 h-4 w-4" /> Text</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => addBlock('VIDEO')}><Video className="mr-2 h-4 w-4" /> Video</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => addBlock('QUIZ')}><HelpCircle className="mr-2 h-4 w-4" /> Quiz</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => addBlock('DOCUMENT')}><FileText className="mr-2 h-4 w-4" /> Document</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            onClick={handleSave}
+                                            disabled={saving}
+                                            variant="secondary"
+                                            className="font-bold"
+                                        >
+                                            {saving ? "Saving..." : "Save Changes"}
+                                        </Button>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button><Plus className="mr-2 h-4 w-4" /> Add Content</Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                <DropdownMenuItem onClick={() => addBlock('TEXT')}><Type className="mr-2 h-4 w-4" /> Text</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => addBlock('VIDEO')}><Video className="mr-2 h-4 w-4" /> Video</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => addBlock('QUIZ')}><HelpCircle className="mr-2 h-4 w-4" /> Quiz</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => addBlock('DOCUMENT')}><FileText className="mr-2 h-4 w-4" /> Document</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
                                 </div>
 
                                 <DndContext
