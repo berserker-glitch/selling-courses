@@ -49,7 +49,7 @@ export const updateChapter = async (req: Request, res: Response) => {
         const chapter = await prisma.chapter.findUnique({
             where: { id: chapterId },
             include: { course: true }
-        });
+        }) as any;
         if (!chapter) return res.status(404).json({ message: 'Chapter not found' });
 
         if (chapter.course.teacherId !== user.id && user.role !== 'ADMIN') {
@@ -77,7 +77,7 @@ export const deleteChapter = async (req: Request, res: Response) => {
         const chapter = await prisma.chapter.findUnique({
             where: { id: chapterId },
             include: { course: true }
-        });
+        }) as any;
         if (!chapter) return res.status(404).json({ message: 'Chapter not found' });
 
         if (chapter.course.teacherId !== user.id && user.role !== 'ADMIN') {

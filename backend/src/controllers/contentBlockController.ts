@@ -64,7 +64,7 @@ export const updateContentBlock = async (req: Request, res: Response) => {
         const block = await prisma.contentBlock.findUnique({
             where: { id: blockId },
             include: { lesson: { include: { course: true } } }
-        });
+        }) as any;
 
         if (!block) return res.status(404).json({ message: 'Block not found' });
 
@@ -93,7 +93,7 @@ export const deleteContentBlock = async (req: Request, res: Response) => {
         const block = await prisma.contentBlock.findUnique({
             where: { id: blockId },
             include: { lesson: { include: { course: true } } }
-        });
+        }) as any;
 
         if (!block) return res.status(404).json({ message: 'Block not found' });
 
