@@ -81,9 +81,43 @@ export const login = async (req: Request, res: Response) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        // Device Limit Enforcement for Students
-        // Check if new login would exceed the user's maxDevices limit
+        const deviceId = (req.headers['x-device-id'] as string) || (req.headers['user-agent'] || 'unknown');
+
+        // Device Binding Enforcement for Students
         if (user.role === 'STUDENT') {
+            // Check if user has a bound device
+            if (user.boundDeviceId) {
+                if (user.boundDeviceId !== deviceId) {
+                    console.log(`[Auth] Login blocked: Device mismatch for ${user.email}. Expected ${user.boundDeviceId}, got ${deviceId}`);
+
+                    // Audit the attempt
+                    await prisma.auditLog.create({
+                        data: {
+                            userId: user.id,
+                            action: 'LOGIN_BLOCKED_DEVICE_MISMATCH',
+                            metadata: { expected: user.boundDeviceId, actual: deviceId },
+                            ip: req.ip || undefined,
+                            userAgent: req.headers['user-agent'] as string | undefined
+                        }
+                    });
+
+                    return res.status(401).json({
+                        message: 'This account is bound to another device. Please contact support to reset your device binding.'
+                    });
+                }
+            } else {
+                // First time login with this implementation - Bind the device
+                // Only bind if it's a valid UUID (to avoid binding to 'unknown' or user-agent if header missing) or just bind whatever comes?
+                // Let's bind whatever comes if it's not 'unknown'.
+                if (deviceId !== 'unknown') {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: { boundDeviceId: deviceId }
+                    });
+                    console.log(`[Auth] Device bound for ${user.email}: ${deviceId}`);
+                }
+            }
+
             const activeSessions = await prisma.session.count({ where: { userId: user.id } });
 
             console.log(`[Auth] User ${email} has ${activeSessions} active session(s), maxDevices: ${user.maxDevices}`);
@@ -119,10 +153,12 @@ export const login = async (req: Request, res: Response) => {
             data: {
                 userId: user.id,
                 token,
-                deviceId: req.headers['user-agent'] || 'unknown',
+                deviceId: deviceId, // Use the resolved device ID
                 expiresAt
             }
         });
+
+        const loggedInUser = await prisma.user.findUnique({ where: { id: user.id } }); // Re-fetch to get boundDeviceId if just updated
 
         // Audit Log
         await prisma.auditLog.create({
