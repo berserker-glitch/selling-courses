@@ -10,14 +10,6 @@ const createCourseSchema = z.object({
     categoryId: z.string().uuid("Invalid Category ID") // Expect ID now
 });
 
-const lessonSchema = z.object({
-    title: z.string().min(3),
-    description: z.string().optional(),
-    videoId: z.string().optional(), // VDCipher video ID
-    duration: z.string().optional(),
-    chapterId: z.string().optional()
-});
-
 // --- Course Handlers ---
 
 export const getCourses = async (req: Request, res: Response) => {

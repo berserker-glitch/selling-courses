@@ -23,7 +23,7 @@ export const createContentBlock = async (req: Request, res: Response) => {
 
         // Verify lesson and ownership
         const lesson = await prisma.lesson.findUnique({
-            where: { id: lessonId },
+            where: { id: String(lessonId) },
             include: {
                 course: true
             }
@@ -38,11 +38,11 @@ export const createContentBlock = async (req: Request, res: Response) => {
 
         const data = createBlockSchema.parse(req.body);
 
-        const count = await prisma.contentBlock.count({ where: { lessonId } });
+        const count = await prisma.contentBlock.count({ where: { lessonId: String(lessonId) } });
 
         const block = await prisma.contentBlock.create({
             data: {
-                lessonId,
+                lessonId: String(lessonId),
                 type: data.type,
                 title: data.title,
                 content: data.content,
@@ -62,7 +62,7 @@ export const updateContentBlock = async (req: Request, res: Response) => {
         const user = (req as any).user;
 
         const block = await prisma.contentBlock.findUnique({
-            where: { id: blockId },
+            where: { id: String(blockId) },
             include: { lesson: { include: { course: true } } }
         }) as any;
 
@@ -75,7 +75,7 @@ export const updateContentBlock = async (req: Request, res: Response) => {
         const data = updateBlockSchema.parse(req.body);
 
         const updated = await prisma.contentBlock.update({
-            where: { id: blockId },
+            where: { id: String(blockId) },
             data
         });
 
@@ -91,7 +91,7 @@ export const deleteContentBlock = async (req: Request, res: Response) => {
         const user = (req as any).user;
 
         const block = await prisma.contentBlock.findUnique({
-            where: { id: blockId },
+            where: { id: String(blockId) },
             include: { lesson: { include: { course: true } } }
         }) as any;
 
@@ -101,7 +101,7 @@ export const deleteContentBlock = async (req: Request, res: Response) => {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
-        await prisma.contentBlock.delete({ where: { id: blockId } });
+        await prisma.contentBlock.delete({ where: { id: String(blockId) } });
 
         res.json({ message: 'Block deleted' });
     } catch (error: any) {
@@ -116,7 +116,7 @@ export const reorderContentBlocks = async (req: Request, res: Response) => {
         const { blocks } = req.body as { blocks: { id: string; order: number }[] };
 
         const lesson = await prisma.lesson.findUnique({
-            where: { id: lessonId },
+            where: { id: String(lessonId) },
             include: { course: true }
         }) as any;
 

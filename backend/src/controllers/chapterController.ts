@@ -16,7 +16,7 @@ export const createChapter = async (req: Request, res: Response) => {
         const { courseId } = req.params;
         const user = (req as any).user;
 
-        const course = await prisma.course.findUnique({ where: { id: courseId } });
+        const course = await prisma.course.findUnique({ where: { id: String(courseId) } });
         if (!course) return res.status(404).json({ message: 'Course not found' });
 
         if (course.teacherId !== user.id && user.role !== 'ADMIN') {
@@ -25,12 +25,12 @@ export const createChapter = async (req: Request, res: Response) => {
 
         const data = createChapterSchema.parse(req.body);
 
-        const count = await prisma.chapter.count({ where: { courseId } });
+        const count = await prisma.chapter.count({ where: { courseId: String(courseId) } });
 
         const chapter = await prisma.chapter.create({
             data: {
                 title: data.title,
-                courseId,
+                courseId: String(courseId),
                 order: count // 0-indexed based on count
             }
         });
@@ -47,7 +47,7 @@ export const updateChapter = async (req: Request, res: Response) => {
         const user = (req as any).user;
 
         const chapter = await prisma.chapter.findUnique({
-            where: { id: chapterId },
+            where: { id: String(chapterId) },
             include: { course: true }
         }) as any;
         if (!chapter) return res.status(404).json({ message: 'Chapter not found' });
@@ -59,7 +59,7 @@ export const updateChapter = async (req: Request, res: Response) => {
         const data = updateChapterSchema.parse(req.body);
 
         const updated = await prisma.chapter.update({
-            where: { id: chapterId },
+            where: { id: String(chapterId) },
             data
         });
 
@@ -75,7 +75,7 @@ export const deleteChapter = async (req: Request, res: Response) => {
         const user = (req as any).user;
 
         const chapter = await prisma.chapter.findUnique({
-            where: { id: chapterId },
+            where: { id: String(chapterId) },
             include: { course: true }
         }) as any;
         if (!chapter) return res.status(404).json({ message: 'Chapter not found' });
@@ -84,7 +84,7 @@ export const deleteChapter = async (req: Request, res: Response) => {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
-        await prisma.chapter.delete({ where: { id: chapterId } });
+        await prisma.chapter.delete({ where: { id: String(chapterId) } });
 
         res.json({ message: 'Chapter deleted' });
     } catch (error: any) {
@@ -98,7 +98,7 @@ export const reorderChapters = async (req: Request, res: Response) => {
         const user = (req as any).user;
         const { chapters } = req.body as { chapters: { id: string; order: number }[] };
 
-        const course = await prisma.course.findUnique({ where: { id: courseId } });
+        const course = await prisma.course.findUnique({ where: { id: String(courseId) } });
         if (!course) return res.status(404).json({ message: 'Course not found' });
 
         if (course.teacherId !== user.id && user.role !== 'ADMIN') {
