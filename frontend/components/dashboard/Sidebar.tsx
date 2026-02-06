@@ -9,7 +9,8 @@ import {
     IconPuzzle,
     IconLogout,
     IconSchool,
-    IconLayoutDashboard
+    IconLayoutDashboard,
+    IconMessages
 } from "@tabler/icons-react";
 import { api } from "@/lib/api";
 
@@ -68,6 +69,7 @@ export function Sidebar() {
                     Manage
                 </div>
                 <SidebarItem icon={<IconBook className="w-5 h-5" />} label="Courses" href="/courses" />
+                <SidebarItem icon={<IconMessages className="w-5 h-5" />} label="Messages" href="/messages" />
                 <SidebarItem icon={<IconUsers className="w-5 h-5" />} label="Students" href="/students" />
                 <div className="relative">
                     <SidebarItem icon={<IconPuzzle className="w-5 h-5" />} label="Quizzes" href="/quizzes" />

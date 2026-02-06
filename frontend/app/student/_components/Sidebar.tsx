@@ -6,7 +6,8 @@ import {
     IconLogout,
     IconSchool,
     IconLayoutDashboard,
-    IconUser
+    IconUser,
+    IconMessages
 } from "@tabler/icons-react";
 import { api } from "@/lib/api";
 import { useEffect, useState } from "react";
@@ -69,6 +70,7 @@ export function StudentSidebar() {
             {/* Nav */}
             <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                 <SidebarItem icon={<IconLayoutDashboard className="w-5 h-5" />} label="My Courses" href="/student" />
+                <SidebarItem icon={<IconMessages className="w-5 h-5" />} label="Messages" href="/student/messages" />
             </nav>
 
             {/* User & Footer */}

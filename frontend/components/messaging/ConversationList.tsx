@@ -1,9 +1,7 @@
 "use client";
 
 import React from "react";
-import { formatDistanceToNow } from "date-fns"; // Check if date-fns is installed
 import { api } from "@/lib/api";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Wait, avatar wasn't in list_dir
 
 interface Conversation {
     id: string;

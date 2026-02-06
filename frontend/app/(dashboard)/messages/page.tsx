@@ -6,8 +6,26 @@ import ConversationList from "@/components/messaging/ConversationList";
 import ChatWindow from "@/components/messaging/ChatWindow";
 import { Loader2 } from "lucide-react";
 
+interface Conversation {
+    id: string;
+    title: string | null;
+    updatedAt: string;
+    participants: {
+        user: {
+            id: string;
+            name: string;
+            email: string;
+            role: string;
+        };
+    }[];
+    messages: {
+        text: string;
+        createdAt: string;
+    }[];
+}
+
 export default function AdminMessagesPage() {
-    const [conversations, setConversations] = useState([]);
+    const [conversations, setConversations] = useState<Conversation[]>([]);
     const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [currentUser, setCurrentUser] = useState<any>(null);
