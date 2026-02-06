@@ -89,14 +89,13 @@ export const startConversationWithAdmin = async (req: Request, res: Response) =>
     try {
         const studentId = (req as any).user.id;
 
-        // Find an admin. In this simple case, we pick the first one.
-        // Scalability: We could distribute students among admins or have a shared queue.
-        const admin = await prisma.user.findFirst({
-            where: { role: 'ADMIN' }
+        // Find an admin or teacher. 
+        const staff = await prisma.user.findFirst({
+            where: { role: { in: ['ADMIN', 'TEACHER'] } }
         });
 
-        if (!admin) {
-            return res.status(404).json({ message: 'No admin available at the moment' });
+        if (!staff) {
+            return res.status(404).json({ message: 'No support staff available at the moment' });
         }
 
         // Check for existing 1:1 conversation between these specific users
@@ -105,7 +104,7 @@ export const startConversationWithAdmin = async (req: Request, res: Response) =>
             where: {
                 participants: {
                     every: {
-                        userId: { in: [studentId, admin.id] }
+                        userId: { in: [studentId, staff.id] }
                     }
                 }
             },
@@ -124,7 +123,7 @@ export const startConversationWithAdmin = async (req: Request, res: Response) =>
                 participants: {
                     create: [
                         { userId: studentId },
-                        { userId: admin.id }
+                        { userId: staff.id }
                     ]
                 }
             },
@@ -140,9 +139,19 @@ export const startConversationWithAdmin = async (req: Request, res: Response) =>
                             }
                         }
                     }
+                },
+                messages: {
+                    take: 1,
+                    orderBy: { createdAt: 'desc' }
                 }
             }
         });
+
+        // Broadcast new conversation to staff
+        const io = getIO();
+        if (io) {
+            io.emit('new-conversation', conversation);
+        }
 
         res.status(201).json(conversation);
     } catch (error: any) {
