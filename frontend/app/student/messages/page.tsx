@@ -42,38 +42,52 @@ export default function StudentMessagesPage() {
     }
 
     return (
-        <div className="p-6 max-w-5xl mx-auto h-full flex flex-col">
-            <div className="mb-6 flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-emerald-500 flex items-center gap-3">
-                        <MessageSquarePlus className="w-8 h-8" />
-                        Contact Admin
-                    </h1>
-                    <p className="text-muted-foreground">Send a message to our support team. We'll get back to you as soon as possible!</p>
-                </div>
+        <div className="flex flex-col h-screen overflow-hidden bg-background">
+            {/* Page Header */}
+            <div className="p-8 pb-4 shrink-0 max-w-5xl mx-auto w-full">
+                <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-3">
+                    <MessageSquarePlus className="w-8 h-8" />
+                    Support Chat
+                </h1>
+                <p className="text-muted-foreground mt-2">
+                    Need help? Our team is active and ready to assist you.
+                </p>
             </div>
 
-            <div className="flex-grow bg-card/20 backdrop-blur-md rounded-2xl border border-white/5 overflow-hidden shadow-2xl">
-                {conversation ? (
-                    <ChatWindow
-                        conversationId={conversation.id}
-                        currentUserId={currentUser?.id}
-                        title="Admin Support"
-                    />
-                ) : (
-                    <div className="flex flex-col items-center justify-center h-full p-12 text-center space-y-4">
-                        <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                            <MessageSquarePlus className="w-8 h-8 text-emerald-500" />
+            <div className="flex-grow flex p-8 pt-0 overflow-hidden max-w-5xl mx-auto w-full">
+                <div className="flex w-full bg-card/10 backdrop-blur-sm border rounded-2xl overflow-hidden shadow-2xl relative">
+                    {/* Decorative Background Element */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+
+                    {conversation ? (
+                        <div className="flex-grow flex flex-col min-w-0 bg-background/50 relative z-10">
+                            <ChatWindow
+                                conversationId={conversation.id}
+                                currentUserId={currentUser?.id}
+                                title="LMS Support Team"
+                            />
                         </div>
-                        <h2 className="text-xl font-semibold">Unable to connect</h2>
-                        <p className="text-muted-foreground max-w-xs mx-auto">
-                            We couldn't establish a connection to our support team. Please try refreshing the page.
-                        </p>
-                        <Button onClick={() => window.location.reload()} variant="outline" className="border-emerald-500/20">
-                            Retry Connection
-                        </Button>
-                    </div>
-                )}
+                    ) : (
+                        <div className="flex flex-col items-center justify-center w-full h-full p-12 text-center space-y-6 relative z-10">
+                            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner group">
+                                <MessageSquarePlus className="w-10 h-10 text-primary transition-transform group-hover:scale-110 duration-300" />
+                            </div>
+                            <div className="space-y-2">
+                                <h2 className="text-2xl font-bold tracking-tight">Unable to connect</h2>
+                                <p className="text-muted-foreground max-w-xs mx-auto">
+                                    We couldn't establish a connection to our support team. This might be a temporary network issue.
+                                </p>
+                            </div>
+                            <Button
+                                onClick={() => window.location.reload()}
+                                variant="outline"
+                                className="border-primary/20 hover:bg-primary/5 px-8 rounded-xl font-semibold"
+                            >
+                                Retry Connection
+                            </Button>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
