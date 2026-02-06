@@ -16,5 +16,5 @@ export const getOrCreateDeviceId = (): string => {
         localStorage.setItem(DEVICE_ID_KEY, deviceId);
     }
 
-    return deviceId;
+    return deviceId as string;
 };

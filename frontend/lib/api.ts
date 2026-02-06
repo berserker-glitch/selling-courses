@@ -12,7 +12,7 @@ async function fetchWithAuth(endpoint: string, options: RequestOptions = {}) {
 
     const headers: Record<string, string> = {
         "x-device-id": deviceId,
-        ...(options.headers || {}),
+        ...(options.headers || {}) as Record<string, string>,
     };
 
     if (!(options.body instanceof FormData)) {
