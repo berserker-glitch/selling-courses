@@ -155,10 +155,15 @@ export const createStudent = async (req: Request, res: Response) => {
             return res.status(403).json({ message: 'Only teachers can create student accounts' });
         }
 
-        const { name, email } = z.object({
+        const schema = z.object({
             name: z.string().min(2),
-            email: z.string().email()
-        }).parse(req.body);
+            email: z.string().email(),
+            phoneNumber: z.string().optional(),
+            password: z.string().optional(),
+            categoryId: z.string().optional()
+        });
+
+        const { name, email, phoneNumber, password: manualPassword, categoryId } = schema.parse(req.body);
 
         // Check if user exists
         const existing = await prisma.user.findUnique({ where: { email } });
@@ -166,9 +171,11 @@ export const createStudent = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'User with this email already exists' });
         }
 
-        // Generate Random Password
-        const password = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
-        // NOTE: Password intentionally not logged for security reasons
+        // Determine password (manual or generated)
+        let password = manualPassword;
+        if (!password || password.trim() === '') {
+            password = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+        }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -177,17 +184,21 @@ export const createStudent = async (req: Request, res: Response) => {
             data: {
                 name,
                 email,
+                phoneNumber,
                 password: hashedPassword,
-                role: 'STUDENT'
+                role: 'STUDENT',
+                // If categoryId is provided, connect it
+                enrolledCategories: categoryId ? {
+                    connect: { id: categoryId }
+                } : undefined
             }
         });
 
         // Send Email
+        // We always send the email with the password (either manual or generated)
         const emailSent = await sendStudentCredentials(email, name, password);
 
         if (!emailSent) {
-            // Email failed - instruct teacher to trigger password reset instead
-            // SECURITY: Never return passwords in API responses
             return res.status(201).json({
                 message: 'Student created but email failed to send. Please ask the student to use the "Forgot Password" feature.',
                 student: { id: student.id, email: student.email }
