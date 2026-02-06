@@ -24,6 +24,7 @@ import {
     DialogFooter
 } from "@/components/ui/dialog";
 import { Header } from "@/components/dashboard/Header";
+import { CourseBreadcrumb } from "@/components/dashboard/CourseBreadcrumb";
 
 // Types
 interface Course {
@@ -173,6 +174,12 @@ export default function CourseEditorPage() {
             <div className="flex flex-1 overflow-hidden">
                 {/* Main Content - Course Details */}
                 <main className="flex-1 overflow-y-auto p-8 border-r">
+                    <CourseBreadcrumb
+                        items={[
+                            { label: course?.title || "Loading..." }
+                        ]}
+                    />
+
                     <div className="flex justify-between items-center mb-6">
                         <h1 className="text-2xl font-bold">Course Details</h1>
                         <Button onClick={handleSaveCourse} disabled={saving}>

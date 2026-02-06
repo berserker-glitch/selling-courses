@@ -159,9 +159,15 @@ export default function LessonEditorPage() {
         <div className="min-h-screen flex flex-col bg-background">
             <Header />
             <div className="container mx-auto p-8 max-w-4xl">
+                <CourseBreadcrumb
+                    items={[
+                        { label: lesson?.course?.title || "Course", href: `/courses/${courseId}` },
+                        { label: lesson?.title || "Loading..." }
+                    ]}
+                />
+
                 <div className="flex justify-between items-center mb-8">
                     <div>
-                        <Button variant="ghost" className="mb-2 pl-0 hover:pl-0" onClick={() => router.back()}>&larr; Back to Course</Button>
                         <h1 className="text-3xl font-bold">{lesson.title}</h1>
                     </div>
                     <DropdownMenu>
