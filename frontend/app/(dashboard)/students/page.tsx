@@ -27,14 +27,9 @@ import {
     TableBody,
     TableCell,
     TableHead,
-import {
-        Table,
-        TableBody,
-        TableCell,
-        TableHead,
-        TableHeader,
-        TableRow,
-    } from "@/components/ui/table";
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { StudentDetailsSidebar } from "@/components/dashboard/StudentSidebar";
 
 interface Category {
@@ -130,22 +125,6 @@ export default function StudentsPage() {
 
     return (
         <div className="flex h-full">
-            {/* Sidebar Section */}
-            {selectedStudent && (
-                <div className="w-1/3 min-w-[320px] h-[calc(100vh-64px)] overflow-hidden border-r bg-background animate-in slide-in-from-left-10 duration-300">
-                    <StudentDetailsSidebar
-                        student={selectedStudent}
-                        onClose={() => setSelectedStudent(null)}
-                        onUpdate={() => {
-                            fetchStudents(); // Refresh list
-                            setSelectedStudent(null); // Close sidebar or keep open with updated data? Let's close for now or fetch updated data. 
-                            // Better UX: keep open. But let's start simple.
-                            // Actually, let's just close it or we'd need to re-fetch the specific student logic.
-                        }}
-                    />
-                </div>
-            )}
-
             {/* Main Content Section */}
             <div className="flex-1 p-8 h-[calc(100vh-64px)] overflow-auto transition-all duration-300">
                 <div className="flex items-center justify-between mb-6">
@@ -304,6 +283,20 @@ export default function StudentsPage() {
                     </Table>
                 </div>
             </div>
+
+            {/* Sidebar Section */}
+            {selectedStudent && (
+                <div className="w-1/3 min-w-[320px] h-[calc(100vh-64px)] overflow-hidden border-l bg-background animate-in slide-in-from-right-10 duration-300">
+                    <StudentDetailsSidebar
+                        student={selectedStudent}
+                        onClose={() => setSelectedStudent(null)}
+                        onUpdate={() => {
+                            fetchStudents(); // Refresh list
+                            setSelectedStudent(null);
+                        }}
+                    />
+                </div>
+            )}
         </div>
     );
 }
