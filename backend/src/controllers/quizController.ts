@@ -132,7 +132,8 @@ export const createQuiz = async (req: Request, res: Response) => {
         res.status(201).json(fullQuiz);
     } catch (error: any) {
         if (error instanceof z.ZodError) {
-            const issues = error.errors || (error as any).issues;
+            // ZodError has .issues, some versions have .errors. Safe access.
+            const issues = (error as any).issues || (error as any).errors;
             console.log('Validation Error:', issues);
             return res.status(400).json({ message: 'Validation error', errors: issues });
         }
@@ -147,7 +148,7 @@ export const updateQuiz = async (req: Request, res: Response) => {
         const quizId = Array.isArray(id) ? id[0] : id;
         const user = (req as any).user;
 
-        const quiz = await prisma.quiz.findUnique({ where: { id } });
+        const quiz = await prisma.quiz.findUnique({ where: { id: quizId } });
         if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
 
         if (quiz.teacherId !== user.id && user.role !== 'ADMIN') {
@@ -178,7 +179,7 @@ export const updateQuiz = async (req: Request, res: Response) => {
         if (data.questions) {
             await prisma.$transaction(async (tx) => {
                 // Delete existing questions (and cascade options)
-                await tx.question.deleteMany({ where: { quizId: id } });
+                await tx.question.deleteMany({ where: { quizId: quizId } });
 
                 // Re-create
                 for (let i = 0; i < data.questions!.length; i++) {

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Label } from "@/components/ui/label";
+
 import { Loader2, Plus, Trash, ArrowLeft } from "lucide-react";
 
 interface QuizEditorProps {
