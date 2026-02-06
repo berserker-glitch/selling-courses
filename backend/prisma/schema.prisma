@@ -15,6 +15,7 @@ model User {
   role      Role     @default(STUDENT)
   phoneNumber String?
   maxDevices Int     @default(1)  // Maximum concurrent sessions allowed for this user
+  boundDeviceId String? // Device ID this account is restricted to (for Students)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
