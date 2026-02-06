@@ -21,12 +21,6 @@ export function QuestionItem({ question, index, onUpdate, onRemove }: QuestionIt
         const newOptions = [...question.options];
         newOptions[oIndex] = { ...newOptions[oIndex], [field]: value };
 
-        // Logic for Single Choice / True False: Ensure only one is correct if checked
-        if (field === 'isCorrect' && value === true && (question.type === 'SINGLE_CHOICE' || question.type === 'TRUE_FALSE')) {
-            newOptions.forEach((opt, idx) => {
-                if (idx !== oIndex) opt.isCorrect = false;
-            });
-        }
 
         onUpdate('options', newOptions);
     };
@@ -81,12 +75,7 @@ export function QuestionItem({ question, index, onUpdate, onRemove }: QuestionIt
                                 let newOptions = question.options;
 
                                 // Default options for types
-                                if (newType === 'TRUE_FALSE') {
-                                    newOptions = [
-                                        { text: "True", isCorrect: true },
-                                        { text: "False", isCorrect: false }
-                                    ];
-                                } else if (!newOptions || newOptions.length === 0) {
+                                if (!newOptions || newOptions.length === 0) {
                                     newOptions = [
                                         { text: "Option 1", isCorrect: false },
                                         { text: "Option 2", isCorrect: false }
@@ -97,9 +86,7 @@ export function QuestionItem({ question, index, onUpdate, onRemove }: QuestionIt
                                 onUpdate('options', newOptions);
                             }}
                         >
-                            <option value="MULTIPLE_CHOICE">Multiple Choice (Select All)</option>
-                            <option value="SINGLE_CHOICE">Single Choice</option>
-                            <option value="TRUE_FALSE">True / False</option>
+                            <option value="MULTIPLE_CHOICE">Choice</option>
                             <option value="TEXT">Short Answer</option>
                         </select>
                     </div>
@@ -113,10 +100,8 @@ export function QuestionItem({ question, index, onUpdate, onRemove }: QuestionIt
                         {question.options?.map((option, oIndex) => (
                             <div key={oIndex} className="flex items-center gap-3">
                                 <div className="flex-shrink-0 pt-1">
-                                    {/* Visual distinction for checkbox vs radio behavior */}
                                     <input
-                                        type={question.type === 'MULTIPLE_CHOICE' ? "checkbox" : "radio"}
-                                        name={`params-q-${index}`} // simplistic grouping for radio
+                                        type="checkbox"
                                         checked={option.isCorrect}
                                         onChange={(e) => updateOption(oIndex, "isCorrect", e.target.checked)}
                                         className="w-4 h-4 accent-primary cursor-pointer"
@@ -127,27 +112,19 @@ export function QuestionItem({ question, index, onUpdate, onRemove }: QuestionIt
                                     onChange={(e) => updateOption(oIndex, "text", e.target.value)}
                                     className="flex-1"
                                     placeholder={`Option ${oIndex + 1}`}
-                                    readOnly={question.type === 'TRUE_FALSE'} // T/F text is fixed usually? Or let them edit? existing apps usually lock it but let's lock for simplicity.
-                                    disabled={question.type === 'TRUE_FALSE'}
                                 />
-                                {question.type !== 'TRUE_FALSE' && (
-                                    <Button variant="ghost" size="icon" onClick={() => removeOption(oIndex)}>
-                                        <Trash className="w-4 h-4 text-muted-foreground hover:text-destructive" />
-                                    </Button>
-                                )}
+                                <Button variant="ghost" size="icon" onClick={() => removeOption(oIndex)}>
+                                    <Trash className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                                </Button>
                             </div>
                         ))}
 
-                        {question.type !== 'TRUE_FALSE' && (
-                            <Button variant="ghost" size="sm" onClick={addOption} className="mt-2 text-muted-foreground hover:text-foreground">
-                                <Plus className="w-3 h-3 mr-2" /> Add Option
-                            </Button>
-                        )}
+                        <Button variant="ghost" size="sm" onClick={addOption} className="mt-2 text-muted-foreground hover:text-foreground">
+                            <Plus className="w-3 h-3 mr-2" /> Add Option
+                        </Button>
 
                         <div className="text-xs text-muted-foreground mt-2">
-                            {question.type === 'MULTIPLE_CHOICE' && "Students must select ALL correct options."}
-                            {question.type === 'SINGLE_CHOICE' && "Students must select the ONE correct option."}
-                            {question.type === 'TRUE_FALSE' && "Select the correct statement."}
+                            Select the checkbox next to the correct answer(s).
                         </div>
                     </div>
                 )}

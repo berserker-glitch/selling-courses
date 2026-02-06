@@ -45,7 +45,10 @@ export default function QuizList() {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold tracking-tight">Quizzes</h2>
+                <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-bold tracking-tight">Quizzes</h2>
+                    <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-yellow-200">Beta</span>
+                </div>
                 <Button onClick={() => router.push("/quizzes/new")}>
                     <Plus className="mr-2 h-4 w-4" /> New Quiz
                 </Button>

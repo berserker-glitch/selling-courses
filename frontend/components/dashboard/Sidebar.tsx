@@ -69,7 +69,10 @@ export function Sidebar() {
                 </div>
                 <SidebarItem icon={<IconBook className="w-5 h-5" />} label="Courses" href="/courses" />
                 <SidebarItem icon={<IconUsers className="w-5 h-5" />} label="Students" href="/students" />
-                <SidebarItem icon={<IconPuzzle className="w-5 h-5" />} label="Quizzes" href="/quizzes" />
+                <div className="relative">
+                    <SidebarItem icon={<IconPuzzle className="w-5 h-5" />} label="Quizzes" href="/quizzes" />
+                    <span className="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-500/20 text-yellow-600 text-[10px] font-bold px-1.5 py-0.5 rounded border border-yellow-500/30">BETA</span>
+                </div>
 
                 <div className="pt-4 pb-2 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     System

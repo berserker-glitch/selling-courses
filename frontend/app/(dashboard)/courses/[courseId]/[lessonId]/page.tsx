@@ -219,7 +219,7 @@ export default function LessonEditorPage() {
                                             <DropdownMenuContent>
                                                 <DropdownMenuItem onClick={() => addBlock('TEXT')}><Type className="mr-2 h-4 w-4" /> Text</DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => addBlock('VIDEO')}><Video className="mr-2 h-4 w-4" /> Video</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => addBlock('QUIZ')}><HelpCircle className="mr-2 h-4 w-4" /> Quiz</DropdownMenuItem>
+                                                {/* <DropdownMenuItem onClick={() => addBlock('QUIZ')}><HelpCircle className="mr-2 h-4 w-4" /> Quiz</DropdownMenuItem> */}
                                                 <DropdownMenuItem onClick={() => addBlock('DOCUMENT')}><FileText className="mr-2 h-4 w-4" /> Document</DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
