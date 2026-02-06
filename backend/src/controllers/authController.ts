@@ -234,6 +234,7 @@ export const getUsers = async (req: Request, res: Response) => {
                 id: true,
                 name: true,
                 email: true,
+                phoneNumber: true,
                 role: true,
                 maxDevices: true, // Include device limit in user list
                 createdAt: true,
