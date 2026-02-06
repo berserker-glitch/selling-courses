@@ -4,10 +4,14 @@ type RequestOptions = RequestInit & {
     headers?: Record<string, string>;
 };
 
+import { getOrCreateDeviceId } from "@/lib/device";
+
 async function fetchWithAuth(endpoint: string, options: RequestOptions = {}) {
     const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+    const deviceId = getOrCreateDeviceId();
 
     const headers: Record<string, string> = {
+        "x-device-id": deviceId,
         ...(options.headers || {}),
     };
 
