@@ -69,9 +69,17 @@ export const getVideoOTP = async (req: Request, res: Response) => {
                     text: `${user.name} - ${user.email}${user.phoneNumber ? ` - ${user.phoneNumber}` : ''}`,
                     alpha: '0.60', // Slightly transparent
                     color: '0xFFFFFF', // White
-                    size: '15', // Readable size
-                    interval: '5000', // Move every 5 seconds
+                    size: '15',
+                    interval: '5000',
                     skip: '2000' // Initial delay
+                }, {
+                    type: 'text', // Static text (Persistent on pause)
+                    text: `${user.name} - ${user.phoneNumber || user.email}`,
+                    alpha: '0.35', // Lower alpha for static text
+                    color: '0xFFFFFF',
+                    size: '12',
+                    x: '10', // Top left corner
+                    y: '10'
                 }])
             })
         });
@@ -106,8 +114,11 @@ export const getVideoOTP = async (req: Request, res: Response) => {
         });
 
     } catch (error: any) {
-        console.error('[VDCipher] OTP Error:', error.message);
-        res.status(500).json({ message: 'Error generating video access token' });
+        console.error('[VDCipher] OTP Critical Error:', error);
+        res.status(500).json({
+            message: 'Error generating video access token',
+            details: error.message
+        });
     }
 };
 
