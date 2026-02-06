@@ -374,7 +374,7 @@ function SortableBlock({ block, onUpdate, onDelete, quizzes, onUpload }: { block
                                         {block.content.mimetype?.startsWith('image/') ? (
                                             <div className="w-12 h-12 rounded border overflow-hidden flex-shrink-0">
                                                 <img
-                                                    src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000'}${block.content.fileUrl}`}
+                                                    src={`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000').replace('/api', '')}${block.content.fileUrl}`}
                                                     alt="Preview"
                                                     className="w-full h-full object-cover"
                                                 />

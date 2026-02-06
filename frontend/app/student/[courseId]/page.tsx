@@ -342,7 +342,7 @@ export default function CoursePlayerPage() {
                                             const fileUrl = block.content?.fileUrl;
                                             const isImage = block.content?.mimetype?.startsWith('image/');
                                             const fileName = block.content?.fileName || "Document";
-                                            const fullUrl = `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000'}${fileUrl}`;
+                                            const fullUrl = `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000').replace('/api', '')}${fileUrl}`;
 
                                             if (!fileUrl) return null;
 
