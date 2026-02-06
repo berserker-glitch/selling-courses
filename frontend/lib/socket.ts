@@ -4,11 +4,20 @@ const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || "http
 
 let socket: Socket | null = null;
 
+const getAuthToken = () => {
+    if (typeof window !== "undefined") {
+        return localStorage.getItem("token");
+    }
+    return null;
+};
+
 export const getSocket = (token?: string): Socket => {
+    const currentToken = token || getAuthToken();
+
     if (!socket && typeof window !== "undefined") {
         socket = io(SOCKET_URL, {
             auth: {
-                token: token || localStorage.getItem("token"),
+                token: currentToken,
             },
             transports: ["websocket"],
             reconnection: true,
@@ -28,8 +37,9 @@ export const getSocket = (token?: string): Socket => {
     }
 
     // Update token if provided and socket exists but might have old auth
-    if (socket && token && (socket as any).auth?.token !== token) {
-        (socket as any).auth.token = token;
+    if (socket && currentToken && (socket as any).auth?.token !== currentToken) {
+        console.log("[Socket] Updating token and reconnecting...");
+        (socket as any).auth.token = currentToken;
         socket.disconnect().connect();
     }
 

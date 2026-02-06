@@ -13,15 +13,8 @@ export const getConversations = async (req: Request, res: Response) => {
         let conversations;
 
         if (userRole === 'ADMIN' || userRole === 'TEACHER') {
-            // Staff see all conversations that involve at least one student
+            // Staff see all conversations
             conversations = await prisma.conversation.findMany({
-                where: {
-                    participants: {
-                        some: {
-                            user: { role: 'STUDENT' }
-                        }
-                    }
-                },
                 include: {
                     participants: {
                         include: {
@@ -86,14 +79,19 @@ export const getMessages = async (req: Request, res: Response) => {
     try {
         const conversationId = req.params.conversationId as string;
         const userId = (req as any).user.id;
+        const userRole = (req as any).user.role;
 
-        // Verify participation
-        const participant = await prisma.participant.findFirst({
-            where: { conversationId, userId }
-        });
+        // Verify participation OR staff status
+        const isStaff = userRole === 'ADMIN' || userRole === 'TEACHER';
 
-        if (!participant) {
-            return res.status(403).json({ message: 'Not authorized to view this conversation' });
+        if (!isStaff) {
+            const participant = await prisma.participant.findFirst({
+                where: { conversationId: conversationId as string, userId }
+            });
+
+            if (!participant) {
+                return res.status(403).json({ message: 'Not authorized to view this conversation' });
+            }
         }
 
         const messages = await prisma.message.findMany({

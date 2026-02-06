@@ -63,7 +63,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId, currentUserId, 
             // Listen for new messages
             socket.on("new-message", (message: Message) => {
                 console.log("[ChatWindow] Received new-message:", message);
-                setMessages((prev) => [...prev, message]);
+
+                setMessages((prev) => {
+                    // Check if message already exists (optimistic update)
+                    if (prev.find(m => m.id === message.id || (m.text === message.text && m.senderId === message.senderId && Math.abs(new Date(m.createdAt).getTime() - new Date(message.createdAt).getTime()) < 2000))) {
+                        return prev.map(m => m.id.length < 10 && m.text === message.text ? message : m);
+                    }
+                    return [...prev, message];
+                });
 
                 // Custom event to notify the parent list that a message arrived
                 // (This is simple way to communicate between siblings in this context)
@@ -97,6 +104,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId, currentUserId, 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessage.trim() || isSending) return;
+
+        const tempId = Date.now().toString();
+        const optimisticMessage: Message = {
+            id: tempId,
+            text: newMessage,
+            senderId: currentUserId,
+            conversationId,
+            createdAt: new Date().toISOString(),
+            sender: {
+                id: currentUserId,
+                name: "You",
+                role: "USER"
+            }
+        };
+
+        // UI Optimistic Update
+        console.log("[ChatWindow] Optimistically adding message:", optimisticMessage);
+        setMessages(prev => [...prev, optimisticMessage]);
 
         // Send via socket
         console.log("[ChatWindow] Emitting send-message:", { conversationId, text: newMessage });
