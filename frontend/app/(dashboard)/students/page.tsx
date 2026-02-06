@@ -22,6 +22,14 @@ import {
 } from "@/components/ui/select";
 import { IconPlus, IconLoader2 } from "@tabler/icons-react";
 import { api } from "@/lib/api";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 
 interface Category {
     id: string;
@@ -85,12 +93,31 @@ export default function StudentsPage() {
                 categoryId: "",
                 password: "",
             });
+            fetchStudents(); // Refresh list
         } catch (error: any) {
             alert(error.response?.data?.message || "Failed to create student");
         } finally {
             setLoading(false);
         }
     };
+
+    // Students List State
+    const [students, setStudents] = useState<any[]>([]);
+
+    useEffect(() => {
+        fetchStudents();
+    }, []);
+
+    const fetchStudents = async () => {
+        try {
+            const data = await api.get('/auth/users?role=STUDENT');
+            setStudents(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("Failed to fetch students", error);
+        }
+    };
+
+    console.log("Students state:", students); // Debugging
 
     return (
         <div className="p-8">
@@ -115,6 +142,7 @@ export default function StudentsPage() {
                                 </DialogDescription>
                             </DialogHeader>
                             <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+                                {/* Form fields remain unchanged */}
                                 <div className="grid gap-2">
                                     <Label htmlFor="name">Full Name</Label>
                                     <Input
@@ -205,6 +233,44 @@ export default function StudentsPage() {
                         </DialogContent>
                     </Dialog>
                 </div>
+            </div>
+
+            <div className="border rounded-md">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Category</TableHead>
+                            <TableHead>Max Devices</TableHead>
+                            <TableHead>Joined</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {students.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                                    No students found. Add one to get started.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            students.map((student) => (
+                                <TableRow key={student.id}>
+                                    <TableCell className="font-medium">{student.name}</TableCell>
+                                    <TableCell>{student.email}</TableCell>
+                                    <TableCell>
+                                        {student.enrolledCategories && student.enrolledCategories.length > 0
+                                            ? categories.find(c => c.id === student.enrolledCategories[0]?.id)?.name || "Unknown"
+                                            : "None"
+                                        }
+                                    </TableCell>
+                                    <TableCell>{student.maxDevices}</TableCell>
+                                    <TableCell>{new Date(student.createdAt).toLocaleDateString()}</TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
             </div>
         </div>
     );
