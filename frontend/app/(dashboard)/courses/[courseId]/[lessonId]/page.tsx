@@ -35,6 +35,14 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { quizService, Quiz } from "@/lib/services/quizService";
 
 interface ContentBlock {
     id: string;
@@ -51,6 +59,7 @@ export default function LessonEditorPage() {
 
     const [lesson, setLesson] = useState<any>(null);
     const [blocks, setBlocks] = useState<ContentBlock[]>([]);
+    const [quizzes, setQuizzes] = useState<Quiz[]>([]);
     const [loading, setLoading] = useState(true);
 
     const sensors = useSensors(
@@ -70,6 +79,14 @@ export default function LessonEditorPage() {
         try {
             const courseData = await api.get(`/courses/${courseId}`);
             setCourse(courseData);
+
+            // Fetch quizzes
+            try {
+                const quizzesData = await quizService.getAll();
+                setQuizzes(quizzesData);
+            } catch (e) {
+                console.error("Failed to fetch quizzes", e);
+            }
 
             // Find lesson
             let foundLesson = null;
@@ -225,6 +242,7 @@ export default function LessonEditorPage() {
                                                     block={block}
                                                     onUpdate={updateBlock}
                                                     onDelete={deleteBlock}
+                                                    quizzes={quizzes}
                                                 />
                                             ))}
                                         </div>
@@ -255,7 +273,7 @@ export default function LessonEditorPage() {
     );
 }
 
-function SortableBlock({ block, onUpdate, onDelete }: { block: ContentBlock, onUpdate: any, onDelete: any }) {
+function SortableBlock({ block, onUpdate, onDelete, quizzes }: { block: ContentBlock, onUpdate: any, onDelete: any, quizzes?: Quiz[] }) {
     const {
         attributes,
         listeners,
@@ -306,7 +324,29 @@ function SortableBlock({ block, onUpdate, onDelete }: { block: ContentBlock, onU
                     )}
 
                     {/* Placeholder for other types */}
-                    {(block.type === 'QUIZ') && <div className="p-4 bg-muted rounded text-center">Quiz Editor Placeholder</div>}
+                    {(block.type === 'QUIZ') && (
+                        <div className="space-y-2 border p-4 rounded-md bg-muted/20">
+                            <Label>Select Quiz</Label>
+                            <Select
+                                value={block.content?.quizId || ""}
+                                onValueChange={(value) => onUpdate(block.id, { content: { ...block.content, quizId: value } })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a quiz..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {quizzes?.map((quiz) => (
+                                        <SelectItem key={quiz.id} value={quiz.id}>
+                                            {quiz.title} ({quiz._count?.questions || 0} questions)
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <div className="text-xs text-muted-foreground mt-1">
+                                Only published quizzes are shown.
+                            </div>
+                        </div>
+                    )}
                     {(block.type === 'DOCUMENT') && <div className="p-4 bg-muted rounded text-center">Document Upload Placeholder</div>}
                 </div>
             </CardContent>

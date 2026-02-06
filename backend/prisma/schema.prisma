@@ -28,6 +28,7 @@ model User {
   lessonProgress LessonProgress[]
   comments    Comment[]
   courses     Course[]     @relation("TeacherCourses")
+  quizzes     Quiz[]       @relation("TeacherQuizzes")
 }
 
 model Category {
@@ -114,12 +115,58 @@ enum ContentBlockType {
   DOCUMENT
 }
 
+model Quiz {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  teacherId   String
+  teacher     User     @relation("TeacherQuizzes", fields: [teacherId], references: [id])
+  
+  questions   Question[]
+  contentBlocks ContentBlock[] // A quiz can be used in multiple content blocks (reusable)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Question {
+  id          String   @id @default(uuid())
+  quizId      String
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  
+  text        String   @db.Text
+  type        QuestionType @default(MULTIPLE_CHOICE)
+  
+  options     QuestionOption[]
+  
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TEXT
+}
+
+model QuestionOption {
+  id          String   @id @default(uuid())
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  text        String
+  isCorrect   Boolean  @default(false)
+}
+
 model ContentBlock {
   id          String   @id @default(uuid())
   lessonId    String
   type        ContentBlockType
   title       String?
   content     Json?    // Flexible content: { html: "...", videoId: "...", quizId: "...", fileUrl: "..." }
+  quizId      String?
+  quiz        Quiz?    @relation(fields: [quizId], references: [id])
+  
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
