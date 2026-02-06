@@ -1,6 +1,6 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { register, login, logout, getMe, createStudent, getUsers, enrollStudentInCategory, forgotPassword, resetPassword, updateDeviceLimit, validateSession } from '../controllers/authController';
+import { register, login, logout, getMe, createStudent, getUsers, enrollStudentInCategory, forgotPassword, resetPassword, updateDeviceLimit, validateSession, updateStudent } from '../controllers/authController';
 import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
@@ -30,6 +30,7 @@ router.post('/logout', protect, logout);
 router.get('/validate-session', protect, validateSession); // Heartbeat endpoint for real-time session validation
 router.post('/create-student', protect, createStudent);
 router.get('/users', protect, getUsers);
+router.put('/users/:id', protect, updateStudent); // Update student details
 router.post('/enroll-category', protect, enrollStudentInCategory);
 router.put('/users/:userId/device-limit', protect, updateDeviceLimit); // Teacher sets student device limit
 

@@ -483,3 +483,45 @@ export const logout = async (req: Request, res: Response) => {
     }
 };
 
+// --- Update Student ---
+
+export const updateStudent = async (req: Request, res: Response) => {
+    try {
+        const requestingUser = (req as any).user;
+        if (!['TEACHER', 'ADMIN'].includes(requestingUser.role)) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        const id = req.params.id as string;
+        const schema = z.object({
+            name: z.string().min(2).optional(),
+            email: z.string().email().optional(),
+            phoneNumber: z.string().optional(),
+        });
+
+        const data = schema.parse(req.body);
+
+        // Check email uniqueness if email is being updated
+        if (data.email) {
+            const existing = await prisma.user.findFirst({
+                where: {
+                    email: data.email,
+                    NOT: { id }
+                }
+            });
+            if (existing) {
+                return res.status(400).json({ message: 'Email already in use' });
+            }
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id },
+            data,
+            select: { id: true, name: true, email: true, phoneNumber: true, enrolledCategories: true }
+        });
+
+        res.json(updatedUser);
+    } catch (error: any) {
+        res.status(400).json({ message: error.message || 'Error updating student' });
+    }
+};
