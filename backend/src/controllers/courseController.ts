@@ -64,11 +64,26 @@ export const getCourseById = async (req: Request, res: Response) => {
         const { id } = req.params as { id: string };
         const user = (req as any).user;
 
-        // Fetch course with lessons
+        // Fetch course with lessons and new structure
         const course = await prisma.course.findUnique({
             where: { id },
             include: {
-                lessons: { orderBy: { order: 'asc' } },
+                chapters: {
+                    orderBy: { order: 'asc' },
+                    include: {
+                        lessons: {
+                            orderBy: { order: 'asc' },
+                            include: {
+                                contentBlocks: { orderBy: { order: 'asc' } } // Optional: include basics
+                            }
+                        }
+                    }
+                },
+                // Keep direct lessons for backward compatibility or mixed mode
+                lessons: {
+                    where: { chapterId: null }, // Only get lessons not in chapters
+                    orderBy: { order: 'asc' }
+                },
                 teacher: { select: { name: true } },
                 category: true,
                 _count: { select: { enrollments: true } }
@@ -81,10 +96,15 @@ export const getCourseById = async (req: Request, res: Response) => {
 
         // If user is authenticated, fetch their progress for each lesson
         if (user?.id) {
+            // Collect all lesson IDs from chapters and direct lessons
+            const chapterLessonIds = course.chapters.flatMap(c => c.lessons.map(l => l.id));
+            const directLessonIds = course.lessons.map(l => l.id);
+            const allLessonIds = [...chapterLessonIds, ...directLessonIds];
+
             const lessonProgress = await prisma.lessonProgress.findMany({
                 where: {
                     userId: user.id,
-                    lessonId: { in: course.lessons.map(l => l.id) }
+                    lessonId: { in: allLessonIds }
                 }
             });
 
@@ -93,7 +113,20 @@ export const getCourseById = async (req: Request, res: Response) => {
                 lessonProgress.map(lp => [lp.lessonId, { completed: lp.completed, lastPosition: lp.lastPosition }])
             );
 
-            // Merge progress into lessons
+            // Hydrate chapters with progress
+            const chaptersWithProgress = course.chapters.map(chapter => ({
+                ...chapter,
+                lessons: chapter.lessons.map(lesson => {
+                    const prog = progressMap.get(lesson.id);
+                    return {
+                        ...lesson,
+                        completed: prog?.completed || false,
+                        lastPosition: prog?.lastPosition || 0
+                    };
+                })
+            }));
+
+            // Hydrate direct lessons
             const lessonsWithProgress = course.lessons.map(lesson => {
                 const prog = progressMap.get(lesson.id);
                 return {
@@ -112,7 +145,8 @@ export const getCourseById = async (req: Request, res: Response) => {
 
             return res.json({
                 ...course,
-                lessons: lessonsWithProgress,
+                chapters: chaptersWithProgress,
+                lessons: lessonsWithProgress, // Direct lessons only
                 progress: enrollment?.progress || 0
             });
         }
