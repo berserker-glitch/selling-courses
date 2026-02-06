@@ -14,15 +14,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Plus, GripVertical, Trash2, Pencil } from "lucide-react";
-import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    DialogTrigger,
-    DialogHeader,
-    DialogFooter
-} from "@/components/ui/dialog";
+
+
 import { Header } from "@/components/dashboard/Header";
 import { CourseBreadcrumb } from "@/components/dashboard/CourseBreadcrumb";
 import { CurriculumSidebar } from "@/components/dashboard/CurriculumSidebar";
