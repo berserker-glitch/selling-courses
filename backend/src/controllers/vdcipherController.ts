@@ -64,23 +64,44 @@ export const getVideoOTP = async (req: Request, res: Response) => {
                 // Minimal request - no annotations to avoid potential issues
                 ttl: 300, // OTP valid for 5 minutes
                 // Dynamic Watermark (Anti-piracy)
-                annotate: JSON.stringify([{
-                    type: 'rtext', // Moving text
-                    text: `${user.name} - ${user.email}${user.phoneNumber ? ` - ${user.phoneNumber}` : ''}`,
-                    alpha: '0.60', // Slightly transparent
-                    color: '0xFFFFFF', // White
-                    size: '15',
-                    interval: '5000',
-                    skip: '2000' // Initial delay
-                }, {
-                    type: 'text', // Static text (Persistent on pause)
-                    text: `${user.name} - ${user.phoneNumber || user.email}`,
-                    alpha: '0.35', // Lower alpha for static text
-                    color: '0xFFFFFF',
-                    size: '12',
-                    x: '10', // Top left corner
-                    y: '10'
-                }])
+                annotate: JSON.stringify([
+                    {
+                        type: 'rtext', // Name
+                        text: user.name,
+                        alpha: '0.40',
+                        color: '0xFFFFFF',
+                        size: '12',
+                        interval: '5000',
+                        skip: '0'
+                    },
+                    {
+                        type: 'rtext', // Email
+                        text: user.email,
+                        alpha: '0.40',
+                        color: '0xFFFFFF',
+                        size: '12',
+                        interval: '7000',
+                        skip: '2000'
+                    },
+                    ...(user.phoneNumber ? [{
+                        type: 'rtext', // Phone
+                        text: user.phoneNumber,
+                        alpha: '0.40',
+                        color: '0xFFFFFF',
+                        size: '12',
+                        interval: '9000',
+                        skip: '4000'
+                    }] : []),
+                    {
+                        type: 'text', // Static fallback
+                        text: `${user.name} - ${user.phoneNumber || user.email}`,
+                        alpha: '0.20',
+                        color: '0xFFFFFF',
+                        size: '10',
+                        x: '10',
+                        y: '10'
+                    }
+                ])
             })
         });
 
