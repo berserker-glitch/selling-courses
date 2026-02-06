@@ -45,11 +45,23 @@ export const api = {
     get: (endpoint: string, options?: RequestOptions) =>
         fetchWithAuth(endpoint, { ...options, method: "GET" }),
 
-    post: (endpoint: string, body: any, options?: RequestOptions) =>
-        fetchWithAuth(endpoint, { ...options, method: "POST", body: JSON.stringify(body) }),
+    post: (endpoint: string, body: any, options?: RequestOptions) => {
+        const isFormData = body instanceof FormData;
+        return fetchWithAuth(endpoint, {
+            ...options,
+            method: "POST",
+            body: isFormData ? body : JSON.stringify(body)
+        });
+    },
 
-    put: (endpoint: string, body: any, options?: RequestOptions) =>
-        fetchWithAuth(endpoint, { ...options, method: "PUT", body: JSON.stringify(body) }),
+    put: (endpoint: string, body: any, options?: RequestOptions) => {
+        const isFormData = body instanceof FormData;
+        return fetchWithAuth(endpoint, {
+            ...options,
+            method: "PUT",
+            body: isFormData ? body : JSON.stringify(body)
+        });
+    },
 
     delete: (endpoint: string, options?: RequestOptions) =>
         fetchWithAuth(endpoint, { ...options, method: "DELETE" }),

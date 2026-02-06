@@ -31,7 +31,9 @@ const allowedOrigins = [
     'http://192.168.1.102:5173'
 ];
 
-app.use(helmet());
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(cors({
     origin: (origin, callback) => {
         // Allow requests with no origin (like mobile apps or curl requests)

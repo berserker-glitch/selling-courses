@@ -11,8 +11,11 @@ import {
     IconPlayerPlay,
     IconMenu2,
     IconX,
-    IconLock
+    IconLock,
+    IconFileText,
+    IconDownload
 } from "@tabler/icons-react";
+import { HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import VideoPlayer from "@/components/course/VideoPlayer";
@@ -330,6 +333,74 @@ export default function CoursePlayerPage() {
                                                         courseId={courseId}
                                                         lessonId={activeLesson.id}
                                                     />
+                                                </div>
+                                            );
+                                        }
+
+                                        if (block.type === 'DOCUMENT') {
+                                            const fileUrl = block.content?.fileUrl;
+                                            const isImage = block.content?.mimetype?.startsWith('image/');
+                                            const fileName = block.content?.fileName || "Document";
+                                            const fullUrl = `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000'}${fileUrl}`;
+
+                                            if (!fileUrl) return null;
+
+                                            return (
+                                                <div key={block.id} className="w-full">
+                                                    {isImage ? (
+                                                        <div className="rounded-xl overflow-hidden border shadow-sm bg-background">
+                                                            <img
+                                                                src={fullUrl}
+                                                                alt={fileName}
+                                                                className="w-full h-auto max-h-[600px] object-contain mx-auto"
+                                                                loading="lazy"
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center justify-between p-4 bg-background border rounded-xl shadow-sm hover:border-primary/50 transition-colors group">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="bg-primary/10 p-3 rounded-lg text-primary">
+                                                                    <IconFileText className="w-6 h-6" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-semibold text-foreground">{fileName}</p>
+                                                                    <p className="text-xs text-muted-foreground uppercase">PDF DOCUMENT</p>
+                                                                </div>
+                                                            </div>
+                                                            <Button
+                                                                variant="outline"
+                                                                onClick={() => window.open(fullUrl, '_blank')}
+                                                                className="gap-2"
+                                                            >
+                                                                <IconDownload className="w-4 h-4" />
+                                                                Download
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        }
+
+                                        if (block.type === 'QUIZ') {
+                                            return (
+                                                <div key={block.id} className="p-8 bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-2xl flex flex-col items-center text-center gap-4 shadow-sm">
+                                                    <div className="bg-primary p-4 rounded-full text-white shadow-lg">
+                                                        <HelpCircle className="w-8 h-8" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-xl font-bold text-foreground">Lesson Quiz Available</h3>
+                                                        <p className="text-muted-foreground mt-1 max-w-md">Test your knowledge on this lesson with a quick quiz.</p>
+                                                    </div>
+                                                    <Button
+                                                        size="lg"
+                                                        className="font-bold px-8 shadow-md"
+                                                        onClick={() => {
+                                                            // For now simple alert, or we could navigate
+                                                            alert("Quiz player coming soon in Beta!");
+                                                        }}
+                                                    >
+                                                        Take the Quiz
+                                                    </Button>
                                                 </div>
                                             );
                                         }
