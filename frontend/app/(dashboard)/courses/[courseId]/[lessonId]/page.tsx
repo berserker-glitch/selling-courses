@@ -49,7 +49,16 @@ export default function LessonEditorPage() {
     const router = useRouter();
     const [course, setCourse] = useState<any>(null);
 
-    // ... (keep sensors)
+    const [lesson, setLesson] = useState<any>(null);
+    const [blocks, setBlocks] = useState<ContentBlock[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     useEffect(() => {
         if (courseId) {
@@ -85,7 +94,56 @@ export default function LessonEditorPage() {
         }
     };
 
-    // ... (keep handlers: handleDragEnd, addBlock, etc.)
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            setBlocks((items) => {
+                const oldIndex = items.findIndex((i) => i.id === active.id);
+                const newIndex = items.findIndex((i) => i.id === over.id);
+                const newItems = arrayMove(items, oldIndex, newIndex);
+
+                // Save order
+                const updates = newItems.map((item, index) => ({ id: item.id, order: index }));
+                api.put(`/lessons/${lessonId}/blocks/reorder`, { blocks: updates }).catch(console.error);
+
+                return newItems;
+            });
+        }
+    };
+
+    const addBlock = async (type: ContentBlock['type']) => {
+        try {
+            const newBlock = await api.post(`/lessons/${lessonId}/blocks`, {
+                type,
+                title: type === 'TEXT' ? 'Text Content' : `New ${type}`,
+                content: {}
+            });
+            setBlocks([...blocks, newBlock]);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const updateBlock = async (id: string, data: Partial<ContentBlock>) => {
+        // Optimistic update
+        setBlocks(blocks.map(b => b.id === id ? { ...b, ...data } : b));
+        try {
+            await api.put(`/blocks/${id}`, data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const deleteBlock = async (id: string) => {
+        if (!confirm("Are you sure?")) return;
+        try {
+            await api.delete(`/blocks/${id}`);
+            setBlocks(blocks.filter(b => b.id !== id));
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     if (loading) return <div>Loading...</div>;
     // if (!lesson) return <div>Lesson not found</div>; // Allow render if course loads but lesson is switching
@@ -96,7 +154,7 @@ export default function LessonEditorPage() {
             <div className="flex flex-1 overflow-hidden">
                 {/* Main Content - Lesson Editor */}
                 <main className="flex-1 overflow-y-auto p-8 border-r bg-background">
-                    <div className="max-w-4xl mx-auto">
+                    <div className="max-w-3xl">
                         <CourseBreadcrumb
                             items={[
                                 { label: course?.title || "Course", href: `/courses/${courseId}` },
