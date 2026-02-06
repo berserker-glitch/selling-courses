@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { IconAlertCircle, IconLoader2 } from "@tabler/icons-react";
 
+import { api } from "@/lib/api";
+
 export default function LoginPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
@@ -23,19 +25,8 @@ export default function LoginPage() {
         setError(null);
 
         try {
-            const response = await fetch("http://localhost:3000/api/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || "Something went wrong");
-            }
+            // Use the centralized API client
+            const data = await api.post("/auth/login", formData);
 
             // Store token and user data
             localStorage.setItem("token", data.token);

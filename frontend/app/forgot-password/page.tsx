@@ -14,6 +14,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { IconArrowLeft, IconLoader2, IconMailCheck } from "@tabler/icons-react";
+import { api } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
     const [isLoading, setIsLoading] = useState(false);
@@ -27,18 +28,7 @@ export default function ForgotPasswordPage() {
         setError(null);
 
         try {
-            const response = await fetch("http://localhost:3000/api/auth/forgot-password", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || "Something went wrong");
-            }
-
+            await api.post("/auth/forgot-password", { email });
             setSuccess(true);
         } catch (err: any) {
             setError(err.message);

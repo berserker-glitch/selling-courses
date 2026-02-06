@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/card";
 import { IconLogout } from "@tabler/icons-react";
 
+import { api } from "@/lib/api";
+
 export default function Home() {
     const router = useRouter();
     const [user, setUser] = useState<{ role: string; name: string } | null>(null);
@@ -33,10 +35,17 @@ export default function Home() {
         setLoading(false);
     }, [router]);
 
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        router.push("/login");
+    const handleLogout = async () => {
+        try {
+            // Use api client - authorization header is handled automatically
+            await api.post("/auth/logout", {});
+        } catch (error) {
+            console.error("Logout failed", error);
+        } finally {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            router.push("/login");
+        }
     };
 
     if (loading) {

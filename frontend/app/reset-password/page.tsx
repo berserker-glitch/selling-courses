@@ -15,6 +15,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { IconLoader2, IconCheck } from "@tabler/icons-react";
+import { api } from "@/lib/api";
 
 function ResetPasswordForm() {
     const router = useRouter();
@@ -49,17 +50,7 @@ function ResetPasswordForm() {
         setError(null);
 
         try {
-            const response = await fetch("http://localhost:3000/api/auth/reset-password", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token, password }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || "Something went wrong");
-            }
+            await api.post("/auth/reset-password", { token, password });
 
             setSuccess(true);
             setTimeout(() => {
