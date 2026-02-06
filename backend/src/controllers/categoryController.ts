@@ -36,6 +36,24 @@ export const createCategory = async (req: Request, res: Response) => {
     }
 };
 
+export const updateCategory = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const data = categorySchema.parse(req.body);
+        const category = await prisma.category.update({
+            where: { id },
+            data
+        });
+        res.json(category);
+    } catch (error: any) {
+        if (error instanceof z.ZodError) {
+            const issues = (error as any).errors || (error as any).issues;
+            return res.status(400).json({ message: issues[0]?.message || "Validation Error" });
+        }
+        res.status(400).json({ message: "Error updating category. Name might be duplicate." });
+    }
+};
+
 export const deleteCategory = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
