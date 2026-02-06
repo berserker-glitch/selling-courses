@@ -48,7 +48,7 @@ export const getConversations = async (req: Request, res: Response) => {
  */
 export const getMessages = async (req: Request, res: Response) => {
     try {
-        const { conversationId } = req.params;
+        const conversationId = req.params.conversationId as string;
         const userId = (req as any).user.id;
 
         // Verify participation
@@ -61,7 +61,7 @@ export const getMessages = async (req: Request, res: Response) => {
         }
 
         const messages = await prisma.message.findMany({
-            where: { conversationId },
+            where: { conversationId: conversationId as string },
             include: {
                 sender: {
                     select: {
