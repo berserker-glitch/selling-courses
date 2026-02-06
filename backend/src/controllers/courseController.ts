@@ -14,7 +14,8 @@ const lessonSchema = z.object({
     title: z.string().min(3),
     description: z.string().optional(),
     videoId: z.string().optional(), // VDCipher video ID
-    duration: z.string()
+    duration: z.string().optional(),
+    chapterId: z.string().optional()
 });
 
 // --- Course Handlers ---
@@ -246,6 +247,16 @@ export const updateCourse = async (req: Request, res: Response) => {
 
 // --- Lesson Handlers ---
 
+const lessonSchema = z.object({
+    title: z.string().min(3),
+    description: z.string().optional(),
+    videoId: z.string().optional(),
+    duration: z.string().optional(), // Make optional or string
+    chapterId: z.string().optional()
+});
+
+// ...
+
 export const addLesson = async (req: Request, res: Response) => {
     try {
         const { courseId } = req.params as { courseId: string };
@@ -260,13 +271,22 @@ export const addLesson = async (req: Request, res: Response) => {
 
         const data = lessonSchema.parse(req.body);
 
-        // Get current lesson count for order
-        const count = await prisma.lesson.count({ where: { courseId } });
+        // Get current lesson count for order (scoped to chapter if provided?)
+        const count = await prisma.lesson.count({
+            where: {
+                courseId,
+                chapterId: data.chapterId || null
+            }
+        });
 
         const lesson = await prisma.lesson.create({
             data: {
-                ...data,
+                title: data.title,
+                description: data.description,
+                videoId: data.videoId,
+                duration: data.duration || "0",
                 courseId,
+                chapterId: data.chapterId,
                 order: count + 1
             }
         });
