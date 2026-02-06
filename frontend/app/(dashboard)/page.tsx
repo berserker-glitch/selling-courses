@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { IconSchool } from "@tabler/icons-react";
-import { Header } from "@/components/dashboard/Header";
+
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -30,7 +30,6 @@ export default function DashboardPage() {
 
     return (
         <>
-            <Header />
             <div className="flex-1 flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
                 <div className="max-w-md w-full text-center space-y-6">
                     <div className="w-20 h-20 bg-muted/30 rounded-2xl flex items-center justify-center mx-auto border border-border border-dashed">

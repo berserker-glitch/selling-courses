@@ -40,7 +40,6 @@ export default function StudentsPage() {
         phoneNumber: "",
         categoryId: "",
         password: "",
-        autoGeneratePassword: false
     });
 
     useEffect(() => {
@@ -72,7 +71,7 @@ export default function StudentsPage() {
                 email: formData.email,
                 phoneNumber: formData.phoneNumber,
                 categoryId: formData.categoryId || undefined,
-                password: formData.autoGeneratePassword ? undefined : formData.password
+                password: formData.password || undefined
             });
 
             alert("Student created successfully!");
@@ -83,7 +82,6 @@ export default function StudentsPage() {
                 phoneNumber: "",
                 categoryId: "",
                 password: "",
-                autoGeneratePassword: false
             });
         } catch (error: any) {
             alert(error.response?.data?.message || "Failed to create student");
@@ -168,29 +166,31 @@ export default function StudentsPage() {
                                 <div className="grid gap-2">
                                     <div className="flex items-center justify-between">
                                         <Label htmlFor="password">Password</Label>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                id="auto-gen"
-                                                className="h-3 w-3 rounded border-gray-300 text-primary focus:ring-primary"
-                                                checked={formData.autoGeneratePassword}
-                                                onChange={(e) => handleChange("autoGeneratePassword", e.target.checked)}
-                                            />
-                                            <Label htmlFor="auto-gen" className="text-xs font-normal cursor-pointer text-muted-foreground">
-                                                Auto-generate
-                                            </Label>
-                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-7 text-xs"
+                                            onClick={() => {
+                                                const randomPass = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+                                                handleChange("password", randomPass);
+                                            }}
+                                        >
+                                            Auto-generate
+                                        </Button>
                                     </div>
-                                    {!formData.autoGeneratePassword && (
+                                    <div className="space-y-1">
                                         <Input
                                             id="password"
-                                            type="password"
+                                            type="text"
                                             value={formData.password}
                                             onChange={(e) => handleChange("password", e.target.value)}
-                                            placeholder="Set password"
-                                            required={!formData.autoGeneratePassword}
+                                            placeholder="Leave empty to auto-generate on server"
                                         />
-                                    )}
+                                        <p className="text-[0.8rem] text-muted-foreground">
+                                            If left empty, a password will be generated automatically and sent to the student.
+                                        </p>
+                                    </div>
                                 </div>
 
                                 <DialogFooter className="mt-4">

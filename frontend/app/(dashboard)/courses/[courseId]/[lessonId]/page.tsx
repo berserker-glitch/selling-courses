@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RichTextEditor } from "@/components/RichTextEditor";
-import { Header } from "@/components/dashboard/Header";
+
 import { CourseBreadcrumb } from "@/components/dashboard/CourseBreadcrumb";
 import { CurriculumSidebar } from "@/components/dashboard/CurriculumSidebar";
 import {
@@ -150,7 +150,6 @@ export default function LessonEditorPage() {
 
     return (
         <div className="flex h-screen flex-col">
-            <Header />
             <div className="flex flex-1 overflow-hidden">
                 {/* Main Content - Lesson Editor */}
                 <main className="flex-1 overflow-y-auto p-8 border-r bg-background">

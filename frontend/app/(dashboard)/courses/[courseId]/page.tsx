@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 
 
-import { Header } from "@/components/dashboard/Header";
+
 import { CourseBreadcrumb } from "@/components/dashboard/CourseBreadcrumb";
 import { CurriculumSidebar } from "@/components/dashboard/CurriculumSidebar";
 
@@ -59,6 +59,13 @@ export default function CourseEditorPage() {
         categoryId: "",
         description: ""
     });
+
+    // Missing state variables restoration
+    const [isChapterDialogOpen, setIsChapterDialogOpen] = useState(false);
+    const [newChapterTitle, setNewChapterTitle] = useState("");
+    const [isLessonDialogOpen, setIsLessonDialogOpen] = useState(false);
+    const [newLessonTitle, setNewLessonTitle] = useState("");
+    const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
 
     useEffect(() => {
         if (courseId) {
@@ -155,7 +162,6 @@ export default function CourseEditorPage() {
 
     return (
         <div className="flex h-screen flex-col">
-            <Header />
             <div className="flex flex-1 overflow-hidden">
                 {/* Main Content - Course Details */}
                 <main className="flex-1 overflow-y-auto p-8 border-r">
