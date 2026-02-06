@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ interface Course {
 }
 
 export function CourseList() {
+    const router = useRouter();
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -62,60 +64,40 @@ export function CourseList() {
     }
 
     return (
-        <div className="border rounded-md">
+        <div className="border rounded-md overflow-hidden">
             <Table>
-                <TableHeader>
+                <TableHeader className="bg-muted/50">
                     <TableRow>
-                        <TableHead className="w-[80px]">Image</TableHead>
-                        <TableHead>Title</TableHead>
+                        <TableHead className="w-[40%]">Title</TableHead>
                         <TableHead>Instructor</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead className="text-right">Lessons</TableHead>
                         <TableHead className="text-right">Students</TableHead>
-                        <TableHead className="w-[100px]"></TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {courses.map((course) => (
-                        <TableRow key={course.id}>
-                            <TableCell>
-                                <div className="h-10 w-16 bg-muted rounded overflow-hidden relative">
-                                    {course.thumbnail ? (
-                                        <img
-                                            src={course.thumbnail}
-                                            alt={course.title}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-secondary text-secondary-foreground">
-                                            <BookOpen className="h-4 w-4 opacity-50" />
-                                        </div>
-                                    )}
-                                </div>
-                            </TableCell>
+                        <TableRow
+                            key={course.id}
+                            className="cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => router.push(`/courses/${course.id}`)}
+                        >
                             <TableCell className="font-medium">
                                 {course.title}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-muted-foreground">
                                 {course.teacher?.name || "Unknown"}
                             </TableCell>
                             <TableCell>
-                                <Badge variant="secondary" className="font-normal">
+                                <Badge variant="secondary" className="font-normal text-xs">
                                     {course.category?.name || "Uncategorized"}
                                 </Badge>
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="text-right text-muted-foreground">
                                 {course._count?.lessons || 0}
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="text-right text-muted-foreground">
                                 {course._count?.enrollments || 0}
-                            </TableCell>
-                            <TableCell>
-                                <Link href={`/courses/${course.id}`}>
-                                    <Button variant="ghost" size="sm">
-                                        Manage
-                                    </Button>
-                                </Link>
                             </TableCell>
                         </TableRow>
                     ))}
