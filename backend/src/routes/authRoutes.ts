@@ -1,6 +1,6 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { register, login, logout, getMe, createStudent, getUsers, enrollStudentInCategory, forgotPassword, resetPassword, updateDeviceLimit, validateSession, updateStudent } from '../controllers/authController';
+import { register, login, logout, getMe, createStudent, getUsers, enrollStudentInCategory, forgotPassword, resetPassword, updateDeviceLimit, validateSession, updateStudent, unbindDevice } from '../controllers/authController';
 import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
