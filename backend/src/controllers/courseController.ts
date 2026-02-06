@@ -75,13 +75,22 @@ export const getCourseById = async (req: Request, res: Response) => {
                 // Keep direct lessons for backward compatibility or mixed mode
                 lessons: {
                     where: { chapterId: null }, // Only get lessons not in chapters
-                    orderBy: { order: 'asc' }
+                    orderBy: { order: 'asc' },
+                    include: {
+                        contentBlocks: { orderBy: { order: 'asc' } }
+                    }
                 },
                 teacher: { select: { name: true } },
                 category: true,
                 _count: { select: { enrollments: true } }
             }
         });
+
+        // Debug log to verify content blocks
+        if (course) {
+            const firstLesson = course.chapters[0]?.lessons[0] || course.lessons[0];
+            console.log(`[getCourseById] Loaded course ${id}. First lesson blocks:`, firstLesson?.contentBlocks?.length);
+        }
 
         if (!course) {
             return res.status(404).json({ message: 'Course not found' });

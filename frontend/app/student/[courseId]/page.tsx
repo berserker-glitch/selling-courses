@@ -14,9 +14,15 @@ import {
     IconLock
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import VideoPlayer from "@/components/course/VideoPlayer";
+
+interface ContentBlock {
+    id: string;
+    type: 'TEXT' | 'VIDEO' | 'QUIZ' | 'DOCUMENT';
+    content: any; // Using any for flexibility with JSON
+    order: number;
+}
 
 interface Lesson {
     id: string;
@@ -26,6 +32,7 @@ interface Lesson {
     duration: string;
     isCompleted?: boolean;
     isFree?: boolean;
+    contentBlocks?: ContentBlock[];
 }
 
 interface Chapter {
@@ -53,17 +60,25 @@ export default function CoursePlayerPage() {
     const [completing, setCompleting] = useState(false);
     const [progressMap, setProgressMap] = useState<Record<string, boolean>>({});
 
+    // Helper to extract effective video ID for a lesson
+    const getLessonVideoId = (lesson: Lesson) => {
+        // 1. Check content blocks for VIDEO type
+        if (lesson.contentBlocks && lesson.contentBlocks.length > 0) {
+            const videoBlock = lesson.contentBlocks.find(b => b.type === 'VIDEO');
+            if (videoBlock?.content?.videoId) {
+                return videoBlock.content.videoId;
+            }
+        }
+        // 2. Fallback to lesson.videoId
+        return lesson.videoId;
+    };
+
     useEffect(() => {
         const fetchCourse = async () => {
             try {
                 const data = await api.get(`/courses/${courseId}`);
                 setCourse(data);
 
-                // Initialize progress map if available from backend (needs endpoint adjustment or separate fetch)
-                // For now, assuming basic structure. 
-                // We typically fetch progress separately or it's included in lesson.isCompleted if customized backend
-
-                // Find first lesson to play
                 let firstLesson = null;
                 if (data.chapters?.[0]?.lessons?.[0]) {
                     firstLesson = data.chapters[0].lessons[0];
@@ -73,11 +88,10 @@ export default function CoursePlayerPage() {
 
                 setActiveLesson(firstLesson);
 
-                // Fetch progress specifically
                 try {
-                    const progressData = await api.get(`/courses/${courseId}/progress`); // Hypothetical endpoint
+                    const progressData = await api.get(`/courses/${courseId}/progress`);
                     if (progressData && typeof progressData === 'object') {
-                        setProgressMap(progressData); // Map of lessonId -> boolean
+                        setProgressMap(progressData);
                     }
                 } catch (e) {
                     console.warn("Could not fetch progress", e);
@@ -105,17 +119,14 @@ export default function CoursePlayerPage() {
 
         setCompleting(true);
         try {
-            // Mark complete in backend
             await api.post(`/courses/${courseId}/lessons/${activeLesson.id}/complete`, { completed: true });
 
-            // Update local state
             setProgressMap(prev => ({ ...prev, [activeLesson.id]: true }));
 
             // Find next lesson
             let nextLesson = null;
             let foundCurrent = false;
 
-            // Flatten lessons to find next easily
             const allLessons: Lesson[] = [];
             if (course.chapters?.length > 0) {
                 course.chapters.forEach(c => allLessons.push(...c.lessons));
@@ -135,9 +146,9 @@ export default function CoursePlayerPage() {
 
             if (nextLesson) {
                 setActiveLesson(nextLesson);
-            } else {
-                // Course finished?
-                // Show congestion?
+                // Scroll to top of content
+                const mainContent = document.getElementById('main-content');
+                if (mainContent) mainContent.scrollTop = 0;
             }
 
         } catch (error) {
@@ -163,6 +174,8 @@ export default function CoursePlayerPage() {
             </div>
         );
     }
+
+    const currentVideoId = activeLesson ? getLessonVideoId(activeLesson) : null;
 
     return (
         <div className="flex flex-col h-screen bg-background overflow-hidden relative">
@@ -190,7 +203,7 @@ export default function CoursePlayerPage() {
                         {sidebarOpen ? <IconX className="w-5 h-5" /> : <IconMenu2 className="w-5 h-5" />}
                     </Button>
                     <Button
-                        className="bg-white text-primary hover:bg-white/90 hidden sm:flex font-semibold shadow-sm"
+                        className="bg-white text-primary hover:bg-white/90 hidden sm:flex font-bold shadow-sm"
                         onClick={handleFinishAndContinue}
                         disabled={completing}
                     >
@@ -211,12 +224,11 @@ export default function CoursePlayerPage() {
                     <div className="p-4 border-b font-semibold flex justify-between items-center bg-muted/30">
                         <span>Course Content</span>
                         <div className="text-xs text-muted-foreground">
-                            {/* Simple completion stat */}
                             {Object.keys(progressMap).length} Completed
                         </div>
                     </div>
 
-                    <ScrollArea className="flex-1">
+                    <div className="flex-1 overflow-y-auto custom-scroll">
                         <div className="pb-10">
                             {course.chapters?.length > 0 ? (
                                 course.chapters.map((chapter, index) => (
@@ -289,11 +301,11 @@ export default function CoursePlayerPage() {
                                 </div>
                             )}
                         </div>
-                    </ScrollArea>
+                    </div>
                 </aside>
 
                 {/* Main Content */}
-                <main className="flex-1 overflow-y-auto bg-muted/10 p-4 md:p-8 w-full scroll-smooth">
+                <main id="main-content" className="flex-1 overflow-y-auto bg-muted/10 p-4 md:p-8 w-full scroll-smooth">
                     {activeLesson ? (
                         <div className="max-w-4xl mx-auto space-y-6">
                             {/* Title */}
@@ -306,23 +318,37 @@ export default function CoursePlayerPage() {
                             {/* Custom Video Player */}
                             <div className="w-full bg-black rounded-xl overflow-hidden shadow-lg relative z-0">
                                 <VideoPlayer
-                                    videoId={activeLesson.videoId}
+                                    videoId={currentVideoId}
                                     courseId={courseId}
-                                    chapterId={undefined} // Pass if needed
                                     lessonId={activeLesson.id}
                                 />
                             </div>
 
-                            {/* Description/Content */}
-                            <div className="prose prose-slate dark:prose-invert max-w-none bg-background p-6 rounded-xl border shadow-sm">
-                                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                                    <span className="w-1 h-6 bg-primary rounded-full"></span>
-                                    About this lesson
-                                </h3>
-                                {activeLesson.description ? (
-                                    <div dangerouslySetInnerHTML={{ __html: activeLesson.description }} />
+                            {/* Content Blocks Rendering */}
+                            <div className="bg-background p-6 rounded-xl border shadow-sm space-y-6">
+                                {/* If we have blocks, render them */}
+                                {activeLesson.contentBlocks && activeLesson.contentBlocks.length > 0 ? (
+                                    activeLesson.contentBlocks.map(block => (
+                                        <div key={block.id} className="prose prose-slate dark:prose-invert max-w-none">
+                                            {block.type === 'TEXT' && block.content?.html && (
+                                                <div dangerouslySetInnerHTML={{ __html: block.content.html }} />
+                                            )}
+                                            {/* We already rendered VIDEO type content above as default player, from getLessonVideoId */}
+                                        </div>
+                                    ))
                                 ) : (
-                                    <p className="text-muted-foreground italic">No description provided.</p>
+                                    /* Fallback to legacy description */
+                                    <div className="prose prose-slate dark:prose-invert max-w-none">
+                                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                                            <span className="w-1 h-6 bg-primary rounded-full"></span>
+                                            About this lesson
+                                        </h3>
+                                        {activeLesson.description ? (
+                                            <div dangerouslySetInnerHTML={{ __html: activeLesson.description }} />
+                                        ) : (
+                                            <p className="text-muted-foreground italic">No description provided.</p>
+                                        )}
+                                    </div>
                                 )}
                             </div>
 
@@ -335,7 +361,7 @@ export default function CoursePlayerPage() {
                                     size="lg"
                                     onClick={handleFinishAndContinue}
                                     disabled={completing}
-                                    className="gap-2"
+                                    className="gap-2 shadow-md"
                                 >
                                     Finish & Continue
                                     <IconArrowLeft className="w-4 h-4 rotate-180" />

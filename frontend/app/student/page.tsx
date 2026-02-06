@@ -137,7 +137,7 @@ export default function StudentDashboard() {
                                 <TableRow
                                     key={course.id}
                                     className="group cursor-pointer hover:bg-muted/30 transition-colors border-b-muted/50 last:border-0"
-                                    onClick={() => router.push(`/courses/${course.id}`)}
+                                    onClick={() => router.push(`/student/${course.id}`)}
                                 >
                                     <TableCell className="pl-6 py-4">
                                         <div>
