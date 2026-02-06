@@ -147,6 +147,36 @@ export function StudentDetailsSidebar({ student, onClose, onUpdate }: StudentSid
                     <p className="text-xs text-muted-foreground">Maximum simultaneous logins allowed.</p>
                 </div>
 
+                <div className="pt-2">
+                    <Label className="mb-2 block">Device Binding</Label>
+                    <div className="bg-muted/30 p-3 rounded-md border border-dashed border-red-200">
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm">
+                                <span className="font-medium">Unbind Device</span>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    Force logout and allow new device binding.
+                                </p>
+                            </div>
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={async () => {
+                                    if (!confirm("Are you sure? This will force logout the student.")) return;
+                                    try {
+                                        await api.post(`/auth/users/${student.id}/unbind-device`, {});
+                                        alert("Device unbound successfully");
+                                    } catch (e: any) {
+                                        alert(e.message || "Failed to unbind");
+                                    }
+                                }}
+                            >
+                                Unbind
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="pt-4">
                     <Button type="submit" className="w-full" disabled={loading}>
                         {loading && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
