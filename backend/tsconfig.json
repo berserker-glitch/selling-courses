@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2016",
     "module": "commonjs",
-    // "rootDir": "./src",
+    "rootDir": "./src",
     "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -10,6 +10,9 @@
     "skipLibCheck": true
   },
   "exclude": [
-    "debug-api.ts"
+    "debug-api.ts",
+    "debug-db.ts",
+    "node_modules",
+    "prisma"
   ]
 }

@@ -8,7 +8,8 @@
     "dev": "nodemon src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "create-teacher": "ts-node src/scripts/createTeacher.ts"
+    "create-teacher": "ts-node src/scripts/createTeacher.ts",
+    "db:reset": "prisma db push --force-reset"
   },
   "keywords": [],
   "author": "",
