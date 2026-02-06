@@ -49,9 +49,9 @@ export function Sidebar() {
     };
 
     return (
-        <aside className="w-64 border-r border-border bg-background flex flex-col shadow-none h-screen fixed left-0 top-0">
+        <aside className="w-64 bg-muted/40 flex flex-col h-screen fixed left-0 top-0">
             {/* Brand */}
-            <div className="h-16 flex items-center px-6 border-b border-border">
+            <div className="h-16 flex items-center px-6">
                 <div className="flex items-center gap-2 font-bold text-lg tracking-tight">
                     <div className="bg-primary/20 p-1.5 rounded-md text-primary">
                         <IconSchool className="w-5 h-5" />
@@ -78,7 +78,7 @@ export function Sidebar() {
             </nav>
 
             {/* Footer */}
-            <div className="p-4 border-t border-border">
+            <div className="p-4">
                 <SidebarItem
                     icon={<IconLogout className="w-5 h-5" />}
                     label="Sign Out"
