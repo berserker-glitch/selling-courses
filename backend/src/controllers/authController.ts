@@ -91,16 +91,18 @@ export const login = async (req: Request, res: Response) => {
         // Device Binding Enforcement for Students
         if (user.role === 'STUDENT') {
             // Check if user has a bound device
-            if (user.boundDeviceId) {
-                if (user.boundDeviceId !== deviceId) {
-                    console.log(`[Auth] Login blocked: Device mismatch for ${user.email}. Expected ${user.boundDeviceId}, got ${deviceId}`);
+            // Cast user to any to access new fields if types aren't updated
+            const userWithDevice = user as any;
+            if (userWithDevice.boundDeviceId) {
+                if (userWithDevice.boundDeviceId !== deviceId) {
+                    console.log(`[Auth] Login blocked: Device mismatch for ${user.email}. Expected ${userWithDevice.boundDeviceId}, got ${deviceId}`);
 
                     // Audit the attempt
                     await prisma.auditLog.create({
                         data: {
                             userId: user.id,
                             action: 'LOGIN_BLOCKED_DEVICE_MISMATCH',
-                            metadata: { expected: user.boundDeviceId, actual: deviceId },
+                            metadata: { expected: userWithDevice.boundDeviceId, actual: deviceId },
                             ip: req.ip || undefined,
                             userAgent: req.headers['user-agent'] as string | undefined
                         }
@@ -451,7 +453,7 @@ export const toggleSuspension = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const newStatus = !user.suspended;
+        const newStatus = !(user as any).suspended;
 
         await prisma.user.update({
             where: { id: userId },

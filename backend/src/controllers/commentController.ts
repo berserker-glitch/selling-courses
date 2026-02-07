@@ -9,7 +9,7 @@ const createCommentSchema = z.object({
 
 export const getComments = async (req: Request, res: Response) => {
     try {
-        const { lessonId } = req.params;
+        const lessonId = req.params.lessonId as string;
 
         if (!lessonId) {
             return res.status(400).json({ message: 'Lesson ID is required' });
