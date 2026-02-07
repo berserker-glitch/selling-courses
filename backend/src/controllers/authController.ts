@@ -681,3 +681,47 @@ export const updateStudent = async (req: Request, res: Response) => {
         res.status(400).json({ message: error.message || 'Error updating student' });
     }
 };
+// --- Change Password (Teacher) ---
+
+export const changeStudentPassword = async (req: Request, res: Response) => {
+    try {
+        const requestingUser = (req as any).user;
+        if (!['TEACHER', 'ADMIN'].includes(requestingUser.role)) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        const userId = req.params.userId as string;
+        const { password } = req.body;
+
+        if (!password || password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword }
+        });
+
+        // Terminate all sessions for security
+        await prisma.session.deleteMany({ where: { userId } });
+        // Optional: force logout socket? Maybe not strictly needed if they just forgot password, but good practice.
+        // forceLogoutUser(userId, 'Your password has been changed by an administrator.');
+
+        // Audit Log
+        await prisma.auditLog.create({
+            data: {
+                userId: requestingUser.id,
+                action: 'CHANGE_STUDENT_PASSWORD',
+                metadata: { targetUserId: userId },
+                ip: req.ip || undefined,
+                userAgent: req.headers['user-agent'] as string | undefined
+            }
+        });
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message || 'Error changing password' });
+    }
+};

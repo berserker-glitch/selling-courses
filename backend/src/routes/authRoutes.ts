@@ -1,6 +1,6 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { register, login, logout, getMe, createStudent, getUsers, enrollStudentInCategory, forgotPassword, resetPassword, updateDeviceLimit, validateSession, updateStudent, unbindDevice, toggleSuspension } from '../controllers/authController';
+import { register, login, logout, getMe, createStudent, getUsers, enrollStudentInCategory, forgotPassword, resetPassword, updateDeviceLimit, validateSession, updateStudent, unbindDevice, toggleSuspension, changeStudentPassword } from '../controllers/authController';
 import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
@@ -33,6 +33,7 @@ router.get('/users', protect, getUsers);
 router.put('/users/:id', protect, updateStudent);
 router.post('/users/:userId/unbind-device', protect, unbindDevice); // New route // Update student details
 router.post('/users/:userId/toggle-suspension', protect, toggleSuspension); // New route
+router.put('/users/:userId/change-password', protect, changeStudentPassword); // New route
 router.post('/enroll-category', protect, enrollStudentInCategory);
 router.put('/users/:userId/device-limit', protect, updateDeviceLimit); // Teacher sets student device limit
 
