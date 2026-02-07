@@ -105,6 +105,9 @@ export default function StudentsPage() {
     // Category Filter State
     const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
 
+    // Students List State
+    const [students, setStudents] = useState<any[]>([]);
+
     useEffect(() => {
         fetchStudents();
     }, [selectedCategory]); // Re-fetch when filter changes
