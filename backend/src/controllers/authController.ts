@@ -81,7 +81,7 @@ export const login = async (req: Request, res: Response) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        if (user.suspended) {
+        if ((user as any).suspended) {
             console.log(`Login blocked: User ${email} is suspended`);
             return res.status(403).json({ message: 'Your account has been suspended. Please contact the administrator.' });
         }
@@ -119,7 +119,7 @@ export const login = async (req: Request, res: Response) => {
                 if (deviceId !== 'unknown') {
                     await prisma.user.update({
                         where: { id: user.id },
-                        data: { boundDeviceId: deviceId }
+                        data: { boundDeviceId: deviceId } as any
                     });
                     console.log(`[Auth] Device bound for ${user.email}: ${deviceId}`);
                 }
@@ -293,7 +293,7 @@ export const getUsers = async (req: Request, res: Response) => {
                 enrolledCategories: {
                     select: { id: true }
                 }
-            }
+            } as any
         });
 
         res.json(users);
@@ -403,7 +403,7 @@ export const unbindDevice = async (req: Request, res: Response) => {
         // Clear boundDeviceId
         await prisma.user.update({
             where: { id: userId },
-            data: { boundDeviceId: null }
+            data: { boundDeviceId: null } as any
         });
 
         // Force logout user from all devices to ensure they re-bind on next login
@@ -457,7 +457,7 @@ export const toggleSuspension = async (req: Request, res: Response) => {
 
         await prisma.user.update({
             where: { id: userId },
-            data: { suspended: newStatus }
+            data: { suspended: newStatus } as any
         });
 
         if (newStatus) {
