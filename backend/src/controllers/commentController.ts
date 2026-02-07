@@ -69,3 +69,38 @@ export const createComment = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error creating comment' });
     }
 };
+
+export const deleteComment = async (req: Request, res: Response) => {
+    try {
+        const { commentId } = req.params;
+        const requestingUser = (req as any).user;
+
+        const comment = await prisma.comment.findUnique({
+            where: { id: commentId },
+            include: { user: true } // Include user to check ownership if needed
+        });
+
+        if (!comment) {
+            return res.status(404).json({ message: 'Comment not found' });
+        }
+
+        // Allow delete if:
+        // 1. User is the author
+        // 2. User is TEACHER or ADMIN
+        const isAuthor = comment.userId === requestingUser.id;
+        const isAdminOrTeacher = ['ADMIN', 'TEACHER'].includes(requestingUser.role);
+
+        if (!isAuthor && !isAdminOrTeacher) {
+            return res.status(403).json({ message: 'Not authorized to delete this comment' });
+        }
+
+        await prisma.comment.delete({
+            where: { id: commentId }
+        });
+
+        res.json({ message: 'Comment deleted successfully' });
+    } catch (error) {
+        console.error('Delete Comment Error:', error);
+        res.status(500).json({ message: 'Error deleting comment' });
+    }
+};

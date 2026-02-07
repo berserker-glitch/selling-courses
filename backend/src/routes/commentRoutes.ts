@@ -1,6 +1,6 @@
 import express from 'express';
 import { protect } from '../middleware/authMiddleware';
-import { getComments, createComment } from '../controllers/commentController';
+import { getComments, createComment, deleteComment } from '../controllers/commentController';
 
 const router = express.Router();
 
@@ -9,5 +9,6 @@ const router = express.Router();
 // For now, protecting both to ensure privacy/context.
 router.get('/:lessonId', protect, getComments);
 router.post('/', protect, createComment);
+router.delete('/:commentId', protect, deleteComment);
 
 export default router;
