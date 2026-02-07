@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { LessonDiscussion } from "@/components/lesson/LessonDiscussion";
 
 import { CourseBreadcrumb } from "@/components/dashboard/CourseBreadcrumb";
 import { CurriculumSidebar } from "@/components/dashboard/CurriculumSidebar";
@@ -271,6 +272,10 @@ export default function LessonEditorPage() {
                                         No content yet. Click "Add Content" to start.
                                     </div>
                                 )}
+
+                                <div className="mt-12 pt-8 border-t">
+                                    <LessonDiscussion lessonId={lessonId as string} />
+                                </div>
                             </>
                         ) : (
                             <div>Lesson not found</div>
