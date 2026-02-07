@@ -18,6 +18,7 @@ model User {
   boundDeviceId String? // Device ID this account is restricted to (for Students)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  suspended Boolean @default(false)
   
   resetToken       String?  @unique
   resetTokenExpiry DateTime?

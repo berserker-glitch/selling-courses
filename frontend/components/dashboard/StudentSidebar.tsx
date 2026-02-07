@@ -14,6 +14,7 @@ interface Student {
     role: string;
     maxDevices: number;
     createdAt: string;
+    suspended?: boolean; // Add this
     enrolledCategories?: { id: string, name?: string }[];
 }
 
@@ -172,6 +173,47 @@ export function StudentDetailsSidebar({ student, onClose, onUpdate }: StudentSid
                                 }}
                             >
                                 Unbind
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="pt-2">
+                    <Label className="mb-2 block">Account Status</Label>
+                    <div className={`p-4 rounded-md border ${student.suspended ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm">
+                                <span className={`font-medium ${student.suspended ? 'text-red-700' : 'text-green-700'}`}>
+                                    {student.suspended ? 'Suspended' : 'Active'}
+                                </span>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    {student.suspended
+                                        ? 'User cannot login.'
+                                        : 'User has full access.'}
+                                </p>
+                            </div>
+                            <Button
+                                type="button"
+                                variant={student.suspended ? "default" : "destructive"} // Green (default/primary) to unsuspend, Red to suspend
+                                size="sm"
+                                disabled={loading}
+                                onClick={async () => {
+                                    const action = student.suspended ? "unsuspend" : "suspend";
+                                    if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+
+                                    try {
+                                        setLoading(true);
+                                        const res = await api.post(`/auth/users/${student.id}/toggle-suspension`, {});
+                                        alert(res.message);
+                                        onUpdate();
+                                    } catch (e: any) {
+                                        alert(e.message || `Failed to ${action}`);
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }}
+                            >
+                                {student.suspended ? 'Unsuspend' : 'Suspend'}
                             </Button>
                         </div>
                     </div>

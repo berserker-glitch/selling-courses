@@ -81,6 +81,11 @@ export const login = async (req: Request, res: Response) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
+        if (user.suspended) {
+            console.log(`Login blocked: User ${email} is suspended`);
+            return res.status(403).json({ message: 'Your account has been suspended. Please contact the administrator.' });
+        }
+
         const deviceId = (req.headers['x-device-id'] as string) || (req.headers['user-agent'] || 'unknown');
 
         // Device Binding Enforcement for Students
@@ -410,6 +415,62 @@ export const unbindDevice = async (req: Request, res: Response) => {
         res.json({ message: 'Device unbound successfully' });
     } catch (error: any) {
         console.error('[Auth] Error unbinding device:', error);
+        res.status(500).json({ message: error.message || 'Server error' });
+    }
+};
+
+
+
+/**
+ * Toggle user suspension status.
+ * Only accessible by TEACHER or ADMIN roles.
+ * 
+ * @route POST /api/auth/users/:userId/toggle-suspension
+ */
+export const toggleSuspension = async (req: Request, res: Response) => {
+    try {
+        const userId = req.params.userId as string;
+
+        // Check permissions
+        const requestingUser = (req as any).user;
+        if (!['TEACHER', 'ADMIN'].includes(requestingUser.role)) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const newStatus = !user.suspended;
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { suspended: newStatus }
+        });
+
+        if (newStatus) {
+            // Force logout if suspending
+            await prisma.session.deleteMany({ where: { userId } });
+            forceLogoutUser(userId, 'Your account has been suspended by an administrator.');
+        }
+
+        console.log(`[Auth] User ${user.email} suspension status set to ${newStatus} by ${requestingUser.email}`);
+
+        // Audit log
+        await prisma.auditLog.create({
+            data: {
+                userId: requestingUser.id,
+                action: newStatus ? 'SUSPEND_USER' : 'UNSUSPEND_USER',
+                metadata: { targetUserId: userId },
+                ip: req.ip || undefined,
+                userAgent: req.headers['user-agent'] as string | undefined
+            }
+        });
+
+        res.json({ message: `User ${newStatus ? 'suspended' : 'unsuspended'} successfully`, suspended: newStatus });
+    } catch (error: any) {
+        console.error('[Auth] Error toggling suspension:', error);
         res.status(500).json({ message: error.message || 'Server error' });
     }
 };
