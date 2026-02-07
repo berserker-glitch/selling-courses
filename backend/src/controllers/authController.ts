@@ -262,11 +262,19 @@ export const getUsers = async (req: Request, res: Response) => {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
-        const { role } = req.query;
+        const { role, categoryId } = req.query;
 
         const whereClause: any = {};
         if (role) {
             whereClause.role = role;
+        }
+
+        if (categoryId && typeof categoryId === 'string') {
+            whereClause.enrolledCategories = {
+                some: {
+                    id: categoryId
+                }
+            };
         }
 
         const users = await prisma.user.findMany({
@@ -279,6 +287,7 @@ export const getUsers = async (req: Request, res: Response) => {
                 role: true,
                 maxDevices: true, // Include device limit in user list
                 createdAt: true,
+                suspended: true, // properties added in previous steps must be preserved
                 enrolledCategories: {
                     select: { id: true }
                 }

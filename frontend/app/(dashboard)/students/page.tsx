@@ -102,16 +102,20 @@ export default function StudentsPage() {
         }
     };
 
-    // Students List State
-    const [students, setStudents] = useState<any[]>([]);
+    // Category Filter State
+    const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
 
     useEffect(() => {
         fetchStudents();
-    }, []);
+    }, [selectedCategory]); // Re-fetch when filter changes
 
     const fetchStudents = async () => {
         try {
-            const data = await api.get('/auth/users?role=STUDENT');
+            let url = '/auth/users?role=STUDENT';
+            if (selectedCategory && selectedCategory !== "ALL") {
+                url += `&categoryId=${selectedCategory}`;
+            }
+            const data = await api.get(url);
             setStudents(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Failed to fetch students", error);
@@ -247,7 +251,27 @@ export default function StudentsPage() {
                             <TableRow>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Email</TableHead>
-                                <TableHead>Category</TableHead>
+                                <TableHead onClick={(e) => e.stopPropagation()}>
+                                    <div className="flex items-center gap-2">
+                                        <span>Category</span>
+                                        <Select
+                                            value={selectedCategory}
+                                            onValueChange={setSelectedCategory}
+                                        >
+                                            <SelectTrigger className="h-7 w-[130px] text-xs bg-background/50 border-input/50 focus:ring-0">
+                                                <SelectValue placeholder="Filter" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="ALL">All Categories</SelectItem>
+                                                {categories.map((category) => (
+                                                    <SelectItem key={category.id} value={category.id}>
+                                                        {category.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </TableHead>
                                 <TableHead>Max Devices</TableHead>
                                 <TableHead>Joined</TableHead>
                             </TableRow>
@@ -256,7 +280,7 @@ export default function StudentsPage() {
                             {students.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                                        No students found. Add one to get started.
+                                        No students found.
                                     </TableCell>
                                 </TableRow>
                             ) : (
