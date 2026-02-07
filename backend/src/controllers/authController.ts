@@ -291,7 +291,7 @@ export const getUsers = async (req: Request, res: Response) => {
                 createdAt: true,
                 suspended: true, // properties added in previous steps must be preserved
                 enrolledCategories: {
-                    select: { id: true }
+                    select: { id: true, name: true }
                 }
             } as any
         });

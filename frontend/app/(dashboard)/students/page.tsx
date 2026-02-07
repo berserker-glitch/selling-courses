@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -296,10 +297,17 @@ export default function StudentsPage() {
                                         <TableCell className="font-medium">{student.name}</TableCell>
                                         <TableCell>{student.email}</TableCell>
                                         <TableCell>
-                                            {student.enrolledCategories && student.enrolledCategories.length > 0
-                                                ? categories.find(c => c.id === student.enrolledCategories[0]?.id)?.name || "Unknown"
-                                                : "None"
-                                            }
+                                            <div className="flex flex-wrap gap-1">
+                                                {student.enrolledCategories && student.enrolledCategories.length > 0 ? (
+                                                    student.enrolledCategories.map((cat: any) => (
+                                                        <Badge key={cat.id} variant="secondary" className="text-xs px-2 py-0.5">
+                                                            {cat.name || categories.find(c => c.id === cat.id)?.name || "Unknown"}
+                                                        </Badge>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-muted-foreground text-sm">None</span>
+                                                )}
+                                            </div>
                                         </TableCell>
                                         <TableCell>{student.maxDevices}</TableCell>
                                         <TableCell>{new Date(student.createdAt).toLocaleDateString()}</TableCell>
