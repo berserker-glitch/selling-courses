@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea"; // Assuming this exists or use Input
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { IconLoader2, IconTrash, IconMessageCircle, IconSend } from "@tabler/icons-react";
-import { formatDistanceToNow } from "date-fns";
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { IconLoader2, IconTrash, IconMessageCircle, IconSend, IconUser } from "@tabler/icons-react";
+// import { formatDistanceToNow } from "date-fns";
 // import { useToast } from "@/components/ui/use-toast";
 
 interface Comment {
@@ -30,13 +30,26 @@ export function LessonDiscussion({ lessonId, currentUserId, currentUserRole }: L
     const [newComment, setNewComment] = useState("");
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    // const { toast } = useToast();
+    const [currentUser, setCurrentUser] = useState<{ id: string, role: string } | null>(null);
+
+    useEffect(() => {
+        fetchCurrentUser();
+    }, []);
 
     useEffect(() => {
         if (lessonId) {
             fetchComments();
         }
     }, [lessonId]);
+
+    const fetchCurrentUser = async () => {
+        try {
+            const user = await api.get('/auth/me');
+            setCurrentUser(user);
+        } catch (error) {
+            console.error("Failed to fetch current user", error);
+        }
+    };
 
     const fetchComments = async () => {
         try {
@@ -86,9 +99,9 @@ export function LessonDiscussion({ lessonId, currentUserId, currentUserRole }: L
     };
 
     const canDelete = (comment: Comment) => {
-        if (!currentUserId) return false;
-        if (currentUserRole === 'TEACHER' || currentUserRole === 'ADMIN') return true;
-        return comment.userId === currentUserId;
+        if (!currentUser) return false;
+        if (currentUserRole === 'TEACHER' || currentUserRole === 'ADMIN' || currentUser.role === 'TEACHER' || currentUser.role === 'ADMIN') return true;
+        return comment.userId === currentUser.id;
     };
 
     return (
@@ -131,10 +144,9 @@ export function LessonDiscussion({ lessonId, currentUserId, currentUserRole }: L
                 ) : (
                     comments.map(comment => (
                         <div key={comment.id} className="group flex gap-4 p-4 rounded-lg bg-card border hover:border-primary/20 transition-colors">
-                            <Avatar className="w-10 h-10 border">
-                                <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${comment.user.name}`} />
-                                <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
+                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border overflow-hidden flex-shrink-0">
+                                <span className="font-semibold text-muted-foreground">{comment.user.name.charAt(0).toUpperCase()}</span>
+                            </div>
                             <div className="flex-1 space-y-1">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
@@ -147,7 +159,7 @@ export function LessonDiscussion({ lessonId, currentUserId, currentUserRole }: L
                                             </span>
                                         )}
                                         <span className="text-xs text-muted-foreground">
-                                            {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                                            {new Date(comment.createdAt).toLocaleDateString()} {new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
                                     {canDelete(comment) && (

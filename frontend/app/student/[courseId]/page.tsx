@@ -20,6 +20,7 @@ import { HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import VideoPlayer from "@/components/course/VideoPlayer";
+import { LessonDiscussion } from "@/components/lesson/LessonDiscussion";
 
 interface ContentBlock {
     id: string;
@@ -439,6 +440,11 @@ export default function CoursePlayerPage() {
                                         </div>
                                     </>
                                 )}
+                            </div>
+
+                            {/* Discussion Section */}
+                            <div className="mt-12 pt-8 border-t">
+                                <LessonDiscussion lessonId={activeLesson.id} />
                             </div>
 
                             {/* Navigation Footer */}
