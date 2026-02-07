@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
-import { IconX, IconLoader2, IconDeviceDesktop, IconDotsVertical, IconKey, IconBan, IconDeviceDesktopOff, IconCheck } from "@tabler/icons-react";
+import { IconX, IconLoader2, IconDeviceDesktop, IconDotsVertical, IconKey, IconBan, IconDeviceDesktopOff, IconCheck, IconPlus } from "@tabler/icons-react";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -12,6 +13,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import {
     Dialog,
@@ -34,6 +36,11 @@ interface Student {
     enrolledCategories?: { id: string, name?: string }[];
 }
 
+interface Category {
+    id: string;
+    name: string;
+}
+
 interface StudentSidebarProps {
     student: Student | null;
     onClose: () => void;
@@ -48,6 +55,8 @@ export function StudentDetailsSidebar({ student, onClose, onUpdate }: StudentSid
         phoneNumber: "",
         maxDevices: 1
     });
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+    const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
 
     const [passwordOpen, setPasswordOpen] = useState(false);
     const [newPassword, setNewPassword] = useState("");
@@ -61,13 +70,40 @@ export function StudentDetailsSidebar({ student, onClose, onUpdate }: StudentSid
                 phoneNumber: student.phoneNumber || "",
                 maxDevices: student.maxDevices || 1
             });
+            // Initialize selected categories
+            if (student.enrolledCategories) {
+                setSelectedCategoryIds(student.enrolledCategories.map(c => c.id));
+            } else {
+                setSelectedCategoryIds([]);
+            }
         }
     }, [student]);
+
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+
+    const fetchCategories = async () => {
+        try {
+            const data = await api.get('/categories');
+            setAvailableCategories(data);
+        } catch (error) {
+            console.error("Failed to fetch categories", error);
+        }
+    };
 
     if (!student) return null;
 
     const handleChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const toggleCategory = (categoryId: string) => {
+        setSelectedCategoryIds(prev =>
+            prev.includes(categoryId)
+                ? prev.filter(id => id !== categoryId)
+                : [...prev, categoryId]
+        );
     };
 
     const handleUpdate = async (e: React.FormEvent) => {
@@ -79,7 +115,8 @@ export function StudentDetailsSidebar({ student, onClose, onUpdate }: StudentSid
                 api.put(`/auth/users/${student.id}`, {
                     name: formData.name,
                     email: formData.email,
-                    phoneNumber: formData.phoneNumber
+                    phoneNumber: formData.phoneNumber,
+                    categoryIds: selectedCategoryIds // Send updated categories
                 })
             ];
 
@@ -197,7 +234,7 @@ export function StudentDetailsSidebar({ student, onClose, onUpdate }: StudentSid
                     <h3 className="text-lg font-medium">{student.name}</h3>
                     <p className="text-sm text-muted-foreground">{student.email}</p>
 
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex gap-2 mt-3 flex-wrap justify-center">
                         <div className="text-xs bg-muted px-2 py-1 rounded">
                             Joined: {new Date(student.createdAt).toLocaleDateString()}
                         </div>
@@ -245,6 +282,60 @@ export function StudentDetailsSidebar({ student, onClose, onUpdate }: StudentSid
                             value={formData.phoneNumber}
                             onChange={(e) => handleChange("phoneNumber", e.target.value)}
                         />
+                    </div>
+
+                    {/* Multi-Select Category UI */}
+                    <div className="space-y-2">
+                        <Label className="flex justify-between items-center">
+                            Enrolled Categories
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm" className="h-6 gap-1">
+                                        <IconPlus className="w-3 h-3" /> Manage
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56">
+                                    <DropdownMenuLabel>Select Categories</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    {availableCategories.length === 0 ? (
+                                        <div className="p-2 text-sm text-muted-foreground text-center">No categories found</div>
+                                    ) : (
+                                        availableCategories.map(cat => (
+                                            <DropdownMenuCheckboxItem
+                                                key={cat.id}
+                                                checked={selectedCategoryIds.includes(cat.id)}
+                                                onCheckedChange={() => toggleCategory(cat.id)}
+                                            >
+                                                {cat.name}
+                                            </DropdownMenuCheckboxItem>
+                                        ))
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </Label>
+                        <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border rounded-md bg-muted/10">
+                            {selectedCategoryIds.length === 0 ? (
+                                <span className="text-sm text-muted-foreground italic">No categories assigned</span>
+                            ) : (
+                                selectedCategoryIds.map(id => {
+                                    const cat = availableCategories.find(c => c.id === id);
+                                    // Fallback to finding name in student's original enrolledCategories if not in available (edge case)
+                                    const name = cat?.name || student.enrolledCategories?.find(c => c.id === id)?.name || "Unknown";
+                                    return (
+                                        <Badge key={id} variant="secondary" className="gap-1 pr-1">
+                                            {name}
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleCategory(id)}
+                                                className="hover:bg-destructive/10 hover:text-destructive rounded-full p-0.5"
+                                            >
+                                                <IconX className="w-3 h-3" />
+                                            </button>
+                                        </Badge>
+                                    );
+                                })
+                            )}
+                        </div>
                     </div>
 
                     <div className="space-y-2">

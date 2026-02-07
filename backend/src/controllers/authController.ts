@@ -662,6 +662,7 @@ export const updateStudent = async (req: Request, res: Response) => {
             name: z.string().min(2).optional(),
             email: z.string().email().optional(),
             phoneNumber: z.string().optional(),
+            categoryIds: z.array(z.string()).optional()
         });
 
         const data = schema.parse(req.body);
@@ -679,10 +680,24 @@ export const updateStudent = async (req: Request, res: Response) => {
             }
         }
 
+        // Prepare update data
+        const updateData: any = {
+            name: data.name,
+            email: data.email,
+            phoneNumber: data.phoneNumber
+        };
+
+        // Handle categories update if provided
+        if (data.categoryIds) {
+            updateData.enrolledCategories = {
+                set: data.categoryIds.map(catId => ({ id: catId }))
+            };
+        }
+
         const updatedUser = await prisma.user.update({
             where: { id },
-            data,
-            select: { id: true, name: true, email: true, phoneNumber: true, enrolledCategories: true }
+            data: updateData,
+            select: { id: true, name: true, email: true, phoneNumber: true, enrolledCategories: { select: { id: true, name: true } } }
         });
 
         res.json(updatedUser);
